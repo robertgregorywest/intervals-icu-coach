@@ -1,7 +1,7 @@
 import { z } from "zod";
-import type { IIntervalsClient } from "../index.js";
+import { defineTool, MUTATING, READ_ONLY, UPSERT } from "./define.js";
 
-export const listWorkoutLibrarySchema = z.object({
+const listWorkoutLibrarySchema = z.object({
   folder: z
     .string()
     .optional()
@@ -11,7 +11,7 @@ export const listWorkoutLibrarySchema = z.object({
     ),
 });
 
-export const listWorkoutLibraryOutputSchema = z.object({
+const listWorkoutLibraryOutputSchema = z.object({
   folders: z.array(
     z.object({
       id: z.number(),
@@ -35,25 +35,38 @@ export const listWorkoutLibraryOutputSchema = z.object({
   ),
 });
 
-export async function listWorkoutLibrary(
-  client: IIntervalsClient,
-  args: z.infer<typeof listWorkoutLibrarySchema>
-): Promise<z.infer<typeof listWorkoutLibraryOutputSchema>> {
-  return client.listWorkoutLibrary(args.folder);
-}
+export const listWorkoutLibraryTool = defineTool({
+  name: "list_workout_library",
+  description:
+    "List the athlete's saved workouts (folders + workouts with name and a one-line summary). " +
+    "Use this BEFORE composing an ad-hoc session so you reuse the athlete's curated templates. " +
+    'Optional "folder" arg filters by folder name. ' +
+    "Each workout carries a `purpose` saying what it is FOR — use that to pick the right one. " +
+    "`hasTemplate` marks workouts maintained by sync_workout_library. " +
+    "Returns: { folders: [...], workouts: [{ id, name, folder_id, stepCount, totalSeconds, hasTemplate, purpose, oneLine }] }.",
+  schema: listWorkoutLibrarySchema,
+  annotations: READ_ONLY,
+  outputSchema: listWorkoutLibraryOutputSchema,
+  handler: (client, args) => client.workoutLibrary.list(args.folder),
+});
 
-export const getWorkoutLibraryItemSchema = z.object({
+const getWorkoutLibraryItemSchema = z.object({
   id: z.number().describe("Library workout ID (from list_workout_library)"),
 });
 
-export async function getWorkoutLibraryItem(
-  client: IIntervalsClient,
-  args: z.infer<typeof getWorkoutLibraryItemSchema>
-): Promise<unknown> {
-  return client.getWorkoutLibraryItem(args.id);
-}
+export const getWorkoutLibraryItemTool = defineTool({
+  name: "get_workout_library_item",
+  description:
+    "Get the full body of a saved workout: prose rationale, steps and provenance. " +
+    "Returns: { workout, description_text, seedId, summary } where seedId names the template " +
+    "the workout is rendered from (null when nothing manages it).",
+  schema: getWorkoutLibraryItemSchema,
+  annotations: READ_ONLY,
+  outputSchema: null,
+  handler: (client, args) => client.workoutLibrary.get(args.id),
+});
 
-export const syncWorkoutLibrarySchema = z.object({
+const syncWorkoutLibrarySchema = z.object({
   mapWatts: z
     .number()
     .int()
@@ -89,7 +102,7 @@ const syncActionSchema = z.object({
   adopted: z.boolean().optional(),
 });
 
-export const syncWorkoutLibraryOutputSchema = z.object({
+const syncWorkoutLibraryOutputSchema = z.object({
   dryRun: z.boolean(),
   created: z.array(syncActionSchema),
   updated: z.array(syncActionSchema),
@@ -112,28 +125,49 @@ export const syncWorkoutLibraryOutputSchema = z.object({
   warnings: z.array(z.string()),
 });
 
-export async function syncWorkoutLibrary(
-  client: IIntervalsClient,
-  args: z.infer<typeof syncWorkoutLibrarySchema>
-): Promise<z.infer<typeof syncWorkoutLibraryOutputSchema>> {
-  return client.syncWorkoutLibrary(args);
-}
+export const syncWorkoutLibraryTool = defineTool({
+  name: "sync_workout_library",
+  description:
+    "Reconcile the Intervals.icu library against the tracked Workout templates. " +
+    "The template files are the source of truth: each is rendered at the supplied " +
+    "MAP/FTP and upserted, matched by its template marker — creating what is missing, " +
+    "updating what changed (steps, prose, name or folder), and re-anchoring watts when " +
+    "MAP or FTP has moved. Run it after editing a template AND after a new test result. " +
+    "Never deletes: a library workout whose template has gone is reported as an orphan. " +
+    "Hand edits made in the Intervals.icu UI are overwritten — edit the template file instead. " +
+    "Use dryRun=true to preview. " +
+    "Returns: { dryRun, created, updated, unchanged, skipped, orphans, warnings }.",
+  schema: syncWorkoutLibrarySchema,
+  annotations: UPSERT,
+  outputSchema: syncWorkoutLibraryOutputSchema,
+  handler: (client, args) => client.workoutLibrary.sync(args),
+});
 
-export const deleteWorkoutLibraryItemSchema = z.object({
+const deleteWorkoutLibraryItemSchema = z.object({
   id: z
     .number()
     .describe("Library workout ID (from list_workout_library) to delete"),
 });
 
-export const deleteWorkoutLibraryItemOutputSchema = z.object({
+const deleteWorkoutLibraryItemOutputSchema = z.object({
   success: z.literal(true),
   deleted: z.number().describe("ID of the deleted library workout"),
 });
 
-export async function deleteWorkoutLibraryItem(
-  client: IIntervalsClient,
-  args: z.infer<typeof deleteWorkoutLibraryItemSchema>
-): Promise<z.infer<typeof deleteWorkoutLibraryItemOutputSchema>> {
-  await client.deleteWorkoutLibraryItem(args.id);
-  return { success: true, deleted: args.id };
-}
+export const deleteWorkoutLibraryItemTool = defineTool({
+  name: "delete_workout_library_item",
+  description:
+    "Delete a saved library workout by id (from list_workout_library). Cannot be undone. " +
+    "Use it to clear an orphan reported by sync_workout_library, or a workout whose template " +
+    "you have removed. Does not touch calendar events (use delete_events). " +
+    "A workout that still has a template file is recreated by the next sync_workout_library. " +
+    "To change a template-backed workout, edit its template file and sync — do not delete and recreate. " +
+    "Returns: { success: true, deleted: id }.",
+  schema: deleteWorkoutLibraryItemSchema,
+  annotations: MUTATING,
+  outputSchema: deleteWorkoutLibraryItemOutputSchema,
+  async handler(client, args) {
+    await client.workoutLibrary.delete(args.id);
+    return { success: true as const, deleted: args.id };
+  },
+});

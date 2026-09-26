@@ -1,15 +1,20 @@
 import { describe, it, expect, vi } from "vitest";
 import {
-  listWorkoutLibrary,
-  getWorkoutLibraryItem,
-  syncWorkoutLibrary,
-  deleteWorkoutLibraryItem,
+  listWorkoutLibraryTool,
+  getWorkoutLibraryItemTool,
+  syncWorkoutLibraryTool,
+  deleteWorkoutLibraryItemTool,
 } from "../../src/tools/workout-library.js";
+
+const listWorkoutLibrary = listWorkoutLibraryTool.handler;
+const getWorkoutLibraryItem = getWorkoutLibraryItemTool.handler;
+const syncWorkoutLibrary = syncWorkoutLibraryTool.handler;
+const deleteWorkoutLibraryItem = deleteWorkoutLibraryItemTool.handler;
 import type { IIntervalsClient } from "../../src/index.js";
 
 function createMockClient(): IIntervalsClient {
-  return {
-    listWorkoutLibrary: vi.fn().mockResolvedValue({
+  const workoutLibrary = {
+    list: vi.fn().mockResolvedValue({
       folders: [{ id: 1, name: "Coach: VO2 Max", num_workouts: 1 }],
       workouts: [
         {
@@ -26,7 +31,7 @@ function createMockClient(): IIntervalsClient {
         },
       ],
     }),
-    getWorkoutLibraryItem: vi.fn().mockResolvedValue({
+    get: vi.fn().mockResolvedValue({
       workout: { id: 10, name: "VO2 4x4", description: "..." },
       description_text: "...",
       seedId: "vo2-4x4",
@@ -37,8 +42,8 @@ function createMockClient(): IIntervalsClient {
         oneLine: "8 steps, 32m",
       },
     }),
-    deleteWorkoutLibraryItem: vi.fn().mockResolvedValue(undefined),
-    syncWorkoutLibrary: vi.fn().mockResolvedValue({
+    delete: vi.fn().mockResolvedValue(undefined),
+    sync: vi.fn().mockResolvedValue({
       dryRun: true,
       created: [{ seedId: "openers", name: "Openers", folder: "Coach: Race" }],
       updated: [
@@ -55,16 +60,17 @@ function createMockClient(): IIntervalsClient {
       orphans: [],
       warnings: [],
     }),
-  } as unknown as IIntervalsClient;
+  };
+  return { workoutLibrary } as unknown as IIntervalsClient;
 }
 
 describe("listWorkoutLibrary handler", () => {
-  it("delegates to client.listWorkoutLibrary", async () => {
+  it("delegates to workoutLibrary.list", async () => {
     const client = createMockClient();
     const result = await listWorkoutLibrary(client, {});
     expect(result.folders).toHaveLength(1);
     expect(result.workouts[0].name).toBe("VO2 4x4");
-    expect(client.listWorkoutLibrary).toHaveBeenCalledWith(undefined);
+    expect(client.workoutLibrary.list).toHaveBeenCalledWith(undefined);
   });
 
   it("surfaces purpose so the coach can select by intent", async () => {
@@ -77,23 +83,23 @@ describe("listWorkoutLibrary handler", () => {
   it("passes folder filter through", async () => {
     const client = createMockClient();
     await listWorkoutLibrary(client, { folder: "VO2" });
-    expect(client.listWorkoutLibrary).toHaveBeenCalledWith("VO2");
+    expect(client.workoutLibrary.list).toHaveBeenCalledWith("VO2");
   });
 });
 
 describe("getWorkoutLibraryItem handler", () => {
-  it("delegates to client.getWorkoutLibraryItem", async () => {
+  it("delegates to workoutLibrary.get", async () => {
     const client = createMockClient();
     const result = (await getWorkoutLibraryItem(client, { id: 10 })) as {
       seedId: string;
     };
     expect(result.seedId).toBe("vo2-4x4");
-    expect(client.getWorkoutLibraryItem).toHaveBeenCalledWith(10);
+    expect(client.workoutLibrary.get).toHaveBeenCalledWith(10);
   });
 });
 
 describe("syncWorkoutLibrary handler", () => {
-  it("forwards anchors and dryRun to client.syncWorkoutLibrary", async () => {
+  it("forwards anchors and dryRun to workoutLibrary.sync", async () => {
     const client = createMockClient();
     const result = await syncWorkoutLibrary(client, {
       mapWatts: 415,
@@ -102,7 +108,7 @@ describe("syncWorkoutLibrary handler", () => {
     });
     expect(result.created).toHaveLength(1);
     expect(result.updated[0].changed).toEqual(["description"]);
-    expect(client.syncWorkoutLibrary).toHaveBeenCalledWith({
+    expect(client.workoutLibrary.sync).toHaveBeenCalledWith({
       mapWatts: 415,
       ftpWatts: 290,
       dryRun: true,
@@ -114,7 +120,7 @@ describe("deleteWorkoutLibraryItem handler", () => {
   it("deletes by id and reports it", async () => {
     const client = createMockClient();
     const result = await deleteWorkoutLibraryItem(client, { id: 10 });
-    expect(client.deleteWorkoutLibraryItem).toHaveBeenCalledWith(10);
+    expect(client.workoutLibrary.delete).toHaveBeenCalledWith(10);
     expect(result).toEqual({ success: true, deleted: 10 });
   });
 });

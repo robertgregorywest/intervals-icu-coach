@@ -1,13 +1,20 @@
 import { describe, it, expect, vi } from "vitest";
-import {
-  compareIntensityDistribution,
-  compareIntensityDistributionOutputSchema,
-} from "../../src/tools/intensity-distribution.js";
+import { compareIntensityDistributionTool } from "../../src/tools/intensity-distribution.js";
 import type { IIntervalsClient } from "../../src/index.js";
-import type {
-  IntensityDistributionRangeResult,
-  IntensityDistributionResult,
+import {
+  createIntensityDistribution,
+  type IntensityDistributionRangeResult,
+  type IntensityDistributionResult,
 } from "../../src/services/intensity-distribution/index.js";
+import {
+  intervalsApis,
+  requested,
+  routedFetch,
+} from "../helpers/intervals-fixture.js";
+
+const compareIntensityDistribution = compareIntensityDistributionTool.handler;
+const compareIntensityDistributionOutputSchema =
+  compareIntensityDistributionTool.outputSchema;
 
 const single: IntensityDistributionResult = {
   activityId: "i170317118",
@@ -51,32 +58,45 @@ function clientWith() {
   const many = vi.fn().mockResolvedValue(range);
   return {
     client: {
-      compareIntensityDistribution: one,
-      compareIntensityDistributionRange: many,
+      intensityDistribution: {
+        compareIntensityDistribution: one,
+        compareIntensityDistributionRange: many,
+      },
     } as unknown as IIntervalsClient,
     one,
     many,
   };
 }
 
+/** The real service over a fetch that answers nothing. */
+function realClient() {
+  const fetchFn = routedFetch([]);
+  const client = {
+    intensityDistribution: createIntensityDistribution({
+      ...intervalsApis(fetchFn),
+      getCoachingZones: vi.fn(),
+    }),
+  } as unknown as IIntervalsClient;
+  return { client, fetchFn };
+}
+
 describe("compare_intensity_distribution handler", () => {
   it("rejects both identifiers before making any request", async () => {
-    const { client, one } = clientWith();
+    const { client, fetchFn } = realClient();
 
     await expect(
       compareIntensityDistribution(client, { activityId: "i1", eventId: 2 })
     ).rejects.toThrow(/exactly one/);
-    expect(one).not.toHaveBeenCalled();
+    expect(requested(fetchFn)).toEqual([]);
   });
 
   it("rejects neither identifier nor range", async () => {
-    const { client, one, many } = clientWith();
+    const { client, fetchFn } = realClient();
 
     await expect(compareIntensityDistribution(client, {})).rejects.toThrow(
       /exactly one/
     );
-    expect(one).not.toHaveBeenCalled();
-    expect(many).not.toHaveBeenCalled();
+    expect(requested(fetchFn)).toEqual([]);
   });
 
   it("rejects mixing a session with a range", async () => {

@@ -1,7 +1,7 @@
 import { z } from "zod";
-import type { IIntervalsClient } from "../index.js";
+import { defineTool, READ_ONLY } from "./define.js";
 
-export const computePowerProfileSchema = z.object({
+const computePowerProfileSchema = z.object({
   mapWatts: z
     .number()
     .positive()
@@ -113,9 +113,20 @@ export const computePowerProfileSchema = z.object({
     ),
 });
 
-export async function computePowerProfile(
-  client: IIntervalsClient,
-  args: z.infer<typeof computePowerProfileSchema>
-): Promise<unknown> {
-  return client.computePowerProfile(args);
-}
+export const computePowerProfileTool = defineTool({
+  name: "compute_power_profile",
+  description:
+    "Compute the cyclecoach.com power-profile report (Ric Stern) for the connected " +
+    "athlete. Pulls MAP (from latest 'MAP ramp test' activity), body mass, FTP, " +
+    "sex, age, height, and 5s/60s/5min peak power from Intervals.icu by default; " +
+    "every input can be overridden. " +
+    "Returns CycleCoach training zones, FTP-vs-MAP sanity check, VO₂max + " +
+    "classification, allometric MAP benchmark, Compound Score, PSTS (with CdA), " +
+    "TrainingPeaks power profile, rider-type shape, MAP band, TT power estimates, " +
+    "and road race/crit estimates. Each section includes a verbatim narrative " +
+    "from the source page so coaching context isn't lost.",
+  schema: computePowerProfileSchema,
+  annotations: READ_ONLY,
+  outputSchema: null,
+  handler: (client, args) => client.powerProfile.computePowerProfile(args),
+});

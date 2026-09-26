@@ -1,5 +1,11 @@
 import { z } from "zod";
-import type { IIntervalsClient } from "../index.js";
+import {
+  compactIntervalAnalysis,
+  detectStravaStub,
+  normalizeActivityId,
+  packStreams,
+} from "../services/activities/index.js";
+import { defineTool, READ_ONLY } from "./define.js";
 import {
   applyLimit,
   assertDateRange,
@@ -17,13 +23,13 @@ const STREAMS_CHARACTER_BUDGET = 40_000;
 // (e.g. "4x 2min") a coach needs. This budget bounds the compacted projection.
 const INTERVAL_ANALYSIS_BUDGET = 12_000;
 
-export const getActivitiesSchema = z.object({
+const getActivitiesSchema = z.object({
   oldest: dateString.describe("Start date in YYYY-MM-DD format"),
   newest: dateString.describe("End date in YYYY-MM-DD format"),
   limit: limitField.optional(),
 });
 
-export const getActivitiesOutputSchema = z
+const getActivitiesOutputSchema = z
   .object({
     total: z.number().describe("Activities matching the date range"),
     count: z.number().describe("Activities returned (after limit applied)"),
@@ -33,29 +39,37 @@ export const getActivitiesOutputSchema = z
   })
   .passthrough();
 
-export async function getActivities(
-  client: IIntervalsClient,
-  args: z.infer<typeof getActivitiesSchema>
-): Promise<z.infer<typeof getActivitiesOutputSchema>> {
-  assertDateRange(args.oldest, args.newest);
-  const all = await client.getActivities(args.oldest, args.newest);
-  const limit = args.limit ?? 50;
-  const { items, total, truncated } = applyLimit(all, limit);
-  return {
-    total,
-    count: items.length,
-    truncated,
-    ...(truncated
-      ? {
-          message:
-            "Result list truncated by limit. Increase 'limit' or narrow the date range.",
-        }
-      : {}),
-    activities: items as Array<Record<string, unknown>>,
-  };
-}
+export const getActivitiesTool = defineTool({
+  name: "get_activities",
+  description:
+    "List activities in a date range with summary metrics (TSS, IF, NP, duration, distance, HR, power). " +
+    "Use this to review recent training history. " +
+    "Date range max 365 days; results capped at 'limit' (default 50, max 200). " +
+    "Returns: { total, count, truncated, activities: [...] }.",
+  schema: getActivitiesSchema,
+  annotations: READ_ONLY,
+  outputSchema: getActivitiesOutputSchema,
+  async handler(client, args) {
+    assertDateRange(args.oldest, args.newest);
+    const all = await client.activities.getActivities(args.oldest, args.newest);
+    const limit = args.limit ?? 50;
+    const { items, total, truncated } = applyLimit(all, limit);
+    return {
+      total,
+      count: items.length,
+      truncated,
+      ...(truncated
+        ? {
+            message:
+              "Result list truncated by limit. Increase 'limit' or narrow the date range.",
+          }
+        : {}),
+      activities: items as Array<Record<string, unknown>>,
+    };
+  },
+});
 
-export const getActivitySchema = z.object({
+const getActivitySchema = z.object({
   id: z
     .union([z.string(), z.number()])
     .describe(
@@ -69,98 +83,37 @@ export const getActivitySchema = z.object({
     .describe("Include detected interval analysis (default: false)"),
 });
 
-export async function getActivity(
-  client: IIntervalsClient,
-  args: z.infer<typeof getActivitySchema>
-): Promise<unknown> {
-  const id = normalizeActivityId(args.id);
-  const activity = await client.getActivity(id, args.includeIntervals);
-  const record = activity as Record<string, unknown>;
-  const stub = detectStravaStub(record);
-  if (stub) return stub;
-  if (args.includeIntervals && Array.isArray(record.icu_intervals)) {
-    return compactIntervalAnalysis(record, INTERVAL_ANALYSIS_BUDGET);
-  }
-  return activity;
-}
+export const getActivityTool = defineTool({
+  name: "get_activity",
+  description:
+    "Get full details for a single activity including metrics, and optionally its laps/intervals. " +
+    "Set includeIntervals=true to add a compact interval analysis: " +
+    "`intervals[]` (one slim entry per lap: i, type, label, start, dur, avgW, maxW, hr, cadence, grp), " +
+    "`groups[]` (laps with the same signature collapsed into one entry — `count` is how many, " +
+    "so a 4x2min block appears as one group with count:4; `sig` matches each lap's `grp`), and " +
+    '`interval_summary[]` (human strings like "4x 2m 369w" — lossy: average watts and duration only, not an analysis input). ' +
+    "These intervals are Intervals.icu's derived, editable segmentation, not the recording; for a race or benchmark effort read get_activity_laps. To find a structured workout's " +
+    "efforts, read `groups`/`interval_summary` for the structure, then `intervals` for per-rep detail.",
+  schema: getActivitySchema,
+  annotations: READ_ONLY,
+  outputSchema: null,
+  async handler(client, args) {
+    const id = normalizeActivityId(args.id);
+    const activity = await client.activities.getActivity(
+      id,
+      args.includeIntervals
+    );
+    const record = activity as Record<string, unknown>;
+    const stub = detectStravaStub(record);
+    if (stub) return stub;
+    if (args.includeIntervals && Array.isArray(record.icu_intervals)) {
+      return compactIntervalAnalysis(record, INTERVAL_ANALYSIS_BUDGET);
+    }
+    return activity;
+  },
+});
 
-type IntervalProjection = {
-  i: number;
-  type?: unknown;
-  label?: unknown;
-  start?: unknown;
-  dur?: unknown;
-  avgW?: unknown;
-  maxW?: unknown;
-  hr?: unknown;
-  cadence?: unknown;
-  grp?: unknown;
-};
-
-type GroupProjection = {
-  sig?: unknown;
-  count?: unknown;
-  dur?: unknown;
-  avgW?: unknown;
-  maxW?: unknown;
-  hr?: unknown;
-  cadence?: unknown;
-};
-
-// Replace the raw icu_intervals/icu_groups blobs with slim projections that keep
-// the coaching signal: per-lap power/HR/cadence/duration, and the grouped rollup
-// where repeated laps collapse into one entry with `count` (e.g. count:4 = a 4x2min
-// block). `grp`/`sig` link a lap to its group. Other activity fields pass through.
-export function compactIntervalAnalysis(
-  activity: Record<string, unknown>,
-  budget: number
-): Record<string, unknown> {
-  const rawIntervals =
-    (activity.icu_intervals as Array<Record<string, unknown>>) ?? [];
-  const rawGroups =
-    (activity.icu_groups as Array<Record<string, unknown>>) ?? [];
-
-  const intervals: IntervalProjection[] = rawIntervals.map((iv, i) => {
-    const p: IntervalProjection = {
-      i,
-      type: iv.type,
-      label: iv.label,
-      start: iv.start_time,
-      dur: iv.elapsed_time,
-      avgW: iv.average_watts,
-      maxW: iv.max_watts,
-      hr: iv.average_heartrate,
-      cadence: iv.average_cadence,
-    };
-    if (iv.group_id != null) p.grp = iv.group_id;
-    return p;
-  });
-
-  const groups: GroupProjection[] = rawGroups.map((g) => ({
-    sig: g.id,
-    count: g.count,
-    dur: g.elapsed_time,
-    avgW: g.average_watts,
-    maxW: g.max_watts,
-    hr: g.average_heartrate,
-    cadence: g.average_cadence,
-  }));
-
-  const rest: Record<string, unknown> = { ...activity };
-  delete rest.icu_intervals;
-  delete rest.icu_groups;
-
-  let result: Record<string, unknown> = { ...rest, groups, intervals };
-  // Safety net: projections are tiny, but if a pathological activity blows the
-  // budget, drop the per-lap detail first — groups + interval_summary still
-  // convey the structure.
-  if (JSON.stringify(result).length > budget) {
-    result = { ...rest, groups, intervals_omitted: intervals.length };
-  }
-  return result;
-}
-
-export const getActivityStreamsSchema = z.object({
+const getActivityStreamsSchema = z.object({
   id: z
     .union([z.string(), z.number()])
     .describe(
@@ -177,23 +130,36 @@ export const getActivityStreamsSchema = z.object({
     ),
 });
 
-export async function getActivityStreams(
-  client: IIntervalsClient,
-  args: z.infer<typeof getActivityStreamsSchema>
-): Promise<unknown> {
-  const id = normalizeActivityId(args.id);
-  const streams = await client.getActivityStreams(id, args.types);
-  return packStreams(
-    streams as unknown as Record<string, unknown>,
-    STREAMS_CHARACTER_BUDGET
-  );
-}
+export const getActivityStreamsTool = defineTool({
+  name: "get_activity_streams",
+  description:
+    "Get raw time-series data for an activity (power, heart rate, cadence, speed, altitude). " +
+    "Use types parameter to request specific streams (recommended — fewer streams = full resolution). " +
+    'Example: types=["watts", "heartrate"] for a power+HR analysis. ' +
+    "Long activities are downsampled by an index stride to fit a size budget, preserving " +
+    "whole-ride coverage at lower resolution. " +
+    "Returns: { samples, original_samples, downsampled, stride, streams: { watts: number[], ... } }. " +
+    "Do NOT derive an effort's window from these streams by power threshold when the athlete lapped it: " +
+    "the recorded lap (get_activity_laps) is the effort, a threshold window clips or pads its ends. " +
+    "Use the lap's startSeconds/elapsedSeconds to slice these streams on true boundaries.",
+  schema: getActivityStreamsSchema,
+  annotations: READ_ONLY,
+  outputSchema: null,
+  async handler(client, args) {
+    const id = normalizeActivityId(args.id);
+    const streams = await client.activities.getActivityStreams(id, args.types);
+    return packStreams(
+      streams as unknown as Record<string, unknown>,
+      STREAMS_CHARACTER_BUDGET
+    );
+  },
+});
 
-export const getActivityLapsSchema = z.object({
+const getActivityLapsSchema = z.object({
   id: getActivityStreamsSchema.shape.id,
 });
 
-export const getActivityLapsOutputSchema = z.object({
+const getActivityLapsOutputSchema = z.object({
   record: z
     .enum(["device-laps", "absent"])
     .describe(
@@ -217,130 +183,54 @@ export const getActivityLapsOutputSchema = z.object({
   ),
 });
 
-export async function getActivityLaps(
-  client: IIntervalsClient,
-  args: z.infer<typeof getActivityLapsSchema>
-): Promise<z.infer<typeof getActivityLapsOutputSchema>> {
-  const id = normalizeActivityId(args.id);
-  const laps = await client.getActivityLaps(id);
-  if (!laps || laps.length === 0) {
-    return {
-      record: "absent",
-      note:
-        laps === null
-          ? "No device laps could be read: the activity has no original FIT upload (e.g. Strava-synced) or the file is not a readable FIT. " +
-            "get_activity with includeIntervals=true gives Intervals.icu's detected intervals, which are derived, not the recording."
-          : "The FIT file carries no laps.",
-      count: 0,
-      laps: [],
-    };
-  }
-  return {
-    record: "device-laps",
-    ...(laps.length === 1
-      ? {
-          note: "A single lap: the athlete did not lap this activity, so it records no effort structure.",
-        }
-      : {}),
-    count: laps.length,
-    laps: laps.map((lap) => ({
-      index: lap.index,
-      startSeconds: lap.startTimeSeconds,
-      elapsedSeconds: lap.durationSeconds,
-      timerSeconds: lap.timerSeconds,
-      distanceMeters: lap.distanceMeters,
-      avgWatts: lap.averageWatts,
-      npWatts: lap.normalizedWatts,
-      maxWatts: lap.maxWatts,
-      avgHr: lap.averageHeartrate,
-      avgCadence: lap.averageCadence,
-    })),
-  };
-}
-
-type PackedStreams = {
-  samples: number;
-  original_samples: number;
-  downsampled: boolean;
-  stride: number;
-  streams: Record<string, unknown>;
-};
-
-// Downsample by index stride so the full ride stays represented at lower
-// resolution, rather than truncating the payload and losing the tail.
-export function packStreams(
-  streams: Record<string, unknown>,
-  budget: number
-): PackedStreams {
-  const original = maxArrayLength(streams);
-  const fits = (s: Record<string, unknown>) =>
-    JSON.stringify({ streams: s }).length <= budget;
-
-  let stride = 1;
-  let out = streams;
-  if (!fits(streams)) {
-    stride = Math.max(
-      2,
-      Math.ceil(JSON.stringify({ streams }).length / budget)
-    );
-    out = downsample(streams, stride);
-    while (!fits(out)) {
-      stride += 1;
-      out = downsample(streams, stride);
+export const getActivityLapsTool = defineTool({
+  name: "get_activity_laps",
+  description:
+    "Get the laps the recording device wrote (decoded from the original FIT upload) — the recorded execution, " +
+    "not Intervals.icu's derived icu_intervals. Use this to read a race, time trial or benchmark effort, " +
+    "where no planned event exists for compare_planned_vs_actual. " +
+    "Per lap: startSeconds (offset from first lap), elapsedSeconds, timerSeconds, distanceMeters, " +
+    "avgWatts, npWatts, maxWatts, avgHr, avgCadence. " +
+    "Returns: { record: 'device-laps' | 'absent', note?, count, laps: [...] }. " +
+    "record 'absent' (e.g. Strava-synced, no FIT file) returns no laps and a reason; nothing derived is substituted.",
+  schema: getActivityLapsSchema,
+  annotations: READ_ONLY,
+  outputSchema: getActivityLapsOutputSchema,
+  async handler(client, args) {
+    const id = normalizeActivityId(args.id);
+    const laps = await client.activities.getActivityLaps(id);
+    if (!laps || laps.length === 0) {
+      return {
+        record: "absent" as const,
+        note:
+          laps === null
+            ? "No device laps could be read: the activity has no original FIT upload (e.g. Strava-synced) or the file is not a readable FIT. " +
+              "get_activity with includeIntervals=true gives Intervals.icu's detected intervals, which are derived, not the recording."
+            : "The FIT file carries no laps.",
+        count: 0,
+        laps: [],
+      };
     }
-  }
-
-  return {
-    samples: maxArrayLength(out),
-    original_samples: original,
-    downsampled: stride > 1,
-    stride,
-    streams: out,
-  };
-}
-
-function downsample(
-  streams: Record<string, unknown>,
-  stride: number
-): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(streams)) {
-    out[key] = Array.isArray(value)
-      ? value.filter((_, i) => i % stride === 0)
-      : value;
-  }
-  return out;
-}
-
-function maxArrayLength(streams: Record<string, unknown>): number {
-  let max = 0;
-  for (const value of Object.values(streams)) {
-    if (Array.isArray(value)) max = Math.max(max, value.length);
-  }
-  return max;
-}
-
-function normalizeActivityId(id: string | number): string {
-  if (typeof id === "number") return `i${id}`;
-  return id.startsWith("i") ? id : `i${id}`;
-}
-
-function detectStravaStub(
-  activity: Record<string, unknown>
-): Record<string, unknown> | null {
-  const note = activity._note;
-  if (typeof note === "string" && /strava/i.test(note)) {
     return {
-      _strava_limitation: true,
-      _note: note,
-      id: activity.id,
-      source: activity.source,
-      start_date_local: activity.start_date_local,
-      message:
-        "This activity was synced from Strava and cannot be retrieved via the Intervals.icu API " +
-        "(Strava API terms prohibit third-party access). " +
-        "Only activities recorded directly by Intervals.icu-compatible devices are available.",
+      record: "device-laps" as const,
+      ...(laps.length === 1
+        ? {
+            note: "A single lap: the athlete did not lap this activity, so it records no effort structure.",
+          }
+        : {}),
+      count: laps.length,
+      laps: laps.map((lap) => ({
+        index: lap.index,
+        startSeconds: lap.startTimeSeconds,
+        elapsedSeconds: lap.durationSeconds,
+        timerSeconds: lap.timerSeconds,
+        distanceMeters: lap.distanceMeters,
+        avgWatts: lap.averageWatts,
+        npWatts: lap.normalizedWatts,
+        maxWatts: lap.maxWatts,
+        avgHr: lap.averageHeartrate,
+        avgCadence: lap.averageCadence,
+      })),
     };
-  }
-  return null;
-}
+  },
+});

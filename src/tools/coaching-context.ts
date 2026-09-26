@@ -1,8 +1,8 @@
 import { z } from "zod";
-import type { IIntervalsClient } from "../index.js";
+import { defineTool, READ_ONLY } from "./define.js";
 import { DEFAULT_DAYS, MAX_DAYS } from "../services/coaching-context/index.js";
 
-export const getCoachingContextSchema = z.object({
+const getCoachingContextSchema = z.object({
   days: z
     .number()
     .int()
@@ -34,7 +34,7 @@ const mapZonesSchema = z
   )
   .nullable();
 
-export const getCoachingContextOutputSchema = z.object({
+const getCoachingContextOutputSchema = z.object({
   asOf: z.string(),
   daysWindow: z.number(),
   athlete: z.object({
@@ -90,9 +90,25 @@ export const getCoachingContextOutputSchema = z.object({
   mapWarning: z.string().optional(),
 });
 
-export async function getCoachingContext(
-  client: IIntervalsClient,
-  args: z.infer<typeof getCoachingContextSchema>
-): Promise<z.infer<typeof getCoachingContextOutputSchema>> {
-  return client.getCoachingContext({ days: args.days });
-}
+export const getCoachingContextTool = defineTool({
+  name: "get_coaching_context",
+  description:
+    "Get a single snapshot of the athlete's current coaching state — profile " +
+    "(FTP, LTHR, max/resting HR, weight, power/HR zones), today's fitness " +
+    "(CTL, ATL, TSB, ramp rate), a wellness trend (default 7d, max 30d) " +
+    "with subjective metrics (fatigue, soreness, motivation, mood, sleep), " +
+    "and a derived MAP (Maximal Aerobic Power) value. " +
+    "MAP is computed as the best-60s power from the most recent activity " +
+    'whose name starts with "MAP ramp test" in the last 90 days. To exclude ' +
+    'a botched test, rename the activity in Intervals.icu to include "(skip)". ' +
+    "If no qualifying test is found, map is null and mapWarning explains. " +
+    "Call this at session start to ground workout decisions in current state " +
+    "rather than juggling get_athlete + get_wellness + get_fitness_summary " +
+    "yourself. " +
+    "Returns: { asOf, daysWindow, athlete, fitness, wellnessTrend, map, mapWarning? }.",
+  schema: getCoachingContextSchema,
+  annotations: READ_ONLY,
+  outputSchema: getCoachingContextOutputSchema,
+  handler: (client, args) =>
+    client.coachingContext.getCoachingContext({ days: args.days }),
+});

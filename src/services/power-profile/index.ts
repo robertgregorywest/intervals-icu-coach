@@ -55,3 +55,18 @@ export async function computePowerProfileWith(
   const inputs = await resolveInputs(deps, overrides, opts);
   return computePowerProfile(inputs);
 }
+
+export interface IPowerProfile {
+  computePowerProfile(
+    overrides?: PowerProfileOverrides
+  ): Promise<PowerProfileResult>;
+}
+
+export function createPowerProfile(
+  deps: PowerProfileDeps & { today: () => string }
+): IPowerProfile {
+  return {
+    computePowerProfile: (overrides) =>
+      computePowerProfileWith(deps, overrides, { today: deps.today() }),
+  };
+}

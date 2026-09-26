@@ -1,4 +1,4 @@
-import type { IntervalsEvent } from "../../types.js";
+import type { IntervalsEvent, SportType } from "../../types.js";
 import type { WorkoutPlan, WorkoutStep, RepeatBlock } from "./types.js";
 import { isRepeatBlock } from "./types.js";
 
@@ -63,20 +63,45 @@ export class WorkoutBuilder implements IWorkoutBuilder {
   }
 
   buildEvent(plan: WorkoutPlan): IntervalsEvent {
-    const description = this.toDescription(plan.steps, plan.notes);
-    const externalId =
-      plan.externalId || `mcp-${plan.date}-${slugify(plan.name)}`;
-
-    return {
-      category: "WORKOUT",
-      start_date_local: `${plan.date}T00:00:00`,
-      type: plan.sportType,
+    return workoutEvent({
       name: plan.name,
-      description,
-      external_id: externalId,
-      ...(plan.color ? { color: plan.color } : {}),
-    };
+      date: plan.date,
+      type: plan.sportType,
+      description: this.toDescription(plan.steps, plan.notes),
+      externalId: plan.externalId,
+      color: plan.color,
+    });
   }
+}
+
+/** How every calendar write addresses a day: local midnight. */
+export function startOfDay(date: string): string {
+  return `${date}T00:00:00`;
+}
+
+export interface CalendarWorkout {
+  name: string;
+  date: string;
+  type: SportType;
+  description: string;
+  externalId?: string;
+  color?: string;
+}
+
+/**
+ * The one shape of WORKOUT event this server writes. Without an external id
+ * it gets `mcp-<date>-<slug>`, so writing the same workout twice upserts it.
+ */
+export function workoutEvent(w: CalendarWorkout): IntervalsEvent {
+  return {
+    category: "WORKOUT",
+    start_date_local: startOfDay(w.date),
+    type: w.type,
+    name: w.name,
+    description: w.description,
+    external_id: w.externalId || `mcp-${w.date}-${slugify(w.name)}`,
+    ...(w.color ? { color: w.color } : {}),
+  };
 }
 
 export function slugify(text: string): string {

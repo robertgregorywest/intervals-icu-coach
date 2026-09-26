@@ -1,16 +1,22 @@
 import { describe, it, expect, vi } from "vitest";
 import {
-  getActivities,
-  getActivity,
-  getActivityStreams,
-  getActivityLaps,
+  getActivitiesTool,
+  getActivityTool,
+  getActivityStreamsTool,
+  getActivityLapsTool,
 } from "../../src/tools/activities.js";
 import type { IIntervalsClient } from "../../src/index.js";
+import type { IActivitiesApi } from "../../src/services/activities/index.js";
+
+const getActivities = getActivitiesTool.handler;
+const getActivity = getActivityTool.handler;
+const getActivityStreams = getActivityStreamsTool.handler;
+const getActivityLaps = getActivityLapsTool.handler;
 
 function createMockClient(
-  overrides: Partial<IIntervalsClient> = {}
+  overrides: Partial<IActivitiesApi> = {}
 ): IIntervalsClient {
-  return {
+  const activities = {
     getActivities: vi
       .fn()
       .mockResolvedValue([
@@ -26,7 +32,8 @@ function createMockClient(
       heartrate: [130, 135],
     }),
     ...overrides,
-  } as unknown as IIntervalsClient;
+  };
+  return { activities } as unknown as IIntervalsClient;
 }
 
 describe("getActivities tool handler", () => {
@@ -42,7 +49,7 @@ describe("getActivities tool handler", () => {
     expect(parsed.count).toBe(1);
     expect(parsed.truncated).toBe(false);
     expect(parsed.activities[0].name).toBe("Morning Ride");
-    expect(client.getActivities).toHaveBeenCalledWith(
+    expect(client.activities.getActivities).toHaveBeenCalledWith(
       "2024-01-01",
       "2024-01-31"
     );
@@ -56,21 +63,21 @@ describe("getActivity tool handler", () => {
     const parsed = result;
 
     expect(parsed.name).toBe("Morning Ride");
-    expect(client.getActivity).toHaveBeenCalledWith("i1", undefined);
+    expect(client.activities.getActivity).toHaveBeenCalledWith("i1", undefined);
   });
 
   it("normalizes bare number to i-prefixed string", async () => {
     const client = createMockClient();
     await getActivity(client, { id: 1 });
 
-    expect(client.getActivity).toHaveBeenCalledWith("i1", undefined);
+    expect(client.activities.getActivity).toHaveBeenCalledWith("i1", undefined);
   });
 
   it("passes includeIntervals flag", async () => {
     const client = createMockClient();
     await getActivity(client, { id: "i1", includeIntervals: true });
 
-    expect(client.getActivity).toHaveBeenCalledWith("i1", true);
+    expect(client.activities.getActivity).toHaveBeenCalledWith("i1", true);
   });
 
   it("compacts interval analysis so a 4x2min block is discoverable", async () => {
@@ -202,7 +209,10 @@ describe("getActivityStreams tool handler", () => {
     expect(result.samples).toBe(2);
     expect(result.original_samples).toBe(2);
     expect(result.streams.watts).toEqual([200, 210]);
-    expect(client.getActivityStreams).toHaveBeenCalledWith("i1", undefined);
+    expect(client.activities.getActivityStreams).toHaveBeenCalledWith(
+      "i1",
+      undefined
+    );
   });
 
   it("downsamples large streams to fit the budget, preserving coverage", async () => {
@@ -236,14 +246,19 @@ describe("getActivityStreams tool handler", () => {
     const client = createMockClient();
     await getActivityStreams(client, { id: 1 });
 
-    expect(client.getActivityStreams).toHaveBeenCalledWith("i1", undefined);
+    expect(client.activities.getActivityStreams).toHaveBeenCalledWith(
+      "i1",
+      undefined
+    );
   });
 
   it("passes types filter", async () => {
     const client = createMockClient();
     await getActivityStreams(client, { id: "i1", types: ["watts"] });
 
-    expect(client.getActivityStreams).toHaveBeenCalledWith("i1", ["watts"]);
+    expect(client.activities.getActivityStreams).toHaveBeenCalledWith("i1", [
+      "watts",
+    ]);
   });
 });
 

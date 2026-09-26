@@ -10,9 +10,9 @@ import { describe, it, expect } from "vitest";
 import { fileURLToPath } from "node:url";
 import {
   resolveTrackInputs,
-  normalizeActivityId,
   TrackInputError,
 } from "../../src/tools/track-inputs.js";
+import { normalizeActivityId } from "../../src/services/activities/index.js";
 import {
   createTrackSessions,
   loadTrackSessionRecords,
@@ -27,9 +27,7 @@ function fixtureClient(): IIntervalsClient {
   const service = createTrackSessions({
     load: () => loadTrackSessionRecords(FIXTURES),
   });
-  return {
-    resolveTrackSplits: (id: string) => service.resolveTrackSplits(id),
-  } as unknown as IIntervalsClient;
+  return { trackSessions: service } as unknown as IIntervalsClient;
 }
 
 const client = fixtureClient();

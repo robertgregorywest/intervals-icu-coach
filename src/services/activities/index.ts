@@ -9,3 +9,9 @@ export type {
 } from "./types.js";
 export { decodeFitLaps } from "./fit-laps.js";
 export type { FitLap } from "./fit-laps.js";
+export {
+  normalizeActivityId,
+  compactIntervalAnalysis,
+  packStreams,
+  detectStravaStub,
+} from "./compact.js";

@@ -1,7 +1,8 @@
 import { z } from "zod";
-import type { IIntervalsClient } from "../index.js";
+import { normalizeActivityId } from "../services/activities/index.js";
+import { defineTool, READ_ONLY } from "./define.js";
 
-export const getAerobicDecouplingSchema = z.object({
+const getAerobicDecouplingSchema = z.object({
   activityId: z
     .union([z.string(), z.number()])
     .describe(
@@ -15,21 +16,14 @@ const decouplingHalfShape = z.object({
   hrPowerRatio: z.number(),
 });
 
-export const getAerobicDecouplingOutputSchema = z.object({
+const getAerobicDecouplingOutputSchema = z.object({
   firstHalf: decouplingHalfShape,
   secondHalf: decouplingHalfShape,
   decouplingPercent: z.number(),
   interpretation: z.string(),
 });
 
-export async function getAerobicDecoupling(
-  client: IIntervalsClient,
-  args: z.infer<typeof getAerobicDecouplingSchema>
-): Promise<z.infer<typeof getAerobicDecouplingOutputSchema>> {
-  return client.getAerobicDecoupling(normalizeActivityId(args.activityId));
-}
-
-export const compareIntervalsSchema = z.object({
+const compareIntervalsSchema = z.object({
   activityIds: z
     .array(z.union([z.string(), z.number()]))
     .describe(
@@ -78,7 +72,7 @@ const intervalSummaryShape = z.object({
   totalDuration: z.number(),
 });
 
-export const compareIntervalsOutputSchema = z.object({
+const compareIntervalsOutputSchema = z.object({
   intervals: z.array(
     z.object({
       lapNumber: z.number(),
@@ -88,18 +82,40 @@ export const compareIntervalsOutputSchema = z.object({
   summaries: z.array(intervalSummaryShape),
 });
 
-export async function compareIntervalsHandler(
-  client: IIntervalsClient,
-  args: z.infer<typeof compareIntervalsSchema>
-): Promise<z.infer<typeof compareIntervalsOutputSchema>> {
-  return client.compareIntervals(args.activityIds.map(normalizeActivityId), {
-    minPower: args.minPower,
-    targetDuration: args.targetDuration,
-    durationTolerance: args.durationTolerance,
-  });
-}
+export const getAerobicDecouplingTool = defineTool({
+  name: "get_aerobic_decoupling",
+  description:
+    "Calculate aerobic decoupling (Pw:Hr ratio) for an activity. " +
+    "Compares HR:power ratio between first and second halves of a ride. " +
+    "<5% = good aerobic fitness, 5-10% = developing, >10% = needs work. " +
+    "Useful for assessing aerobic base fitness from steady-state efforts. " +
+    "Returns: { firstHalf, secondHalf, decouplingPercent, interpretation }.",
+  schema: getAerobicDecouplingSchema,
+  annotations: READ_ONLY,
+  outputSchema: getAerobicDecouplingOutputSchema,
+  handler: (client, args) =>
+    client.analysis.getAerobicDecoupling(normalizeActivityId(args.activityId)),
+});
 
-function normalizeActivityId(id: string | number): string {
-  if (typeof id === "number") return `i${id}`;
-  return id.startsWith("i") ? id : `i${id}`;
-}
+export const compareIntervalsTool = defineTool({
+  name: "compare_intervals",
+  description:
+    "Compare intervals across multiple activities side-by-side. " +
+    "Shows power, HR, cadence, and duration for each interval. " +
+    "Optional filters: minPower (watts), targetDuration (seconds), durationTolerance (fraction). " +
+    "Example: targetDuration=300, durationTolerance=0.2 finds all 4-6 minute intervals. " +
+    "Useful for tracking interval progression over time. " +
+    "Returns: { intervals: [{ lapNumber, values: [...] }], summaries: [...] }.",
+  schema: compareIntervalsSchema,
+  annotations: READ_ONLY,
+  outputSchema: compareIntervalsOutputSchema,
+  handler: (client, args) =>
+    client.analysis.compareIntervals(
+      args.activityIds.map(normalizeActivityId),
+      {
+        minPower: args.minPower,
+        targetDuration: args.targetDuration,
+        durationTolerance: args.durationTolerance,
+      }
+    ),
+});

@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 import {
-  createWorkout,
-  createStrengthWorkout,
-  scheduleLibraryWorkout,
+  createWorkoutTool,
+  createStrengthWorkoutTool,
+  scheduleLibraryWorkoutTool,
 } from "../../src/tools/workouts.js";
 import type { IIntervalsClient } from "../../src/index.js";
 import { WorkoutBuilder } from "../../src/services/workout-builder/index.js";
@@ -11,12 +11,15 @@ import type { IntervalsEvent } from "../../src/types.js";
 function createMockClient(
   returnEvents: IntervalsEvent[] = []
 ): IIntervalsClient {
-  const builder = new WorkoutBuilder();
   return {
-    buildWorkoutEvent: vi.fn((plan) => builder.buildEvent(plan)),
-    createEvents: vi.fn().mockResolvedValue(returnEvents),
+    workoutBuilder: new WorkoutBuilder(),
+    events: { createEvents: vi.fn().mockResolvedValue(returnEvents) },
   } as unknown as IIntervalsClient;
 }
+
+const createWorkout = createWorkoutTool.handler;
+const createStrengthWorkout = createStrengthWorkoutTool.handler;
+const scheduleLibraryWorkout = scheduleLibraryWorkoutTool.handler;
 
 describe("createWorkout tool handler", () => {
   it("builds an event and calls createEvents", async () => {
@@ -53,7 +56,7 @@ describe("createWorkout tool handler", () => {
     expect(parsed.created).toBe(1);
     expect(parsed.events[0].name).toBe("Threshold Intervals");
 
-    expect(client.createEvents).toHaveBeenCalledWith([
+    expect(client.events.createEvents).toHaveBeenCalledWith([
       expect.objectContaining({
         category: "WORKOUT",
         type: "Ride",
@@ -85,7 +88,7 @@ describe("createWorkout tool handler", () => {
       color: "blue",
     });
 
-    expect(client.createEvents).toHaveBeenCalledWith([
+    expect(client.events.createEvents).toHaveBeenCalledWith([
       expect.objectContaining({
         external_id: "custom-123",
         color: "blue",
@@ -120,7 +123,7 @@ describe("createStrengthWorkout tool handler", () => {
     expect(parsed.events[0].name).toBe("Strength Session");
     expect(parsed.events[0].description).toContain("Box Squat");
 
-    expect(client.createEvents).toHaveBeenCalledWith([
+    expect(client.events.createEvents).toHaveBeenCalledWith([
       expect.objectContaining({
         category: "WORKOUT",
         type: "WeightTraining",
@@ -152,7 +155,7 @@ describe("createStrengthWorkout tool handler", () => {
       color: "red",
     });
 
-    expect(client.createEvents).toHaveBeenCalledWith([
+    expect(client.events.createEvents).toHaveBeenCalledWith([
       expect.objectContaining({
         external_id: "gym-123",
         color: "red",
@@ -171,7 +174,7 @@ describe("createWorkout notes", () => {
       notes: "Circulation, not stimulus.",
       steps: [{ label: "Easy", duration: "40m", target: "125w-165w" }],
     });
-    expect(client.createEvents).toHaveBeenCalledWith([
+    expect(client.events.createEvents).toHaveBeenCalledWith([
       expect.objectContaining({
         description: "Circulation, not stimulus.\n\n- Easy 40m 125w-165w",
       }),
@@ -184,15 +187,17 @@ describe("scheduleLibraryWorkout", () => {
     const description =
       "Circulation, not stimulus.\n\n- Easy 40m 125w-165w 95rpm\n\n<!-- template: recovery-spin -->";
     const client = {
-      getWorkoutLibraryItem: vi.fn().mockResolvedValue({
-        workout: { id: 15, name: "Recovery spin", type: "Ride", description },
-      }),
-      createEvents: vi.fn().mockResolvedValue([]),
+      workoutLibrary: {
+        get: vi.fn().mockResolvedValue({
+          workout: { id: 15, name: "Recovery spin", type: "Ride", description },
+        }),
+      },
+      events: { createEvents: vi.fn().mockResolvedValue([]) },
     } as unknown as IIntervalsClient;
 
     await scheduleLibraryWorkout(client, { id: 15, date: "2026-09-20" });
 
-    expect(client.createEvents).toHaveBeenCalledWith([
+    expect(client.events.createEvents).toHaveBeenCalledWith([
       {
         category: "WORKOUT",
         start_date_local: "2026-09-20T00:00:00",
@@ -209,9 +214,11 @@ describe("createWorkout — the unreviewable-step warning", () => {
   it("reads FTP from the athlete anchors, and warns on an unlabelled hard step", async () => {
     const client = {
       ...createMockClient(),
-      getAthleteAnchors: vi
-        .fn()
-        .mockResolvedValue({ ftp: 300, weight: 70, powerZones: null }),
+      anchors: {
+        getAthleteAnchors: vi
+          .fn()
+          .mockResolvedValue({ ftp: 300, weight: 70, powerZones: null }),
+      },
     } as unknown as IIntervalsClient;
 
     const result = await createWorkout(client, {
@@ -224,7 +231,7 @@ describe("createWorkout — the unreviewable-step warning", () => {
       ],
     });
 
-    expect(client.getAthleteAnchors).toHaveBeenCalledOnce();
+    expect(client.anchors.getAthleteAnchors).toHaveBeenCalledOnce();
     expect(result.unreviewableSteps).toEqual([
       { index: 1, label: "Hard bit", watts: 300 },
     ]);

@@ -84,7 +84,7 @@ async function anchorsFor(
     return { ftp: o.ftp, powerZones: o.powerZones ?? null };
   }
   const sport = o.sport ?? "Ride";
-  const athlete = await scenarioClient(run.evalCase).getAthlete();
+  const athlete = await scenarioClient(run.evalCase).athlete.getAthlete();
   // The platform returns `sportSettings`; the type still names the old key.
   const settings = (athlete["sportSettings"] ??
     athlete.sport_settings ??
@@ -173,7 +173,9 @@ async function zoneBand(
   run: RunArtifacts
 ): Promise<{ band: [number, number]; label: string }> {
   const [from, to] = Array.isArray(zone) ? zone : [zone, zone];
-  const ctx = await scenarioClient(run.evalCase).getCoachingContext();
+  const ctx = await scenarioClient(
+    run.evalCase
+  ).coachingContext.getCoachingContext();
   if (!ctx.mapZones) {
     throw new Error(`no mapZones on ${ctx.asOf}: ${ctx.mapWarning ?? ""}`);
   }

@@ -41,7 +41,7 @@ async function main() {
 
   try {
     header("0. create a multi-step structured workout (with external_id)");
-    const event = client.buildWorkoutEvent({
+    const event = client.workoutBuilder.buildEvent({
       name: "PROBE update_event multistep",
       date,
       sportType: "Ride",
@@ -59,14 +59,14 @@ async function main() {
       ],
       externalId,
     });
-    const created = (await client.createEvents([event])) as Array<
+    const created = (await client.events.createEvents([event])) as Array<
       Record<string, unknown>
     >;
     createdId = created[0]?.id as number;
     if (!createdId) throw new Error("no id from create");
     console.log("created event id:", createdId);
 
-    let cur = (await client.getEvent(createdId)) as unknown as Record<
+    let cur = (await client.events.getEvent(createdId)) as unknown as Record<
       string,
       unknown
     >;
@@ -88,7 +88,7 @@ async function main() {
       `/api/v1/athlete/${athleteId}/events/${createdId}`,
       { method: "PUT", body: { description: fullWorkoutText } }
     );
-    cur = (await client.getEvent(createdId)) as unknown as Record<
+    cur = (await client.events.getEvent(createdId)) as unknown as Record<
       string,
       unknown
     >;
@@ -98,7 +98,7 @@ async function main() {
       "F. can we set external_id via PUT on an event that doesn't have one?"
     );
     // first create a no-external-id event
-    const noExt = (await client.createEvents([
+    const noExt = (await client.events.createEvents([
       {
         category: "WORKOUT" as const,
         start_date_local: `${date}T00:00:00`,
@@ -121,10 +121,9 @@ async function main() {
         `/api/v1/athlete/${athleteId}/events/${noExtId}`,
         { method: "PUT", body: { external_id: newExtId } }
       );
-      const after = (await client.getEvent(noExtId)) as unknown as Record<
-        string,
-        unknown
-      >;
+      const after = (await client.events.getEvent(
+        noExtId
+      )) as unknown as Record<string, unknown>;
       console.log("after PUT external_id:", { external_id: after.external_id });
     } catch (e) {
       console.log("PUT external_id ERROR:", (e as Error).message);
@@ -134,7 +133,7 @@ async function main() {
     header("cleanup");
     for (const id of orphans) {
       try {
-        await client.deleteEvents([{ id }]);
+        await client.events.deleteEvents([{ id }]);
         console.log("deleted", id);
       } catch (e) {
         console.log("delete ERROR for", id, ":", (e as Error).message);

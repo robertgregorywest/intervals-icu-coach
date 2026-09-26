@@ -1,15 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
 import { fileURLToPath } from "node:url";
 import {
-  listTrackSessions,
-  getTrackSession,
-  compareTrackSessions,
-  listTrackSessionsSchema,
-  getTrackSessionSchema,
-  compareTrackSessionsSchema,
-  listTrackSessionsOutputSchema,
-  getTrackSessionOutputSchema,
-  compareTrackSessionsOutputSchema,
+  listTrackSessionsTool,
+  getTrackSessionTool,
+  compareTrackSessionsTool,
 } from "../../src/tools/track-sessions.js";
 import {
   createTrackSessions,
@@ -27,11 +21,24 @@ function fixtureClient(): IIntervalsClient {
     load: () => loadTrackSessionRecords(FIXTURES),
   });
   return {
-    listTrackSessions: vi.fn(() => service.listTrackSessions()),
-    getTrackSession: vi.fn((o) => service.getTrackSession(o)),
-    compareTrackSessions: vi.fn((o) => service.compareTrackSessions(o)),
+    trackSessions: {
+      listTrackSessions: vi.fn(() => service.listTrackSessions()),
+      getTrackSession: vi.fn((o) => service.getTrackSession(o)),
+      compareTrackSessions: vi.fn((o) => service.compareTrackSessions(o)),
+      resolveTrackSplits: (id: string) => service.resolveTrackSplits(id),
+    },
   } as unknown as IIntervalsClient;
 }
+
+const listTrackSessions = listTrackSessionsTool.handler;
+const getTrackSession = getTrackSessionTool.handler;
+const compareTrackSessions = compareTrackSessionsTool.handler;
+const listTrackSessionsSchema = listTrackSessionsTool.schema;
+const getTrackSessionSchema = getTrackSessionTool.schema;
+const compareTrackSessionsSchema = compareTrackSessionsTool.schema;
+const listTrackSessionsOutputSchema = listTrackSessionsTool.outputSchema;
+const getTrackSessionOutputSchema = getTrackSessionTool.outputSchema;
+const compareTrackSessionsOutputSchema = compareTrackSessionsTool.outputSchema;
 
 describe("track session tool schemas", () => {
   it("takes no arguments to list", () => {
@@ -66,10 +73,10 @@ describe("track session tool schemas", () => {
 describe("track session tool handlers", () => {
   it("lists sessions in a shape matching the declared output schema", async () => {
     const client = fixtureClient();
-    const result = await listTrackSessions(client);
+    const result = await listTrackSessions(client, {});
     expect(listTrackSessionsOutputSchema.parse(result)).toBeTruthy();
     expect(result.sessions).toHaveLength(4);
-    expect(client.listTrackSessions).toHaveBeenCalled();
+    expect(client.trackSessions.listTrackSessions).toHaveBeenCalled();
   });
 
   it("passes id and segmentLaps through, and matches the output schema", async () => {
@@ -79,7 +86,7 @@ describe("track session tool handlers", () => {
       segmentLaps: 2,
     });
     expect(getTrackSessionOutputSchema.parse(result)).toBeTruthy();
-    expect(client.getTrackSession).toHaveBeenCalledWith({
+    expect(client.trackSessions.getTrackSession).toHaveBeenCalledWith({
       id: "2026-nationals-ip",
       segmentLaps: 2,
     });

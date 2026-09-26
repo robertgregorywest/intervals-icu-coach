@@ -19,7 +19,11 @@ export const limitField = z
     `Maximum results to return (default ${DEFAULT_LIST_LIMIT}, max ${MAX_LIST_LIMIT})`
   );
 
-export function assertDateRange(oldest: string, newest: string): void {
+/**
+ * Days from `oldest` to `newest`, exclusive of the last. Throws on an
+ * unparseable date or a range that runs backwards.
+ */
+export function spanDays(oldest: string, newest: string): number {
   const start = Date.parse(oldest);
   const end = Date.parse(newest);
   if (Number.isNaN(start) || Number.isNaN(end)) {
@@ -30,7 +34,11 @@ export function assertDateRange(oldest: string, newest: string): void {
       `newest (${newest}) must be on or after oldest (${oldest})`
     );
   }
-  const days = (end - start) / 86_400_000;
+  return (end - start) / 86_400_000;
+}
+
+export function assertDateRange(oldest: string, newest: string): void {
+  const days = spanDays(oldest, newest);
   if (days > MAX_RANGE_DAYS) {
     throw new Error(
       `Date range too large: ${Math.round(days)} days (max ${MAX_RANGE_DAYS}). ` +

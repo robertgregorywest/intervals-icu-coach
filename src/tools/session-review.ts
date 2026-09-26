@@ -1,10 +1,11 @@
 import { z } from "zod";
-import type { IIntervalsClient } from "../index.js";
+import { normalizeActivityId } from "../services/activities/index.js";
+import { defineTool, READ_ONLY } from "./define.js";
 
 // Deliberately a plain object rather than a `.refine()`d one: the MCP adapter
 // registers `schema.shape`, which a ZodEffects wrapper does not expose. The
-// exactly-one rule is enforced in the handler below instead.
-export const comparePlannedVsActualSchema = z.object({
+// exactly-one rule is enforced by the paired-session loader, before any request.
+const comparePlannedVsActualSchema = z.object({
   activityId: z
     .union([z.string(), z.number()])
     .optional()
@@ -78,7 +79,7 @@ const alignedStepShape = z.object({
   note: z.string().optional(),
 });
 
-export const comparePlannedVsActualOutputSchema = z.object({
+const comparePlannedVsActualOutputSchema = z.object({
   activityId: z.string().optional(),
   eventId: z.number().optional(),
   activityName: z.string().optional(),
@@ -130,30 +131,46 @@ export const comparePlannedVsActualOutputSchema = z.object({
   message: z.string().optional(),
 });
 
-export async function comparePlannedVsActual(
-  client: IIntervalsClient,
-  args: z.infer<typeof comparePlannedVsActualSchema>
-): Promise<z.infer<typeof comparePlannedVsActualOutputSchema>> {
-  // Caught here rather than in the schema so the caller gets the explanation
-  // before any request is made; the service guards the same rule.
-  if (!!args.activityId === !!args.eventId) {
-    throw new Error(
-      "Supply exactly one of activityId or eventId — the other half of the " +
-        "pair is resolved automatically from the activity's paired event."
-    );
-  }
-
-  return client.comparePlannedVsActual({
-    activityId:
-      args.activityId === undefined
-        ? undefined
-        : normalizeActivityId(args.activityId),
-    eventId: args.eventId,
-    tolerance: args.tolerance,
-  });
-}
-
-function normalizeActivityId(id: string | number): string {
-  if (typeof id === "number") return `i${id}`;
-  return id.startsWith("i") ? id : `i${id}`;
-}
+export const comparePlannedVsActualTool = defineTool({
+  name: "compare_planned_vs_actual",
+  description:
+    "Verify whether a session was executed as prescribed. " +
+    "Pairs a completed activity with its planned event (supply exactly one of " +
+    "activityId or eventId — the other is resolved via the activity's paired event) " +
+    "and reports, per planned step, the prescribed duration and power target " +
+    "beside the delivered duration and average power, the deltas, and a verdict " +
+    "(on-target / over / under / not-attempted / unmatched). Repeat blocks are " +
+    "compared rep by rep, so decay across reps is visible. " +
+    "Where a step prescribes a cadence, cadenceVerdict (on-target / over / under) " +
+    "and deltas.cadence judge the delivered average cadence beside the power " +
+    "verdict, never folded into it: point targets allow ±5 rpm, ranges their own band. " +
+    "Steps are compared against the laps the head unit recorded, read from the " +
+    "original upload — the faithful record of what the athlete marked. " +
+    "Intervals.icu's own icu_intervals analysis is derived and editable and can " +
+    "re-cut rep boundaries, so it is used only when laps are unavailable (no FIT " +
+    "file, or the ride was never lapped) or cannot explain the session. " +
+    "executionRecord names which was used; executionRecordNote flags a derived " +
+    "reading known to have drifted from the laps. " +
+    "Alignment is deliberately conservative and reads duration only, never power: " +
+    "alignmentBasis is 'sequential' (matched in order), 'duration' (partial match), " +
+    "or 'none' (declined to guess). A 'none' result still returns the roll-up. " +
+    "Refusals are explicit via reason: no-paired-event, no-paired-activity, " +
+    "no-structured-steps, no-intervals, alignment-failed. " +
+    "Optional tolerance (fraction, default 0.05) applies to point targets only; " +
+    "range targets are judged on their own band. " +
+    "Returns: { executionRecord, executionRecordNote?, alignmentBasis, matchedFraction, " +
+    "tolerance, steps: [...], " +
+    "rollup: { plannedLoad, actualLoad, platformCompliance, unplannedIntervals }, reason? }.",
+  schema: comparePlannedVsActualSchema,
+  annotations: READ_ONLY,
+  outputSchema: comparePlannedVsActualOutputSchema,
+  handler: (client, args) =>
+    client.sessionReview.comparePlannedVsActual({
+      activityId:
+        args.activityId === undefined
+          ? undefined
+          : normalizeActivityId(args.activityId),
+      eventId: args.eventId,
+      tolerance: args.tolerance,
+    }),
+});

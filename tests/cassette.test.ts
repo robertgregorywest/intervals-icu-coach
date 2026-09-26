@@ -10,6 +10,7 @@ import {
   replayFetch,
 } from "../src/cassette.js";
 import { IntervalsClient } from "../src/index.js";
+import { getFitnessSummaryTool } from "../src/tools/wellness.js";
 
 const BASE = "https://intervals.icu/api/v1/athlete/i1";
 
@@ -262,13 +263,13 @@ describe("IntervalsClient with eval seams", () => {
 
   it("routes requests through the injected fetch on the pinned day", async () => {
     const fetchFn = vi.fn().mockResolvedValue(okJson({ id: "2026-09-06" }));
-    await client(fetchFn).getFitnessSummary();
+    await getFitnessSummaryTool.handler(client(fetchFn), {});
     expect(fetchFn.mock.calls[0][0]).toBe(`${BASE}/wellness/2026-09-06`);
   });
 
   it("starts the default training week on the pinned day's Monday", async () => {
     const fetchFn = vi.fn().mockImplementation(async () => okJson([]));
-    const summary = await client(fetchFn).getTrainingWeekSummary();
+    const summary = await client(fetchFn).trainingWeek.getTrainingWeekSummary();
     // 2026-09-06 is a Sunday.
     expect(summary.week).toEqual({ start: "2026-08-31", end: "2026-09-06" });
   });

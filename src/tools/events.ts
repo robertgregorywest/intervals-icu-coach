@@ -1,6 +1,5 @@
-import { prescriptionShape } from "../services/prescription/index.js";
 import { z } from "zod";
-import type { IIntervalsClient } from "../index.js";
+import { defineTool, MUTATING, READ_ONLY } from "./define.js";
 import {
   applyLimit,
   assertDateRange,
@@ -34,13 +33,13 @@ const sportTypeEnum = z.enum([
   "OpenWaterSwim",
 ]);
 
-export const getEventsSchema = z.object({
+const getEventsSchema = z.object({
   oldest: dateString.describe("Start date in YYYY-MM-DD format"),
   newest: dateString.describe("End date in YYYY-MM-DD format"),
   limit: limitField.optional(),
 });
 
-export const getEventsOutputSchema = z
+const getEventsOutputSchema = z
   .object({
     total: z.number(),
     count: z.number(),
@@ -50,40 +49,52 @@ export const getEventsOutputSchema = z
   })
   .passthrough();
 
-export async function getEvents(
-  client: IIntervalsClient,
-  args: z.infer<typeof getEventsSchema>
-): Promise<z.infer<typeof getEventsOutputSchema>> {
-  assertDateRange(args.oldest, args.newest);
-  const all = await client.getEvents(args.oldest, args.newest);
-  const limit = args.limit ?? 50;
-  const { items, total, truncated } = applyLimit(all, limit);
-  return {
-    total,
-    count: items.length,
-    truncated,
-    ...(truncated
-      ? {
-          message:
-            "Result list truncated. Increase 'limit' or narrow the date range.",
-        }
-      : {}),
-    events: items as unknown as Array<Record<string, unknown>>,
-  };
-}
+export const getEventsTool = defineTool({
+  name: "get_events",
+  description:
+    "List calendar events (planned workouts, races, notes) in a date range. " +
+    "Use this to see what's already scheduled on the athlete's calendar. " +
+    "Date range max 365 days; results capped at 'limit' (default 50, max 200). " +
+    "Returns: { total, count, truncated, events: [...] }.",
+  schema: getEventsSchema,
+  annotations: READ_ONLY,
+  outputSchema: getEventsOutputSchema,
+  async handler(client, args) {
+    assertDateRange(args.oldest, args.newest);
+    const all = await client.events.getEvents(args.oldest, args.newest);
+    const limit = args.limit ?? 50;
+    const { items, total, truncated } = applyLimit(all, limit);
+    return {
+      total,
+      count: items.length,
+      truncated,
+      ...(truncated
+        ? {
+            message:
+              "Result list truncated. Increase 'limit' or narrow the date range.",
+          }
+        : {}),
+      events: items as unknown as Array<Record<string, unknown>>,
+    };
+  },
+});
 
-export const getEventSchema = z.object({
+const getEventSchema = z.object({
   id: z.number().describe("Event ID"),
 });
 
-export async function getEvent(
-  client: IIntervalsClient,
-  args: z.infer<typeof getEventSchema>
-): Promise<Record<string, unknown>> {
-  return (await client.getEvent(args.id)) as unknown as Record<string, unknown>;
-}
+export const getEventTool = defineTool({
+  name: "get_event",
+  description:
+    "Get details of a single calendar event including workout description/structure. " +
+    "Returns an IntervalsEvent (id, category, type, name, description, start_date_local).",
+  schema: getEventSchema,
+  annotations: READ_ONLY,
+  outputSchema: null,
+  handler: (client, args) => client.events.getEvent(args.id),
+});
 
-export const updateEventSchema = z.object({
+const updateEventSchema = z.object({
   id: z.number().describe("Event ID to update"),
   name: z.string().optional().describe("Updated event name"),
   description: z
@@ -117,66 +128,19 @@ export const updateEventSchema = z.object({
   color: z.string().optional().describe("Updated event color"),
 });
 
-export async function updateEvent(
-  client: IIntervalsClient,
-  args: z.infer<typeof updateEventSchema>
-): Promise<Record<string, unknown>> {
-  const { id, date, steps, notes, description, name, category, type, color } =
-    args;
+export const updateEventTool = defineTool({
+  name: "update_event",
+  description:
+    "Update an existing calendar event. Can modify name, description, date, category, type, or color. " +
+    "Returns the updated IntervalsEvent.",
+  schema: updateEventSchema,
+  annotations: MUTATING,
+  outputSchema: null,
+  handler: (client, { id, ...changes }) =>
+    client.eventUpdate.updateEvent(id, changes),
+});
 
-  if (steps && description !== undefined) {
-    throw new Error(
-      "update_event: 'steps' and 'description' are mutually exclusive. " +
-        "Use 'steps' to update workout structure (description is rebuilt from it), " +
-        "or 'description' alone for prose-only updates on non-WORKOUT events."
-    );
-  }
-
-  if (notes !== undefined && !steps) {
-    throw new Error(
-      "update_event: 'notes' requires 'steps' — the description is rebuilt " +
-        "from steps with notes above them."
-    );
-  }
-
-  // Guard against the issue-#1 bug: PUT /events/{id} with a `description` body
-  // makes Intervals.icu reparse the text as workout-text. On a structured
-  // WORKOUT event, anything that isn't a valid step line collapses
-  // workout_doc.steps. Force callers to use `steps` for WORKOUT updates.
-  if (description !== undefined && !steps) {
-    const existing = await client.getEvent(id);
-    const hasSteps = (existing.workout_doc?.steps?.length ?? 0) > 0;
-    if (
-      existing.category === "WORKOUT" &&
-      hasSteps &&
-      prescriptionShape(description).stepCount === 0
-    ) {
-      throw new Error(
-        "update_event: refusing to update 'description' on a WORKOUT event — " +
-          "it contains no step lines, so Intervals.icu would reparse it and " +
-          "collapse workout_doc.steps. Include the step lines in the " +
-          "description, or pass 'steps' (and 'notes') to rebuild it, or " +
-          "update the metadata fields only (name, date, color, category, type)."
-      );
-    }
-  }
-
-  const data: Record<string, unknown> = {};
-  if (name !== undefined) data.name = name;
-  if (category !== undefined) data.category = category;
-  if (type !== undefined) data.type = type;
-  if (color !== undefined) data.color = color;
-  if (date) data.start_date_local = `${date}T00:00:00`;
-  if (description !== undefined) data.description = description;
-  if (steps) data.description = client.buildWorkoutDescription(steps, notes);
-
-  return (await client.updateEvent(id, data)) as unknown as Record<
-    string,
-    unknown
-  >;
-}
-
-export const deleteEventsSchema = z.object({
+const deleteEventsSchema = z.object({
   ids: z
     .array(
       z.union([
@@ -191,15 +155,22 @@ export const deleteEventsSchema = z.object({
     ),
 });
 
-export const deleteEventsOutputSchema = z.object({
+const deleteEventsOutputSchema = z.object({
   success: z.literal(true),
   deleted: z.number().describe("Number of identifiers submitted for deletion"),
 });
 
-export async function deleteEvents(
-  client: IIntervalsClient,
-  args: z.infer<typeof deleteEventsSchema>
-): Promise<z.infer<typeof deleteEventsOutputSchema>> {
-  await client.deleteEvents(args.ids);
-  return { success: true, deleted: args.ids.length };
-}
+export const deleteEventsTool = defineTool({
+  name: "delete_events",
+  description:
+    "Delete one or more calendar events. Each item must specify exactly one of " +
+    "{ id } or { external_id }. Cannot be undone. " +
+    "Returns: { success: true, deleted: N }.",
+  schema: deleteEventsSchema,
+  annotations: MUTATING,
+  outputSchema: deleteEventsOutputSchema,
+  async handler(client, args) {
+    await client.events.deleteEvents(args.ids);
+    return { success: true as const, deleted: args.ids.length };
+  },
+});

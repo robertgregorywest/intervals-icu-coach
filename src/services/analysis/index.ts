@@ -16,3 +16,5 @@ export {
   type IntervalSummary,
   type IntervalFilterOptions,
 } from "./intervals.js";
+export { createActivityAnalysis } from "./analysis.js";
+export type { IActivityAnalysis, ActivityAnalysisDeps } from "./analysis.js";

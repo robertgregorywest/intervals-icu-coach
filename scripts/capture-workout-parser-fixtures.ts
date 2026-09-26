@@ -41,8 +41,8 @@ const outDir = resolve(import.meta.dirname, "../tests/fixtures/workout-parser");
 mkdirSync(outDir, { recursive: true });
 
 const [events, athlete] = await Promise.all([
-  client.getEvents(OLDEST, NEWEST),
-  client.getAthlete(),
+  client.events.getEvents(OLDEST, NEWEST),
+  client.athlete.getAthlete(),
 ]);
 
 /**
@@ -213,8 +213,8 @@ async function captureZoneTargets(): Promise<void> {
 
   let written: Array<{ id?: number; name: string; doc?: unknown }> = [];
   try {
-    await client.createEvents(drafts);
-    const back = (await client.getEvents(date, date)).filter((e) =>
+    await client.events.createEvents(drafts);
+    const back = (await client.events.getEvents(date, date)).filter((e) =>
       e.name.startsWith("zone-target probe ")
     );
     written = back.map((e) => ({ id: e.id, name: e.name, doc: e.workout_doc }));
@@ -257,7 +257,7 @@ async function captureZoneTargets(): Promise<void> {
       .map((e) => e.id)
       .filter((id): id is number => typeof id === "number");
     if (ids.length > 0) {
-      await client.deleteEvents(ids.map((id) => ({ id })));
+      await client.events.deleteEvents(ids.map((id) => ({ id })));
       console.log(`zone probes deleted: ${ids.length}`);
     }
   }

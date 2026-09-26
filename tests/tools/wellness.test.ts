@@ -1,24 +1,30 @@
 import { describe, it, expect, vi } from "vitest";
-import { getWellness, getFitnessSummary } from "../../src/tools/wellness.js";
+import {
+  getWellnessTool,
+  getFitnessSummaryTool,
+} from "../../src/tools/wellness.js";
 import type { IIntervalsClient } from "../../src/index.js";
 
 function createMockClient(): IIntervalsClient {
   return {
-    getWellness: vi
-      .fn()
-      .mockResolvedValue([{ date: "2024-01-01", ctl: 60, atl: 70 }]),
-    getFitnessSummary: vi.fn().mockResolvedValue({
-      date: "2024-01-15",
-      ctl: 62,
-      atl: 55,
-    }),
+    wellness: {
+      getWellness: vi
+        .fn()
+        .mockResolvedValue([{ date: "2024-01-01", ctl: 60, atl: 70 }]),
+      getWellnessDay: vi.fn().mockResolvedValue({
+        date: "2024-01-15",
+        ctl: 62,
+        atl: 55,
+      }),
+    },
+    today: () => "2024-01-15",
   } as unknown as IIntervalsClient;
 }
 
 describe("getWellness tool handler", () => {
   it("returns wellness data as JSON", async () => {
     const client = createMockClient();
-    const result = await getWellness(client, {
+    const result = await getWellnessTool.handler(client, {
       oldest: "2024-01-01",
       newest: "2024-01-31",
     });
@@ -34,10 +40,12 @@ describe("getWellness tool handler", () => {
 describe("getFitnessSummary tool handler", () => {
   it("returns today's fitness snapshot", async () => {
     const client = createMockClient();
-    const result = await getFitnessSummary(client);
-    const parsed = result;
+    const parsed = (await getFitnessSummaryTool.handler(client, {})) as Record<
+      string,
+      unknown
+    >;
 
     expect(parsed.ctl).toBe(62);
-    expect(client.getFitnessSummary).toHaveBeenCalledOnce();
+    expect(client.wellness.getWellnessDay).toHaveBeenCalledWith("2024-01-15");
   });
 });

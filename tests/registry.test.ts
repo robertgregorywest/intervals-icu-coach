@@ -68,7 +68,7 @@ describe("TOOLS registry", () => {
   it("handlers are callable and return promises", async () => {
     const getAthlete = TOOLS.find((t) => t.name === "get_athlete")!;
     const mockClient = {
-      getAthlete: async () => ({ id: "i0", name: "Test" }),
+      athlete: { getAthlete: async () => ({ id: "i0", name: "Test" }) },
     } as unknown as Parameters<typeof getAthlete.handler>[0];
     const result = getAthlete.handler(mockClient, {});
     expect(result).toBeInstanceOf(Promise);

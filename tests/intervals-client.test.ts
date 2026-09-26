@@ -97,7 +97,7 @@ describe("IntervalsClient pinned today", () => {
 
   it("anchors the coaching context's window on the pinned day", async () => {
     const { client, urls } = pinnedClient();
-    const ctx = await client.getCoachingContext();
+    const ctx = await client.coachingContext.getCoachingContext();
     expect(ctx.asOf).toBe(TODAY);
     const wellness = urls.find((u) => u.includes("/wellness?"));
     expect(new URL(wellness!).searchParams.get("newest")).toBe(TODAY);
@@ -105,14 +105,14 @@ describe("IntervalsClient pinned today", () => {
 
   it("looks back for MAP from the pinned day when profiling power", async () => {
     const { client, urls } = pinnedClient();
-    await client.computePowerProfile().catch(() => undefined);
+    await client.powerProfile.computePowerProfile().catch(() => undefined);
     const activities = urls.find((u) => u.includes("/activities?"));
     expect(new URL(activities!).searchParams.get("newest")).toBe(TODAY);
   });
 
   it("answers FTP from one athlete request, without the coaching context", async () => {
     const { client, urls } = pinnedClient();
-    await client.getAthleteAnchors();
+    await client.anchors.getAthleteAnchors();
     expect(urls.map((u) => new URL(u).pathname)).toEqual([
       "/api/v1/athlete/i1",
     ]);
@@ -120,7 +120,7 @@ describe("IntervalsClient pinned today", () => {
 
   it("builds no coaching context for the execution digest", async () => {
     const { client, urls } = pinnedClient();
-    await client.getExecutionDigest({
+    await client.executionDigest.getExecutionDigest({
       oldest: "2026-09-01",
       newest: "2026-09-06",
     });
@@ -130,7 +130,9 @@ describe("IntervalsClient pinned today", () => {
 
   it("keeps an explicit coaching-context today over the pinned one", async () => {
     const { client } = pinnedClient();
-    const ctx = await client.getCoachingContext({ today: "2026-08-01" });
+    const ctx = await client.coachingContext.getCoachingContext({
+      today: "2026-08-01",
+    });
     expect(ctx.asOf).toBe("2026-08-01");
   });
 });

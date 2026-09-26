@@ -1,9 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
-import { getTrainingWeekSummary } from "../../src/tools/training-week.js";
+import { getTrainingWeekSummaryTool } from "../../src/tools/training-week.js";
 import type { IIntervalsClient } from "../../src/index.js";
 
 describe("getTrainingWeekSummary tool handler", () => {
-  it("delegates to the client with the given weekStart", async () => {
+  it("delegates to the service with the given weekStart", async () => {
     const summary = {
       week: { start: "2026-04-27", end: "2026-05-03" },
       totals: {
@@ -18,36 +18,44 @@ describe("getTrainingWeekSummary tool handler", () => {
       events: [],
     };
     const client = {
-      getTrainingWeekSummary: vi.fn().mockResolvedValue(summary),
+      trainingWeek: {
+        getTrainingWeekSummary: vi.fn().mockResolvedValue(summary),
+      },
     } as unknown as IIntervalsClient;
 
-    const result = await getTrainingWeekSummary(client, {
+    const result = await getTrainingWeekSummaryTool.handler(client, {
       weekStart: "2026-04-27",
     });
 
     expect(result).toBe(summary);
-    expect(client.getTrainingWeekSummary).toHaveBeenCalledWith("2026-04-27");
+    expect(client.trainingWeek.getTrainingWeekSummary).toHaveBeenCalledWith(
+      "2026-04-27"
+    );
   });
 
   it("passes undefined through when weekStart is omitted", async () => {
     const client = {
-      getTrainingWeekSummary: vi.fn().mockResolvedValue({
-        week: { start: "2026-04-27", end: "2026-05-03" },
-        totals: {
-          activityCount: 0,
-          tss: 0,
-          durationSeconds: 0,
-          durationHours: 0,
-        },
-        bySport: {},
-        fitness: null,
-        completedActivities: [],
-        events: [],
-      }),
+      trainingWeek: {
+        getTrainingWeekSummary: vi.fn().mockResolvedValue({
+          week: { start: "2026-04-27", end: "2026-05-03" },
+          totals: {
+            activityCount: 0,
+            tss: 0,
+            durationSeconds: 0,
+            durationHours: 0,
+          },
+          bySport: {},
+          fitness: null,
+          completedActivities: [],
+          events: [],
+        }),
+      },
     } as unknown as IIntervalsClient;
 
-    await getTrainingWeekSummary(client, {});
+    await getTrainingWeekSummaryTool.handler(client, {});
 
-    expect(client.getTrainingWeekSummary).toHaveBeenCalledWith(undefined);
+    expect(client.trainingWeek.getTrainingWeekSummary).toHaveBeenCalledWith(
+      undefined
+    );
   });
 });

@@ -1,8 +1,8 @@
 import { z } from "zod";
-import type { IIntervalsClient } from "../index.js";
+import { defineTool, READ_ONLY } from "./define.js";
 import { dateString } from "./common.js";
 
-export const getTrainingWeekSummarySchema = z.object({
+const getTrainingWeekSummarySchema = z.object({
   weekStart: dateString
     .optional()
     .describe(
@@ -31,7 +31,7 @@ const fitnessDeltaShape = z
   })
   .nullable();
 
-export const getTrainingWeekSummaryOutputSchema = z.object({
+const getTrainingWeekSummaryOutputSchema = z.object({
   week: z.object({ start: z.string(), end: z.string() }),
   totals: z.object({
     activityCount: z.number(),
@@ -84,9 +84,23 @@ export const getTrainingWeekSummaryOutputSchema = z.object({
   ),
 });
 
-export async function getTrainingWeekSummary(
-  client: IIntervalsClient,
-  args: z.infer<typeof getTrainingWeekSummarySchema>
-): Promise<z.infer<typeof getTrainingWeekSummaryOutputSchema>> {
-  return client.getTrainingWeekSummary(args.weekStart);
-}
+export const getTrainingWeekSummaryTool = defineTool({
+  name: "get_training_week_summary",
+  description:
+    "Get a complete training week snapshot in one call: completed activities, " +
+    "wellness/fitness trends (CTL/ATL/TSB), and planned events for the upcoming days. " +
+    "Provide weekStart (Monday) in YYYY-MM-DD; defaults to current week. " +
+    "Use this for weekly review or planning the next week. " +
+    "Saves the multi-call dance of get_activities + get_wellness + get_events. " +
+    "middleBand is the week's delivered time at 76-106% FTP (tempo through " +
+    "threshold), from recorded power streams, with the watt bounds it used; " +
+    "null when FTP is unavailable. Each completed activity carries its own " +
+    "middleBandSeconds (null without power). " +
+    "Returns: { week, totals, middleBand, bySport, fitness: { ctl, atl, tsb }, " +
+    "completedActivities: [...], events: [...] }.",
+  schema: getTrainingWeekSummarySchema,
+  annotations: READ_ONLY,
+  outputSchema: getTrainingWeekSummaryOutputSchema,
+  handler: (client, args) =>
+    client.trainingWeek.getTrainingWeekSummary(args.weekStart),
+});

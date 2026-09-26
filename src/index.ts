@@ -1,218 +1,79 @@
 import { createHttpClient } from "./client.js";
-import type { FetchFn, IHttpClient } from "./client.js";
+import type { FetchFn } from "./client.js";
 import { isoToday } from "./clock.js";
 import { parseClientConfig } from "./config.js";
 import { createEventsApi } from "./services/events/index.js";
 import type { IEventsApi } from "./services/events/index.js";
+import { createEventUpdate } from "./services/event-update/index.js";
+import type { IEventUpdate } from "./services/event-update/index.js";
 import { createWorkoutBuilder } from "./services/workout-builder/index.js";
-import type {
-  IWorkoutBuilder,
-  WorkoutPlan,
-  WorkoutStep,
-  RepeatBlock,
-} from "./services/workout-builder/index.js";
+import type { IWorkoutBuilder } from "./services/workout-builder/index.js";
 import { createAthleteApi } from "./services/athlete/index.js";
-import type { IAthleteApi, AthleteProfile } from "./services/athlete/index.js";
+import type { IAthleteApi } from "./services/athlete/index.js";
 import { createActivitiesApi } from "./services/activities/index.js";
 import type { IActivitiesApi } from "./services/activities/index.js";
-import type {
-  Activity,
-  ActivityStreams,
-  FitLap,
-} from "./services/activities/index.js";
 import { createWellnessApi } from "./services/wellness/index.js";
 import type { IWellnessApi } from "./services/wellness/index.js";
-import type { WellnessRecord } from "./services/wellness/index.js";
 import { createPowerCurvesApi } from "./services/power-curves/index.js";
-import type {
-  IPowerCurvesApi,
-  PowerCurveOptions,
-} from "./services/power-curves/index.js";
-import type { PowerCurvePoint } from "./services/power-curves/index.js";
+import type { IPowerCurvesApi } from "./services/power-curves/index.js";
 import {
   createWorkoutLibraryApi,
   createWorkoutLibrary,
 } from "./services/workout-library/index.js";
-import type {
-  IWorkoutLibrary,
-  LibraryListing,
-  LibraryItem,
-  SyncOptions,
-  SyncReport,
-} from "./services/workout-library/index.js";
-import { computeAerobicDecoupling } from "./services/analysis/index.js";
-import type { DecouplingResult } from "./services/analysis/index.js";
-import { compareIntervals as compareIntervalsAnalysis } from "./services/analysis/index.js";
-import type {
-  CompareIntervalsResult,
-  IntervalFilterOptions,
-} from "./services/analysis/index.js";
+import type { IWorkoutLibrary } from "./services/workout-library/index.js";
+import { createActivityAnalysis } from "./services/analysis/index.js";
+import type { IActivityAnalysis } from "./services/analysis/index.js";
 import { createSessionReview } from "./services/session-review/index.js";
+import type { ISessionReview } from "./services/session-review/index.js";
 import { createExecutionDigest } from "./services/execution-digest/index.js";
-import type {
-  IExecutionDigest,
-  ExecutionDigestResult,
-  GetExecutionDigestOptions,
-} from "./services/execution-digest/index.js";
+import type { IExecutionDigest } from "./services/execution-digest/index.js";
 import { createIntensityDistribution } from "./services/intensity-distribution/index.js";
-import type {
-  IIntensityDistribution,
-  CompareIntensityDistributionOptions,
-  CompareIntensityDistributionRangeOptions,
-  IntensityDistributionResult,
-  IntensityDistributionRangeResult,
-} from "./services/intensity-distribution/index.js";
-import type {
-  ISessionReview,
-  ComparePlannedVsActualOptions,
-  PlannedVsActualResult,
-} from "./services/session-review/index.js";
+import type { IIntensityDistribution } from "./services/intensity-distribution/index.js";
 import { createTrackLapAlignment } from "./services/track-lap-alignment/index.js";
-import type {
-  ITrackLapAlignment,
-  TrackLapPowerOptions,
-  TrackLapAlignmentResult,
-} from "./services/track-lap-alignment/index.js";
+import type { ITrackLapAlignment } from "./services/track-lap-alignment/index.js";
 import { createTrackLapWriteback } from "./services/track-lap-writeback/index.js";
-import type {
-  ITrackLapWriteback,
-  TrackRunWriteOptions,
-  TrackRunWriteResult,
-} from "./services/track-lap-writeback/index.js";
+import type { ITrackLapWriteback } from "./services/track-lap-writeback/index.js";
 import { createTrackSessions } from "./services/track-sessions/index.js";
-import type {
-  ITrackSessions,
-  CompareTrackSessionsOptions,
-  GetTrackSessionOptions,
-  ListTrackSessionsResult,
-  RunComparison,
-  TrackSessionDetail,
-  TrackSplitsSource,
-} from "./services/track-sessions/index.js";
+import type { ITrackSessions } from "./services/track-sessions/index.js";
 import { createTrainingWeek } from "./services/training-week/index.js";
-import type {
-  ITrainingWeek,
-  TrainingWeekSummary,
-} from "./services/training-week/index.js";
+import type { ITrainingWeek } from "./services/training-week/index.js";
 import { createTrainingLoadForecast } from "./services/training-load-forecast/index.js";
-import type {
-  ForecastOptions,
-  ForecastResult,
-  ITrainingLoadForecast,
-} from "./services/training-load-forecast/index.js";
-import { buildCoachingContext } from "./services/coaching-context/index.js";
+import type { ITrainingLoadForecast } from "./services/training-load-forecast/index.js";
+import { createCoachingContext } from "./services/coaching-context/index.js";
+import type { ICoachingContext } from "./services/coaching-context/index.js";
 import { createAthleteAnchors } from "./services/athlete-anchors/index.js";
-import type {
-  AthleteAnchors,
-  IAthleteAnchors,
-} from "./services/athlete-anchors/index.js";
-import type {
-  CoachingContext,
-  CoachingContextOptions,
-} from "./services/coaching-context/index.js";
-import { computePowerProfileWith } from "./services/power-profile/index.js";
-import type {
-  PowerProfileOverrides,
-  PowerProfileResult,
-} from "./services/power-profile/index.js";
-import type { IntervalsEvent } from "./types.js";
+import type { IAthleteAnchors } from "./services/athlete-anchors/index.js";
+import { createPowerProfile } from "./services/power-profile/index.js";
+import type { IPowerProfile } from "./services/power-profile/index.js";
 
+/**
+ * The services a Tool handler can reach. Handlers take what they need from
+ * here; nothing on it forwards to anything else.
+ */
 export interface IIntervalsClient {
-  // Events
-  getEvents(oldest: string, newest: string): Promise<IntervalsEvent[]>;
-  getEvent(eventId: number): Promise<IntervalsEvent>;
-  createEvents(events: IntervalsEvent[]): Promise<IntervalsEvent[]>;
-  updateEvent(
-    eventId: number,
-    data: Partial<IntervalsEvent>
-  ): Promise<IntervalsEvent>;
-  deleteEvents(
-    ids: Array<{ external_id?: string; id?: number }>
-  ): Promise<void>;
-
-  // Athlete
-  getAthlete(): Promise<AthleteProfile>;
+  readonly events: IEventsApi;
+  readonly eventUpdate: IEventUpdate;
+  readonly workoutBuilder: IWorkoutBuilder;
+  readonly athlete: IAthleteApi;
   /** FTP, weight and power zones — one athlete request, no coaching context. */
-  getAthleteAnchors(): Promise<AthleteAnchors>;
-
-  // Activities
-  getActivities(oldest: string, newest: string): Promise<Activity[]>;
-  getActivity(id: string, includeIntervals?: boolean): Promise<Activity>;
-  getActivityStreams(id: string, types?: string[]): Promise<ActivityStreams>;
-  getActivityLaps(id: string): Promise<FitLap[] | null>;
-
-  // Wellness
-  getWellness(oldest: string, newest: string): Promise<WellnessRecord[]>;
-  getFitnessSummary(): Promise<WellnessRecord>;
-
-  // Power curves
-  getPowerCurve(options?: PowerCurveOptions): Promise<PowerCurvePoint[]>;
-
-  // Workouts
-  buildWorkoutEvent(plan: WorkoutPlan): IntervalsEvent;
-  buildWorkoutDescription(
-    steps: Array<WorkoutStep | RepeatBlock>,
-    notes?: string
-  ): string;
-
-  // Workout library
-  listWorkoutLibrary(folderName?: string): Promise<LibraryListing>;
-  getWorkoutLibraryItem(workoutId: number): Promise<LibraryItem>;
-  syncWorkoutLibrary(opts?: SyncOptions): Promise<SyncReport>;
-  deleteWorkoutLibraryItem(workoutId: number): Promise<void>;
-
-  // Analysis
-  getAerobicDecoupling(activityId: string): Promise<DecouplingResult>;
-  compareIntervals(
-    activityIds: string[],
-    options?: IntervalFilterOptions
-  ): Promise<CompareIntervalsResult>;
-
-  // Session review
-  comparePlannedVsActual(
-    options: ComparePlannedVsActualOptions
-  ): Promise<PlannedVsActualResult>;
-  compareIntensityDistribution(
-    options: CompareIntensityDistributionOptions
-  ): Promise<IntensityDistributionResult>;
-  compareIntensityDistributionRange(
-    options: CompareIntensityDistributionRangeOptions
-  ): Promise<IntensityDistributionRangeResult>;
-  getExecutionDigest(
-    options: GetExecutionDigestOptions
-  ): Promise<ExecutionDigestResult>;
-
-  // Track lap alignment
-  computeTrackLapPower(
-    options: TrackLapPowerOptions
-  ): Promise<TrackLapAlignmentResult>;
-  writeTrackRuns(options: TrackRunWriteOptions): Promise<TrackRunWriteResult>;
-
-  // Track session records
-  listTrackSessions(): Promise<ListTrackSessionsResult>;
-  getTrackSession(options: GetTrackSessionOptions): Promise<TrackSessionDetail>;
-  compareTrackSessions(
-    options: CompareTrackSessionsOptions
-  ): Promise<RunComparison>;
-  /**
-   * Synchronous, alone among these: it reads local files, and its callers are
-   * the two track tools assembling their own arguments, not returning a result.
-   */
-  resolveTrackSplits(sessionId: string): TrackSplitsSource;
-
-  // Training week
-  getTrainingWeekSummary(weekStart?: string): Promise<TrainingWeekSummary>;
-
-  // Coaching context
-  getCoachingContext(opts?: CoachingContextOptions): Promise<CoachingContext>;
-
-  // Training load forecast
-  forecastTrainingLoad(options: ForecastOptions): Promise<ForecastResult>;
-
-  // Power profile
-  computePowerProfile(
-    overrides?: PowerProfileOverrides
-  ): Promise<PowerProfileResult>;
+  readonly anchors: IAthleteAnchors;
+  readonly activities: IActivitiesApi;
+  readonly wellness: IWellnessApi;
+  readonly powerCurves: IPowerCurvesApi;
+  readonly workoutLibrary: IWorkoutLibrary;
+  readonly analysis: IActivityAnalysis;
+  readonly sessionReview: ISessionReview;
+  readonly intensityDistribution: IIntensityDistribution;
+  readonly executionDigest: IExecutionDigest;
+  readonly trackLapAlignment: ITrackLapAlignment;
+  readonly trackLapWriteback: ITrackLapWriteback;
+  readonly trackSessions: ITrackSessions;
+  readonly trainingWeek: ITrainingWeek;
+  readonly trainingLoadForecast: ITrainingLoadForecast;
+  readonly coachingContext: ICoachingContext;
+  readonly powerProfile: IPowerProfile;
+  /** "Today" as YYYY-MM-DD — pinned by the eval harness. */
+  readonly today: () => string;
 }
 
 export interface IntervalsClientOptions {
@@ -225,25 +86,29 @@ export interface IntervalsClientOptions {
   today?: () => string;
 }
 
+/** The composition root: builds every service once, over one HTTP client. */
 export class IntervalsClient implements IIntervalsClient {
-  private httpClient: IHttpClient;
-  private events: IEventsApi;
-  private workoutBuilder: IWorkoutBuilder;
-  private athlete: IAthleteApi;
-  private anchors: IAthleteAnchors;
-  private activities: IActivitiesApi;
-  private wellness: IWellnessApi;
-  private powerCurves: IPowerCurvesApi;
-  private workoutLibrary: IWorkoutLibrary;
-  private sessionReview: ISessionReview;
-  private intensityDistribution: IIntensityDistribution;
-  private executionDigest: IExecutionDigest;
-  private trackLapAlignment: ITrackLapAlignment;
-  private trackLapWriteback: ITrackLapWriteback;
-  private trackSessions: ITrackSessions;
-  private trainingLoadForecast: ITrainingLoadForecast;
-  private trainingWeek: ITrainingWeek;
-  private today: () => string;
+  readonly events: IEventsApi;
+  readonly eventUpdate: IEventUpdate;
+  readonly workoutBuilder: IWorkoutBuilder;
+  readonly athlete: IAthleteApi;
+  readonly anchors: IAthleteAnchors;
+  readonly activities: IActivitiesApi;
+  readonly wellness: IWellnessApi;
+  readonly powerCurves: IPowerCurvesApi;
+  readonly workoutLibrary: IWorkoutLibrary;
+  readonly analysis: IActivityAnalysis;
+  readonly sessionReview: ISessionReview;
+  readonly intensityDistribution: IIntensityDistribution;
+  readonly executionDigest: IExecutionDigest;
+  readonly trackLapAlignment: ITrackLapAlignment;
+  readonly trackLapWriteback: ITrackLapWriteback;
+  readonly trackSessions: ITrackSessions;
+  readonly trainingWeek: ITrainingWeek;
+  readonly trainingLoadForecast: ITrainingLoadForecast;
+  readonly coachingContext: ICoachingContext;
+  readonly powerProfile: IPowerProfile;
+  readonly today: () => string;
 
   constructor(options: IntervalsClientOptions = {}) {
     const config = parseClientConfig({
@@ -254,16 +119,21 @@ export class IntervalsClient implements IIntervalsClient {
     const { athleteId } = config;
     this.today = options.today ?? isoToday;
 
-    this.httpClient = createHttpClient(config, options.fetchFn);
-    this.events = createEventsApi(this.httpClient, athleteId);
+    const httpClient = createHttpClient(config, options.fetchFn);
+    this.events = createEventsApi(httpClient, athleteId);
     this.workoutBuilder = createWorkoutBuilder();
-    this.athlete = createAthleteApi(this.httpClient, athleteId);
-    this.activities = createActivitiesApi(this.httpClient, athleteId);
-    this.wellness = createWellnessApi(this.httpClient, athleteId);
-    this.powerCurves = createPowerCurvesApi(this.httpClient, athleteId);
+    this.eventUpdate = createEventUpdate({
+      eventsApi: this.events,
+      workoutBuilder: this.workoutBuilder,
+    });
+    this.athlete = createAthleteApi(httpClient, athleteId);
+    this.activities = createActivitiesApi(httpClient, athleteId);
+    this.wellness = createWellnessApi(httpClient, athleteId);
+    this.powerCurves = createPowerCurvesApi(httpClient, athleteId);
     this.workoutLibrary = createWorkoutLibrary(
-      createWorkoutLibraryApi(this.httpClient, athleteId)
+      createWorkoutLibraryApi(httpClient, athleteId)
     );
+    this.analysis = createActivityAnalysis({ activitiesApi: this.activities });
     // One source for every FTP and MAP-zone reader, so the lenses and the week
     // summary judge against the same anchors without building the coaching
     // context to get them.
@@ -320,236 +190,19 @@ export class IntervalsClient implements IIntervalsClient {
       getFtp,
       today: this.today,
     });
-  }
-
-  // Events
-  async getEvents(oldest: string, newest: string): Promise<IntervalsEvent[]> {
-    return this.events.getEvents(oldest, newest);
-  }
-
-  async getEvent(eventId: number): Promise<IntervalsEvent> {
-    return this.events.getEvent(eventId);
-  }
-
-  async createEvents(events: IntervalsEvent[]): Promise<IntervalsEvent[]> {
-    return this.events.createEvents(events);
-  }
-
-  async updateEvent(
-    eventId: number,
-    data: Partial<IntervalsEvent>
-  ): Promise<IntervalsEvent> {
-    return this.events.updateEvent(eventId, data);
-  }
-
-  async deleteEvents(
-    ids: Array<{ external_id?: string; id?: number }>
-  ): Promise<void> {
-    return this.events.deleteEvents(ids);
-  }
-
-  // Athlete
-  async getAthlete(): Promise<AthleteProfile> {
-    return this.athlete.getAthlete();
-  }
-
-  async getAthleteAnchors(): Promise<AthleteAnchors> {
-    return this.anchors.getAthleteAnchors();
-  }
-
-  // Activities
-  async getActivities(oldest: string, newest: string): Promise<Activity[]> {
-    return this.activities.getActivities(oldest, newest);
-  }
-
-  async getActivity(id: string, includeIntervals?: boolean): Promise<Activity> {
-    return this.activities.getActivity(id, includeIntervals);
-  }
-
-  async getActivityStreams(
-    id: string,
-    types?: string[]
-  ): Promise<ActivityStreams> {
-    return this.activities.getActivityStreams(id, types);
-  }
-
-  async getActivityLaps(id: string): Promise<FitLap[] | null> {
-    return this.activities.getActivityLaps(id);
-  }
-
-  // Wellness
-  async getWellness(oldest: string, newest: string): Promise<WellnessRecord[]> {
-    return this.wellness.getWellness(oldest, newest);
-  }
-
-  async getFitnessSummary(): Promise<WellnessRecord> {
-    return this.wellness.getWellnessDay(this.today());
-  }
-
-  // Power curves
-  async getPowerCurve(options?: PowerCurveOptions): Promise<PowerCurvePoint[]> {
-    return this.powerCurves.getPowerCurve(options);
-  }
-
-  // Workouts
-  buildWorkoutEvent(plan: WorkoutPlan): IntervalsEvent {
-    return this.workoutBuilder.buildEvent(plan);
-  }
-
-  buildWorkoutDescription(
-    steps: Array<WorkoutStep | RepeatBlock>,
-    notes?: string
-  ): string {
-    return this.workoutBuilder.toDescription(steps, notes);
-  }
-
-  // Workout library
-  async listWorkoutLibrary(folderName?: string): Promise<LibraryListing> {
-    return this.workoutLibrary.list(folderName);
-  }
-
-  async getWorkoutLibraryItem(workoutId: number): Promise<LibraryItem> {
-    return this.workoutLibrary.get(workoutId);
-  }
-
-  async syncWorkoutLibrary(opts?: SyncOptions): Promise<SyncReport> {
-    return this.workoutLibrary.sync(opts);
-  }
-
-  async deleteWorkoutLibraryItem(workoutId: number): Promise<void> {
-    await this.workoutLibrary.delete(workoutId);
-  }
-
-  // Analysis
-  async getAerobicDecoupling(activityId: string): Promise<DecouplingResult> {
-    const streams = await this.activities.getActivityStreams(activityId, [
-      "watts",
-      "heartrate",
-    ]);
-    if (!streams.watts?.length) {
-      throw new Error("No power data available for this activity");
-    }
-    if (!streams.heartrate?.length) {
-      throw new Error("No heart rate data available for this activity");
-    }
-    return computeAerobicDecoupling(streams.watts, streams.heartrate);
-  }
-
-  async compareIntervals(
-    activityIds: string[],
-    options?: IntervalFilterOptions
-  ): Promise<CompareIntervalsResult> {
-    const activities = await Promise.all(
-      activityIds.map((id) => this.activities.getActivity(id, true))
-    );
-    return compareIntervalsAnalysis(activities, options);
-  }
-
-  // Session review
-  async comparePlannedVsActual(
-    options: ComparePlannedVsActualOptions
-  ): Promise<PlannedVsActualResult> {
-    return this.sessionReview.comparePlannedVsActual(options);
-  }
-
-  // Intensity distribution
-  async compareIntensityDistribution(
-    options: CompareIntensityDistributionOptions
-  ): Promise<IntensityDistributionResult> {
-    return this.intensityDistribution.compareIntensityDistribution(options);
-  }
-
-  async compareIntensityDistributionRange(
-    options: CompareIntensityDistributionRangeOptions
-  ): Promise<IntensityDistributionRangeResult> {
-    return this.intensityDistribution.compareIntensityDistributionRange(
-      options
-    );
-  }
-
-  // Execution digest
-  async getExecutionDigest(
-    options: GetExecutionDigestOptions
-  ): Promise<ExecutionDigestResult> {
-    return this.executionDigest.getExecutionDigest(options);
-  }
-
-  // Track lap alignment
-  async computeTrackLapPower(
-    options: TrackLapPowerOptions
-  ): Promise<TrackLapAlignmentResult> {
-    return this.trackLapAlignment.computeTrackLapPower(options);
-  }
-
-  async writeTrackRuns(
-    options: TrackRunWriteOptions
-  ): Promise<TrackRunWriteResult> {
-    return this.trackLapWriteback.writeTrackRuns(options);
-  }
-
-  // Track session records
-  async listTrackSessions(): Promise<ListTrackSessionsResult> {
-    return this.trackSessions.listTrackSessions();
-  }
-
-  async getTrackSession(
-    options: GetTrackSessionOptions
-  ): Promise<TrackSessionDetail> {
-    return this.trackSessions.getTrackSession(options);
-  }
-
-  async compareTrackSessions(
-    options: CompareTrackSessionsOptions
-  ): Promise<RunComparison> {
-    return this.trackSessions.compareTrackSessions(options);
-  }
-
-  resolveTrackSplits(sessionId: string): TrackSplitsSource {
-    return this.trackSessions.resolveTrackSplits(sessionId);
-  }
-
-  // Training week
-  async getTrainingWeekSummary(
-    weekStart?: string
-  ): Promise<TrainingWeekSummary> {
-    return this.trainingWeek.getTrainingWeekSummary(weekStart);
-  }
-
-  // Coaching context
-  async getCoachingContext(
-    opts?: CoachingContextOptions
-  ): Promise<CoachingContext> {
-    return buildCoachingContext(
-      {
-        athleteApi: this.athlete,
-        wellnessApi: this.wellness,
-        activitiesApi: this.activities,
-        powerCurvesApi: this.powerCurves,
-      },
-      { ...opts, today: opts?.today ?? this.today() }
-    );
-  }
-
-  // Training load forecast
-  async forecastTrainingLoad(
-    options: ForecastOptions
-  ): Promise<ForecastResult> {
-    return this.trainingLoadForecast.forecastTrainingLoad(options);
-  }
-
-  // Power profile (cyclecoach.com calculator port)
-  async computePowerProfile(
-    overrides?: PowerProfileOverrides
-  ): Promise<PowerProfileResult> {
-    return computePowerProfileWith(
-      {
-        athleteApi: this.athlete,
-        activitiesApi: this.activities,
-        powerCurvesApi: this.powerCurves,
-      },
-      overrides,
-      { today: this.today() }
-    );
+    this.coachingContext = createCoachingContext({
+      athleteApi: this.athlete,
+      wellnessApi: this.wellness,
+      activitiesApi: this.activities,
+      powerCurvesApi: this.powerCurves,
+      today: this.today,
+    });
+    this.powerProfile = createPowerProfile({
+      athleteApi: this.athlete,
+      activitiesApi: this.activities,
+      powerCurvesApi: this.powerCurves,
+      today: this.today,
+    });
   }
 }
 
@@ -716,3 +369,16 @@ export type {
   WorkoutSummary,
   AnchorBasis,
 } from "./services/workout-library/index.js";
+export type {
+  IEventUpdate,
+  EventChanges,
+} from "./services/event-update/index.js";
+export type { IActivityAnalysis } from "./services/analysis/index.js";
+export type { ICoachingContext } from "./services/coaching-context/index.js";
+export type { IPowerProfile } from "./services/power-profile/index.js";
+export type {
+  ITrackSessions,
+  TrackSplitsSource,
+} from "./services/track-sessions/index.js";
+export type { ITrainingWeek } from "./services/training-week/index.js";
+export type { Tool, ToolDef } from "./tools/define.js";

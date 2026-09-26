@@ -1,8 +1,8 @@
 import { z } from "zod";
-import type { IIntervalsClient } from "../index.js";
+import { defineTool, READ_ONLY } from "./define.js";
 import { withCharacterLimit } from "./common.js";
 
-export const getPowerCurveSchema = z.object({
+const getPowerCurveSchema = z.object({
   type: z
     .string()
     .optional()
@@ -35,8 +35,6 @@ export const getPowerCurveSchema = z.object({
         "(~24 kB for 1y; may be truncated). Default false."
     ),
 });
-
-type Args = z.infer<typeof getPowerCurveSchema>;
 
 const CURVE_ARRAYS = [
   "secs",
@@ -108,17 +106,30 @@ function thinPayload(raw: unknown, requested?: number[]): unknown {
   return out;
 }
 
-export async function getPowerCurve(
-  client: IIntervalsClient,
-  args: Args
-): Promise<unknown> {
-  const { secs, full, type = "Ride", ...options } = args;
-  const raw = await client.getPowerCurve({ ...options, type });
-  const payload = full ? raw : thinPayload(raw, secs);
-  return withCharacterLimit(
-    { points: payload },
-    full
-      ? "Power curve payload exceeds character limit. Drop full, or pass secs (e.g. [60, 300, 1200]) for the durations you need."
-      : "Power curve payload exceeds character limit. Pass secs (e.g. [60, 300, 1200]) for the durations you need."
-  );
-}
+export const getPowerCurveTool = defineTool({
+  name: "get_power_curve",
+  description:
+    "Get the athlete's power-duration curve from Intervals.icu. " +
+    'type defaults to "Ride" (the endpoint has no all-types mode). ' +
+    "Shows best power at each duration (5s through 3+ hours). " +
+    'Use range parameter: "90d", "1y", "all", or "r.YYYY-MM-DD.YYYY-MM-DD" for custom. ' +
+    'Example: range="r.2026-01-01.2026-03-31" for Q1 2026. ' +
+    "Pass secs (e.g. [60, 120, 180, 300, 1200]) to get just those durations, matched to the nearest curve point. " +
+    "By default the response is thinned to secs/watts/activity_id + powerModels; full=true returns the raw ~24 kB curve. " +
+    "Essential for identifying strengths/weaknesses and setting training targets. " +
+    "Returns: { points: { list: [{ secs[], watts[], activity_id[], powerModels, ... }], activities } } (or a truncation envelope if too large).",
+  schema: getPowerCurveSchema,
+  annotations: READ_ONLY,
+  outputSchema: null,
+  async handler(client, args) {
+    const { secs, full, type = "Ride", ...options } = args;
+    const raw = await client.powerCurves.getPowerCurve({ ...options, type });
+    const payload = full ? raw : thinPayload(raw, secs);
+    return withCharacterLimit(
+      { points: payload },
+      full
+        ? "Power curve payload exceeds character limit. Drop full, or pass secs (e.g. [60, 300, 1200]) for the durations you need."
+        : "Power curve payload exceeds character limit. Pass secs (e.g. [60, 300, 1200]) for the durations you need."
+    );
+  },
+});

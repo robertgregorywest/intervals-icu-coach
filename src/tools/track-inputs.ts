@@ -15,6 +15,7 @@
 
 import { z } from "zod";
 import type { IIntervalsClient } from "../index.js";
+import { normalizeActivityId } from "../services/activities/index.js";
 
 export const trackInputFields = {
   activityId: z
@@ -112,7 +113,7 @@ export function resolveTrackInputs(
     };
   }
 
-  const source = client.resolveTrackSplits(args.sessionId);
+  const source = client.trackSessions.resolveTrackSplits(args.sessionId);
   const activityId = args.activityId ?? source.activityId;
   if (activityId === undefined) {
     // A race recorded from a timing export with no ride behind it — the 2025
@@ -129,9 +130,4 @@ export function resolveTrackInputs(
     splits: source.splits,
     lapDistanceMeters: args.lapDistanceMeters ?? source.lapDistanceMeters,
   };
-}
-
-export function normalizeActivityId(id: string | number): string {
-  if (typeof id === "number") return `i${id}`;
-  return id.startsWith("i") ? id : `i${id}`;
 }

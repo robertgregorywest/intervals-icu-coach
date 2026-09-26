@@ -42,10 +42,10 @@ type Fixture = {
 const captured = new Map<string, Fixture>();
 
 for (const c of CASES) {
-  const activity = await client.getActivity(c.activityId!, true);
+  const activity = await client.activities.getActivity(c.activityId!, true);
   const eventId = c.eventId ?? activity.paired_event_id;
-  const event = eventId ? await client.getEvent(eventId) : undefined;
-  const streams = (await client.getActivityStreams(c.activityId!, [
+  const event = eventId ? await client.events.getEvent(eventId) : undefined;
+  const streams = (await client.activities.getActivityStreams(c.activityId!, [
     "watts",
   ])) as Record<string, unknown>;
 
@@ -106,7 +106,7 @@ console.log("no-structured-steps: composed from the two above");
 
 // The zone frame the fixtures are bucketed against, so tests stay hermetic
 // rather than depending on the athlete's MAP moving.
-const ctx = await client.getCoachingContext();
+const ctx = await client.coachingContext.getCoachingContext();
 writeFixture("coaching-zones", {
   ftp: ctx.athlete.ftp,
   map: ctx.map,

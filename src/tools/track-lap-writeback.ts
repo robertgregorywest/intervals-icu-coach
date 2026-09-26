@@ -1,8 +1,8 @@
 import { z } from "zod";
-import type { IIntervalsClient } from "../index.js";
+import { defineTool, DESTRUCTIVE_IDEMPOTENT } from "./define.js";
 import { resolveTrackInputs, trackInputFields } from "./track-inputs.js";
 
-export const writeTrackRunsSchema = z.object({
+const writeTrackRunsSchema = z.object({
   ...trackInputFields,
   preview: z
     .boolean()
@@ -22,7 +22,7 @@ const reading = z.object({
   heartrateBand: z.number().optional(),
 });
 
-export const writeTrackRunsOutputSchema = z.object({
+const writeTrackRunsOutputSchema = z.object({
   activityId: z.string(),
   mode: z.enum(["written", "preview"]),
   runs: z.array(
@@ -46,12 +46,32 @@ export const writeTrackRunsOutputSchema = z.object({
   notes: z.array(z.string()),
 });
 
-export async function writeTrackRuns(
-  client: IIntervalsClient,
-  args: z.infer<typeof writeTrackRunsSchema>
-): Promise<z.infer<typeof writeTrackRunsOutputSchema>> {
-  return client.writeTrackRuns({
-    ...resolveTrackInputs(client, args),
-    preview: args.preview,
-  });
-}
+export const writeTrackRunsTool = defineTool({
+  name: "write_track_runs",
+  description:
+    "Write a track session's scored runs onto the activity as Intervals.icu " +
+    "intervals, so they can be seen on the chart and used by Intervals.icu's own " +
+    "interval tools. Takes the same inputs as compute_track_lap_power and runs the " +
+    "same alignment. ONE interval per run — first lap's start to last lap's end — " +
+    "not one per lap; the run interval excludes the rolling entry, which is the " +
+    "boundary Intervals.icu's own detection gets wrong. " +
+    "REPLACES every interval already on the activity (the derived analysis is " +
+    "discarded, and the count replaced is reported); Intervals.icu backfills the " +
+    "stretches between runs with its own, so the activity ends up with more " +
+    "intervals than runs. Boundaries are snapped to whole stream samples and the " +
+    "drift is reported per run, with the snapped reading beside the fitted one. " +
+    "Every placed run is written whatever its verdict; a non-strong fit says so in " +
+    "its label, which the next write overwrites (hand edits in the UI do not " +
+    "survive). Pass preview: true to see what would be written without writing. " +
+    "Returns: { mode, runs: [{ run, label, verdict, startIndex, endIndex, " +
+    "startDriftSeconds, endDriftSeconds, fittedReading, snappedReading }], " +
+    "intervalsReplaced, intervalsAfterWrite, notes }.",
+  schema: writeTrackRunsSchema,
+  annotations: DESTRUCTIVE_IDEMPOTENT,
+  outputSchema: writeTrackRunsOutputSchema,
+  handler: async (client, args) =>
+    client.trackLapWriteback.writeTrackRuns({
+      ...resolveTrackInputs(client, args),
+      preview: args.preview,
+    }),
+});

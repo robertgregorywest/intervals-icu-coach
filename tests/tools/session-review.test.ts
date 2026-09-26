@@ -1,11 +1,20 @@
 import { describe, it, expect, vi } from "vitest";
-import {
-  comparePlannedVsActual,
-  comparePlannedVsActualSchema,
-  comparePlannedVsActualOutputSchema,
-} from "../../src/tools/session-review.js";
+import { comparePlannedVsActualTool } from "../../src/tools/session-review.js";
 import type { IIntervalsClient } from "../../src/index.js";
-import type { PlannedVsActualResult } from "../../src/services/session-review/index.js";
+import {
+  createSessionReview,
+  type PlannedVsActualResult,
+} from "../../src/services/session-review/index.js";
+import {
+  intervalsApis,
+  requested,
+  routedFetch,
+} from "../helpers/intervals-fixture.js";
+
+const comparePlannedVsActual = comparePlannedVsActualTool.handler;
+const comparePlannedVsActualSchema = comparePlannedVsActualTool.schema;
+const comparePlannedVsActualOutputSchema =
+  comparePlannedVsActualTool.outputSchema;
 
 const result: PlannedVsActualResult = {
   activityId: "i171371339",
@@ -19,28 +28,39 @@ const result: PlannedVsActualResult = {
 
 function clientWith(spy = vi.fn().mockResolvedValue(result)) {
   return {
-    client: { comparePlannedVsActual: spy } as unknown as IIntervalsClient,
+    client: {
+      sessionReview: { comparePlannedVsActual: spy },
+    } as unknown as IIntervalsClient,
     spy,
   };
 }
 
+/** The real service over a fetch that answers nothing. */
+function realClient() {
+  const fetchFn = routedFetch([]);
+  const client = {
+    sessionReview: createSessionReview(intervalsApis(fetchFn)),
+  } as unknown as IIntervalsClient;
+  return { client, fetchFn };
+}
+
 describe("compare_planned_vs_actual handler", () => {
   it("rejects both identifiers before making any request", async () => {
-    const { client, spy } = clientWith();
+    const { client, fetchFn } = realClient();
 
     await expect(
       comparePlannedVsActual(client, { activityId: "i1", eventId: 2 })
     ).rejects.toThrow(/exactly one/);
-    expect(spy).not.toHaveBeenCalled();
+    expect(requested(fetchFn)).toEqual([]);
   });
 
   it("rejects neither identifier before making any request", async () => {
-    const { client, spy } = clientWith();
+    const { client, fetchFn } = realClient();
 
     await expect(comparePlannedVsActual(client, {})).rejects.toThrow(
       /exactly one/
     );
-    expect(spy).not.toHaveBeenCalled();
+    expect(requested(fetchFn)).toEqual([]);
   });
 
   it("passes a single activityId through", async () => {

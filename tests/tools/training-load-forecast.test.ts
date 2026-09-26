@@ -2,9 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import {
   MAX_FORECAST_DAYS,
   assertForecastWindow,
-  forecastTrainingLoad,
-  forecastTrainingLoadOutputSchema,
-  forecastTrainingLoadSchema,
+  forecastTrainingLoadTool,
 } from "../../src/tools/training-load-forecast.js";
 import type { IIntervalsClient } from "../../src/index.js";
 import type { ForecastResult } from "../../src/services/training-load-forecast/index.js";
@@ -63,14 +61,15 @@ const RESULT: ForecastResult = {
   notes: ["Strength sessions contribute no load."],
 };
 
-function stubClient(): IIntervalsClient & {
-  forecastTrainingLoad: ReturnType<typeof vi.fn>;
-} {
+const forecastTrainingLoad = forecastTrainingLoadTool.handler;
+const forecastTrainingLoadSchema = forecastTrainingLoadTool.schema;
+const forecastTrainingLoadOutputSchema = forecastTrainingLoadTool.outputSchema;
+
+function stubClient() {
+  const forecast = { forecastTrainingLoad: vi.fn(async () => RESULT) };
   return {
-    forecastTrainingLoad: vi.fn(async () => RESULT),
-  } as unknown as IIntervalsClient & {
-    forecastTrainingLoad: ReturnType<typeof vi.fn>;
-  };
+    trainingLoadForecast: forecast,
+  } as unknown as IIntervalsClient & { trainingLoadForecast: typeof forecast };
 }
 
 describe("forecast_training_load tool", () => {
@@ -83,7 +82,9 @@ describe("forecast_training_load tool", () => {
       seed: { ctl: 50, atl: 40 },
       ftp: 300,
     });
-    expect(client.forecastTrainingLoad).toHaveBeenCalledWith({
+    expect(
+      client.trainingLoadForecast.forecastTrainingLoad
+    ).toHaveBeenCalledWith({
       oldest: "2026-08-10",
       newest: "2026-08-16",
       sessions: [{ date: "2026-08-11", description: "- 60m 200w" }],

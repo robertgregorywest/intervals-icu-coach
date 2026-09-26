@@ -1,6 +1,6 @@
 import { z } from "zod";
-import type { IIntervalsClient } from "../index.js";
-import { dateString } from "./common.js";
+import { dateString, spanDays } from "./common.js";
+import { defineTool, READ_ONLY } from "./define.js";
 
 /**
  * A forecast window is a block, not a season. Long enough for a build block
@@ -44,7 +44,7 @@ const proposedSessionSchema = z.object({
     ),
 });
 
-export const forecastTrainingLoadSchema = z.object({
+const forecastTrainingLoadSchema = z.object({
   oldest: dateString.describe("First day of the forecast window, YYYY-MM-DD."),
   newest: dateString.describe("Last day of the forecast window, YYYY-MM-DD."),
   sessions: z
@@ -79,7 +79,7 @@ const streamGapShape = z.object({
   reason: z.string(),
 });
 
-export const forecastTrainingLoadOutputSchema = z.object({
+const forecastTrainingLoadOutputSchema = z.object({
   oldest: z.string(),
   newest: z.string(),
   basis: z
@@ -150,72 +150,87 @@ export const forecastTrainingLoadOutputSchema = z.object({
   notes: z.array(z.string()),
 });
 
-export async function forecastTrainingLoad(
-  client: IIntervalsClient,
-  args: z.infer<typeof forecastTrainingLoadSchema>
-): Promise<z.infer<typeof forecastTrainingLoadOutputSchema>> {
-  assertForecastWindow(args.oldest, args.newest);
+export const forecastTrainingLoadTool = defineTool({
+  name: "forecast_training_load",
+  description:
+    "Forecast the CTL/ATL/TSB trajectory of a set of proposed sessions " +
+    "WITHOUT writing anything to the calendar. Use this to check a draft " +
+    "week or block against its ramp target before committing it, instead of " +
+    "writing events and reading icu_ctl back. " +
+    "Proposed sessions overlay whatever is already planned, keyed by date: a " +
+    "date you supply a session for drops its planned work, a date you do not " +
+    "keeps it — so a partly-fixed week needs no restating. " +
+    "A session carries either a workout `description` (parsed locally and " +
+    "costed from its own steps, matching what Intervals.icu will show once " +
+    "written) or a `load` figure directly, for a session whose shape is not " +
+    "yet decided. " +
+    "Strength sessions contribute no load, matching the platform. " +
+    "Every result states its basis (FTP, time constants, seed) and every " +
+    "session states where its load came from — never mistake a forecast " +
+    "figure for one the platform computed. " +
+    "Window max " +
+    MAX_FORECAST_DAYS +
+    " days. " +
+    "Returns: { oldest, newest, basis, days: [{ date, load, ctl, atl, tsb, ramp }], " +
+    "weeks: [{ weekStart, load, durationSeconds, ctlStart, ctlEnd, ramp, complete }], " +
+    "sessions: [{ date, name, origin, load, source, ... }], notes }.",
+  schema: forecastTrainingLoadSchema,
+  annotations: READ_ONLY,
+  outputSchema: forecastTrainingLoadOutputSchema,
+  async handler(client, args) {
+    assertForecastWindow(args.oldest, args.newest);
 
-  const result = await client.forecastTrainingLoad({
-    oldest: args.oldest,
-    newest: args.newest,
-    sessions: args.sessions?.map((s) => ({
-      ...s,
-      type: s.type as never,
-    })),
-    seed: args.seed,
-    ftp: args.ftp,
-  });
+    const result = await client.trainingLoadForecast.forecastTrainingLoad({
+      oldest: args.oldest,
+      newest: args.newest,
+      sessions: args.sessions?.map((s) => ({
+        ...s,
+        type: s.type as never,
+      })),
+      seed: args.seed,
+      ftp: args.ftp,
+    });
 
-  // Rounded for reading, not for arithmetic — the model carried full precision
-  // and the trajectory below is a projection of it, not a re-derivation.
-  return {
-    oldest: result.oldest,
-    newest: result.newest,
-    basis: {
-      ...result.basis,
-      seedCtl: round(result.basis.seedCtl, 2),
-      seedAtl: round(result.basis.seedAtl, 2),
-    },
-    days: result.days.map((d) => ({
-      date: d.date,
-      load: d.load,
-      ctl: round(d.ctl, 2),
-      atl: round(d.atl, 2),
-      tsb: round(d.tsb, 2),
-      ...(d.ramp !== undefined ? { ramp: round(d.ramp, 2) } : {}),
-    })),
-    weeks: result.weeks.map((w) => ({
-      ...w,
-      ctlStart: round(w.ctlStart, 2),
-      ctlEnd: round(w.ctlEnd, 2),
-      ramp: round(w.ramp, 2),
-    })),
-    sessions: result.sessions.map((s) => ({
-      ...s,
-      ...(s.normalizedPower !== undefined
-        ? { normalizedPower: Math.round(s.normalizedPower) }
-        : {}),
-      ...(s.intensityFactor !== undefined
-        ? { intensityFactor: round(s.intensityFactor, 3) }
-        : {}),
-    })),
-    notes: result.notes,
-  };
-}
+    // Rounded for reading, not for arithmetic — the model carried full precision
+    // and the trajectory below is a projection of it, not a re-derivation.
+    return {
+      oldest: result.oldest,
+      newest: result.newest,
+      basis: {
+        ...result.basis,
+        seedCtl: round(result.basis.seedCtl, 2),
+        seedAtl: round(result.basis.seedAtl, 2),
+      },
+      days: result.days.map((d) => ({
+        date: d.date,
+        load: d.load,
+        ctl: round(d.ctl, 2),
+        atl: round(d.atl, 2),
+        tsb: round(d.tsb, 2),
+        ...(d.ramp !== undefined ? { ramp: round(d.ramp, 2) } : {}),
+      })),
+      weeks: result.weeks.map((w) => ({
+        ...w,
+        ctlStart: round(w.ctlStart, 2),
+        ctlEnd: round(w.ctlEnd, 2),
+        ramp: round(w.ramp, 2),
+      })),
+      sessions: result.sessions.map((s) => ({
+        ...s,
+        ...(s.normalizedPower !== undefined
+          ? { normalizedPower: Math.round(s.normalizedPower) }
+          : {}),
+        ...(s.intensityFactor !== undefined
+          ? { intensityFactor: round(s.intensityFactor, 3) }
+          : {}),
+      })),
+      notes: result.notes,
+    };
+  },
+});
 
 export function assertForecastWindow(oldest: string, newest: string): void {
-  const start = Date.parse(oldest);
-  const end = Date.parse(newest);
-  if (Number.isNaN(start) || Number.isNaN(end)) {
-    throw new Error("Invalid date — must be YYYY-MM-DD");
-  }
-  if (end < start) {
-    throw new Error(
-      `newest (${newest}) must be on or after oldest (${oldest})`
-    );
-  }
-  const days = (end - start) / 86_400_000 + 1;
+  const days = spanDays(oldest, newest) + 1;
   if (days > MAX_FORECAST_DAYS) {
     throw new Error(
       `Forecast window too long: ${Math.round(days)} days (max ${MAX_FORECAST_DAYS}). ` +

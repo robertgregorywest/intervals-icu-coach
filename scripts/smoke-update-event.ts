@@ -25,7 +25,7 @@ async function main() {
 
   try {
     header("0. seed: create multi-step structured workout");
-    const seed = client.buildWorkoutEvent({
+    const seed = client.workoutBuilder.buildEvent({
       name: "SMOKE update_event multistep",
       date,
       sportType: "Ride",
@@ -43,12 +43,12 @@ async function main() {
       ],
       externalId: `smoke-update-event-${Date.now()}`,
     });
-    const created = (await client.createEvents([seed])) as Array<
+    const created = (await client.events.createEvents([seed])) as Array<
       Record<string, unknown>
     >;
     createdId = created[0]?.id as number;
     if (!createdId) throw new Error("no id from create");
-    let cur = (await client.getEvent(createdId)) as unknown as Record<
+    let cur = (await client.events.getEvent(createdId)) as unknown as Record<
       string,
       unknown
     >;
@@ -56,7 +56,7 @@ async function main() {
 
     header("A. update_event with name only — steps should survive");
     await updateEvent(client, { id: createdId, name: "SMOKE renamed (A)" });
-    cur = (await client.getEvent(createdId)) as unknown as Record<
+    cur = (await client.events.getEvent(createdId)) as unknown as Record<
       string,
       unknown
     >;
@@ -82,7 +82,7 @@ async function main() {
         { label: "Cool", duration: "5m", target: "130w" },
       ],
     });
-    cur = (await client.getEvent(createdId)) as unknown as Record<
+    cur = (await client.events.getEvent(createdId)) as unknown as Record<
       string,
       unknown
     >;
@@ -102,7 +102,7 @@ async function main() {
       console.log("rejected as expected:", (e as Error).message.slice(0, 120));
     }
     if (!rejected) throw new Error("C FAIL: should have rejected");
-    cur = (await client.getEvent(createdId)) as unknown as Record<
+    cur = (await client.events.getEvent(createdId)) as unknown as Record<
       string,
       unknown
     >;
@@ -129,7 +129,7 @@ async function main() {
     if (createdId !== undefined) {
       header("cleanup");
       try {
-        await client.deleteEvents([{ id: createdId }]);
+        await client.events.deleteEvents([{ id: createdId }]);
         console.log("deleted", createdId);
       } catch (e) {
         console.log("delete ERROR:", (e as Error).message);

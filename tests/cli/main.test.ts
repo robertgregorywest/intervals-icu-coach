@@ -35,12 +35,19 @@ function makeIO(isTTY = false): CliIO & {
 
 function makeClient(): IIntervalsClient {
   return {
-    getAthlete: vi.fn().mockResolvedValue({ id: "i0", name: "Test" }),
-    getWellness: vi.fn().mockResolvedValue([]),
-    getFitnessSummary: vi.fn().mockResolvedValue({}),
-    deleteEvents: vi.fn().mockResolvedValue(undefined),
-    updateEvent: vi.fn().mockResolvedValue({ id: 1 }),
-    getEvent: vi.fn().mockResolvedValue({ id: 1, category: "NOTE" }),
+    athlete: {
+      getAthlete: vi.fn().mockResolvedValue({ id: "i0", name: "Test" }),
+    },
+    wellness: {
+      getWellness: vi.fn().mockResolvedValue([]),
+      getWellnessDay: vi.fn().mockResolvedValue({}),
+    },
+    events: {
+      deleteEvents: vi.fn().mockResolvedValue(undefined),
+      getEvent: vi.fn().mockResolvedValue({ id: 1, category: "NOTE" }),
+    },
+    eventUpdate: { updateEvent: vi.fn().mockResolvedValue({ id: 1 }) },
+    today: () => "2026-01-01",
   } as unknown as IIntervalsClient;
 }
 
@@ -161,7 +168,7 @@ describe("CLI tool invocation", () => {
 
   it("exits 1 on handler error", async () => {
     const client = makeClient();
-    (client.getAthlete as ReturnType<typeof vi.fn>).mockRejectedValue(
+    (client.athlete.getAthlete as ReturnType<typeof vi.fn>).mockRejectedValue(
       new Error("API down")
     );
     const io = makeIO();
@@ -184,7 +191,7 @@ describe("CLI --yes guard for destructive tools", () => {
 
     expect(io.exitCode).toBe(1);
     expect(io.errLines[0]).toContain("--yes");
-    expect(client.deleteEvents).not.toHaveBeenCalled();
+    expect(client.events.deleteEvents).not.toHaveBeenCalled();
   });
 
   it("runs delete_events with --yes", async () => {
@@ -197,7 +204,7 @@ describe("CLI --yes guard for destructive tools", () => {
     );
 
     expect(io.exitCode).toBeNull();
-    expect(client.deleteEvents).toHaveBeenCalled();
+    expect(client.events.deleteEvents).toHaveBeenCalled();
   });
 
   it("refuses update_event without --yes", async () => {

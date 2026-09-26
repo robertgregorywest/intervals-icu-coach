@@ -31,9 +31,9 @@ const outDir = resolve(
 mkdirSync(outDir, { recursive: true });
 
 const [wellness, events, athlete] = await Promise.all([
-  client.getWellness(OLDEST, NEWEST),
-  client.getEvents(OLDEST, NEWEST),
-  client.getAthlete(),
+  client.wellness.getWellness(OLDEST, NEWEST),
+  client.events.getEvents(OLDEST, NEWEST),
+  client.athlete.getAthlete(),
 ]);
 
 const raw = athlete as unknown as {

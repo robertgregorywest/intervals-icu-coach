@@ -98,7 +98,9 @@ describe("createMcpServer", () => {
     const getAthlete = vi
       .fn()
       .mockResolvedValue({ id: "i1", name: "Test Athlete" });
-    const mockClient = { getAthlete } as unknown as IIntervalsClient;
+    const mockClient = {
+      athlete: { getAthlete },
+    } as unknown as IIntervalsClient;
     const c = await connectedClient(mockClient);
 
     const result = await c.callTool({ name: "get_athlete", arguments: {} });
@@ -115,7 +117,9 @@ describe("createMcpServer", () => {
 
   it("passes parsed args to the handler and returns structuredContent for schemas that declare one", async () => {
     const getActivities = vi.fn().mockResolvedValue([]);
-    const mockClient = { getActivities } as unknown as IIntervalsClient;
+    const mockClient = {
+      activities: { getActivities },
+    } as unknown as IIntervalsClient;
     const c = await connectedClient(mockClient);
 
     const result = await c.callTool({

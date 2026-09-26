@@ -27,6 +27,23 @@ export interface CoachingContextOptions {
 export const DEFAULT_DAYS = 7;
 export const MAX_DAYS = 30;
 
+export interface ICoachingContext {
+  getCoachingContext(opts?: CoachingContextOptions): Promise<CoachingContext>;
+}
+
+/** Binds the context to its APIs and to "today", which a caller may override. */
+export function createCoachingContext(
+  deps: CoachingContextDeps & { today: () => string }
+): ICoachingContext {
+  return {
+    getCoachingContext: (opts) =>
+      buildCoachingContext(deps, {
+        ...opts,
+        today: opts?.today ?? deps.today(),
+      }),
+  };
+}
+
 export async function buildCoachingContext(
   deps: CoachingContextDeps,
   opts: CoachingContextOptions = {}

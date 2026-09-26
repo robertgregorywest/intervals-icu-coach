@@ -1,9 +1,9 @@
 import { z } from "zod";
-import type { IIntervalsClient } from "../index.js";
+import { defineTool, READ_ONLY } from "./define.js";
 
-export const listTrackSessionsSchema = z.object({});
+const listTrackSessionsSchema = z.object({});
 
-export const getTrackSessionSchema = z.object({
+const getTrackSessionSchema = z.object({
   id: z
     .string()
     .min(1)
@@ -23,7 +23,7 @@ export const getTrackSessionSchema = z.object({
     ),
 });
 
-export const compareTrackSessionsSchema = z.object({
+const compareTrackSessionsSchema = z.object({
   runs: z
     .array(z.string().min(1))
     .min(2)
@@ -62,7 +62,7 @@ const segment = z.object({
   meanSpeedMetersPerSecond: z.number(),
 });
 
-export const listTrackSessionsOutputSchema = z.object({
+const listTrackSessionsOutputSchema = z.object({
   directory: z.string(),
   sessions: z.array(
     z.object({
@@ -87,7 +87,7 @@ export const listTrackSessionsOutputSchema = z.object({
   notes: z.array(z.string()).optional(),
 });
 
-export const getTrackSessionOutputSchema = z.object({
+const getTrackSessionOutputSchema = z.object({
   basis,
   developmentMeters: z.number().optional(),
   developmentSource: z.enum(["gear", "supplied"]).optional(),
@@ -132,7 +132,7 @@ export const getTrackSessionOutputSchema = z.object({
   notes: z.array(z.string()).optional(),
 });
 
-export const compareTrackSessionsOutputSchema = z.object({
+const compareTrackSessionsOutputSchema = z.object({
   refs: z.array(z.string()),
   columns: z.array(
     z.object({
@@ -162,22 +162,59 @@ export const compareTrackSessionsOutputSchema = z.object({
   notes: z.array(z.string()).optional(),
 });
 
-export async function listTrackSessions(
-  client: IIntervalsClient
-): Promise<z.infer<typeof listTrackSessionsOutputSchema>> {
-  return client.listTrackSessions();
-}
+export const listTrackSessionsTool = defineTool({
+  name: "list_track_sessions",
+  description:
+    "List the tracked track-session records — every timed session on file, " +
+    "with its date, event, gear and each scored run's lap count, distance and " +
+    "time. Records hold the lap-timer splits and the measurement basis; " +
+    "everything else is derived on read. Reads local files, not Intervals.icu, " +
+    "so it returns an empty list plus the directory it searched when the " +
+    "athlete keeps no records. Returns: { directory, sessions: [{ id, date, " +
+    "kind, event, venue, activityId, runs: [{ ref, run, start, laps, " +
+    "distanceMeters, durationSeconds }] }], notes }.",
+  schema: listTrackSessionsSchema,
+  annotations: READ_ONLY,
+  outputSchema: listTrackSessionsOutputSchema,
+  handler: (client) => client.trackSessions.listTrackSessions(),
+});
 
-export async function getTrackSession(
-  client: IIntervalsClient,
-  args: z.infer<typeof getTrackSessionSchema>
-): Promise<z.infer<typeof getTrackSessionOutputSchema>> {
-  return client.getTrackSession(args);
-}
+export const getTrackSessionTool = defineTool({
+  name: "get_track_session",
+  description:
+    "Read one track-session record and everything its timed splits imply: per " +
+    "lap the split, cumulative time, speed and the cadence the gear demands; " +
+    "per run the flying-portion aggregates (a gate or standing lap is reported " +
+    "in full and excluded from every average), the opening and closing segment " +
+    "times and speeds, the decline — (v_close/v_open)^3 - 1, a power ratio " +
+    "carrying no aero constant — and what even pacing would have been worth " +
+    "(sum of squared speeds, RMS speed, flat-equivalent time, gain). " +
+    "NO POWER: these are timed laps. For watts and heart rate on the same laps " +
+    "use compute_track_lap_power, which fits the splits to the activity's " +
+    "streams. Returns: { basis, developmentMeters, prose, runs: [{ ref, run, " +
+    "start, laps, summary }], notes }.",
+  schema: getTrackSessionSchema,
+  annotations: READ_ONLY,
+  outputSchema: getTrackSessionOutputSchema,
+  handler: (client, args) => client.trackSessions.getTrackSession(args),
+});
 
-export async function compareTrackSessions(
-  client: IIntervalsClient,
-  args: z.infer<typeof compareTrackSessionsSchema>
-): Promise<z.infer<typeof compareTrackSessionsOutputSchema>> {
-  return client.compareTrackSessions(args);
-}
+export const compareTrackSessionsTool = defineTool({
+  name: "compare_track_sessions",
+  description:
+    "Compare two or more timed runs lap by lap — the head-to-head table for " +
+    "reading a race against the races before it. Each lap position carries " +
+    "every run's split and its difference against the FIRST run listed, which " +
+    "is the baseline; summary rows give total, flying portion, opening and " +
+    "closing segment times, and the decline per run. " +
+    "Refuses runs whose flying portions differ in lap count rather than " +
+    "returning a half-aligned table — a 1500 m run and a 2 km run have no " +
+    'lap-to-lap correspondence. Address a run as "<sessionId>" (a single-run ' +
+    'session) or "<sessionId>#<run>". ' +
+    "Returns: { refs, columns, laps: [{ lap, standingStart, values, deltas }], " +
+    "summary: [{ label, values, deltas, unit }], notes }.",
+  schema: compareTrackSessionsSchema,
+  annotations: READ_ONLY,
+  outputSchema: compareTrackSessionsOutputSchema,
+  handler: (client, args) => client.trackSessions.compareTrackSessions(args),
+});

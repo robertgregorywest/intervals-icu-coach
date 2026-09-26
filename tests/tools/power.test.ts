@@ -1,14 +1,18 @@
 import { describe, it, expect, vi } from "vitest";
-import { getPowerCurve } from "../../src/tools/power.js";
+import { getPowerCurveTool } from "../../src/tools/power.js";
 import type { IIntervalsClient } from "../../src/index.js";
+
+const getPowerCurve = getPowerCurveTool.handler;
 
 function createMockClient(): IIntervalsClient {
   return {
-    getPowerCurve: vi.fn().mockResolvedValue([
-      { secs: 5, value: 900, activity_id: 1 },
-      { secs: 60, value: 400, activity_id: 2 },
-      { secs: 300, value: 320, activity_id: 1 },
-    ]),
+    powerCurves: {
+      getPowerCurve: vi.fn().mockResolvedValue([
+        { secs: 5, value: 900, activity_id: 1 },
+        { secs: 60, value: 400, activity_id: 2 },
+        { secs: 300, value: 320, activity_id: 1 },
+      ]),
+    },
   } as unknown as IIntervalsClient;
 }
 
@@ -27,7 +31,7 @@ describe("getPowerCurve tool handler", () => {
   it("defaults type to Ride when omitted", async () => {
     const client = createMockClient();
     await getPowerCurve(client, { range: "90d" });
-    expect(client.getPowerCurve).toHaveBeenCalledWith({
+    expect(client.powerCurves.getPowerCurve).toHaveBeenCalledWith({
       type: "Ride",
       range: "90d",
     });
@@ -37,7 +41,7 @@ describe("getPowerCurve tool handler", () => {
     const client = createMockClient();
     await getPowerCurve(client, { type: "Ride", range: "90d" });
 
-    expect(client.getPowerCurve).toHaveBeenCalledWith({
+    expect(client.powerCurves.getPowerCurve).toHaveBeenCalledWith({
       type: "Ride",
       range: "90d",
     });
@@ -69,7 +73,7 @@ describe("getPowerCurve thinning", () => {
   };
   const client = () =>
     ({
-      getPowerCurve: vi.fn().mockResolvedValue(curve),
+      powerCurves: { getPowerCurve: vi.fn().mockResolvedValue(curve) },
     }) as unknown as IIntervalsClient;
 
   type Out = {
@@ -88,7 +92,7 @@ describe("getPowerCurve thinning", () => {
     expect(l.watts).toEqual([1000, 900, 400, 320]);
     expect(l.powerModels).toHaveLength(1);
     expect(Object.keys(points.activities)).toEqual(["a", "b", "c"]);
-    expect(c.getPowerCurve).toHaveBeenCalledWith({ type: "Ride" });
+    expect(c.powerCurves.getPowerCurve).toHaveBeenCalledWith({ type: "Ride" });
   });
 
   it("secs filter picks nearest points and reports the request", async () => {

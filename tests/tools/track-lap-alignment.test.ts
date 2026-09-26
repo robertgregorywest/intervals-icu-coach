@@ -1,16 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import {
-  computeTrackLapPower,
-  computeTrackLapPowerSchema,
-  computeTrackLapPowerOutputSchema,
-} from "../../src/tools/track-lap-alignment.js";
+import { computeTrackLapPowerTool } from "../../src/tools/track-lap-alignment.js";
 import { createTrackLapAlignment } from "../../src/services/track-lap-alignment/index.js";
 import type { IIntervalsClient } from "../../src/index.js";
 import type { IActivitiesApi } from "../../src/services/activities/index.js";
 import type { ActivityStreams } from "../../src/services/activities/types.js";
-import type { TrackLapPowerOptions } from "../../src/services/track-lap-alignment/index.js";
 
 function read(name: string) {
   return readFileSync(
@@ -45,13 +40,15 @@ function clientWithStreams(): {
       } as ActivityStreams;
     },
   };
-  const service = createTrackLapAlignment({ activitiesApi });
   const client = {
-    computeTrackLapPower: (options: TrackLapPowerOptions) =>
-      service.computeTrackLapPower(options),
+    trackLapAlignment: createTrackLapAlignment({ activitiesApi }),
   } as unknown as IIntervalsClient;
   return { client, requested };
 }
+
+const computeTrackLapPower = computeTrackLapPowerTool.handler;
+const computeTrackLapPowerSchema = computeTrackLapPowerTool.schema;
+const computeTrackLapPowerOutputSchema = computeTrackLapPowerTool.outputSchema;
 
 describe("compute_track_lap_power", () => {
   it("returns a result its own output schema accepts", async () => {

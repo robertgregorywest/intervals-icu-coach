@@ -1,16 +1,23 @@
 import { describe, it, expect, vi } from "vitest";
 import {
-  getEvents,
-  getEvent,
-  updateEvent,
-  deleteEvents,
+  getEventsTool,
+  getEventTool,
+  updateEventTool,
+  deleteEventsTool,
 } from "../../src/tools/events.js";
 import type { IIntervalsClient } from "../../src/index.js";
+import type { IEventsApi } from "../../src/services/events/index.js";
+import { createEventUpdate } from "../../src/services/event-update/index.js";
+
+const getEvents = getEventsTool.handler;
+const getEvent = getEventTool.handler;
+const updateEvent = updateEventTool.handler;
+const deleteEvents = deleteEventsTool.handler;
 
 function createMockClient(
-  overrides: Partial<IIntervalsClient> = {}
+  overrides: Partial<IEventsApi> = {}
 ): IIntervalsClient {
-  return {
+  const events = {
     getEvents: vi
       .fn()
       .mockResolvedValue([
@@ -27,10 +34,18 @@ function createMockClient(
       name: "Updated Workout",
     }),
     deleteEvents: vi.fn().mockResolvedValue(undefined),
-    buildWorkoutDescription: vi
+    ...overrides,
+  } as unknown as IEventsApi;
+  const workoutBuilder = {
+    toDescription: vi
       .fn()
       .mockReturnValue("- Warmup 10m 150w\n\n- Main 5m 240w"),
-    ...overrides,
+    buildEvent: vi.fn(),
+  };
+  return {
+    events,
+    workoutBuilder,
+    eventUpdate: createEventUpdate({ eventsApi: events, workoutBuilder }),
   } as unknown as IIntervalsClient;
 }
 
@@ -47,7 +62,10 @@ describe("getEvents tool handler", () => {
     expect(parsed.count).toBe(1);
     expect(parsed.truncated).toBe(false);
     expect(parsed.events[0].name).toBe("Threshold Intervals");
-    expect(client.getEvents).toHaveBeenCalledWith("2024-01-01", "2024-01-31");
+    expect(client.events.getEvents).toHaveBeenCalledWith(
+      "2024-01-01",
+      "2024-01-31"
+    );
   });
 });
 
@@ -58,7 +76,7 @@ describe("getEvent tool handler", () => {
     const parsed = result;
 
     expect(parsed.description).toBe("- 10m 60%");
-    expect(client.getEvent).toHaveBeenCalledWith(1);
+    expect(client.events.getEvent).toHaveBeenCalledWith(1);
   });
 });
 
@@ -72,7 +90,7 @@ describe("updateEvent tool handler", () => {
     const parsed = result;
 
     expect(parsed.name).toBe("Updated Workout");
-    expect(client.updateEvent).toHaveBeenCalledWith(1, {
+    expect(client.events.updateEvent).toHaveBeenCalledWith(1, {
       name: "Updated Workout",
     });
   });
@@ -81,7 +99,7 @@ describe("updateEvent tool handler", () => {
     const client = createMockClient();
     await updateEvent(client, { id: 1, date: "2024-02-15" });
 
-    expect(client.updateEvent).toHaveBeenCalledWith(1, {
+    expect(client.events.updateEvent).toHaveBeenCalledWith(1, {
       start_date_local: "2024-02-15T00:00:00",
     });
   });
@@ -97,19 +115,19 @@ describe("updateEvent tool handler", () => {
       ],
     });
 
-    expect(client.buildWorkoutDescription).toHaveBeenCalledWith(
+    expect(client.workoutBuilder.toDescription).toHaveBeenCalledWith(
       [
         { label: "Warmup", duration: "10m", target: "150w" },
         { label: "Main", duration: "5m", target: "240w" },
       ],
       undefined
     );
-    expect(client.updateEvent).toHaveBeenCalledWith(1, {
+    expect(client.events.updateEvent).toHaveBeenCalledWith(1, {
       name: "Long Z2 2.5h",
       description: "- Warmup 10m 150w\n\n- Main 5m 240w",
     });
     // safety: did not need to fetch the existing event
-    expect(client.getEvent).not.toHaveBeenCalled();
+    expect(client.events.getEvent).not.toHaveBeenCalled();
   });
 
   it("rejects when both steps and description are provided", async () => {
@@ -121,7 +139,7 @@ describe("updateEvent tool handler", () => {
         description: "some prose",
       })
     ).rejects.toThrow(/mutually exclusive/i);
-    expect(client.updateEvent).not.toHaveBeenCalled();
+    expect(client.events.updateEvent).not.toHaveBeenCalled();
   });
 
   it("rejects description-only update on a WORKOUT event (issue #1 guard)", async () => {
@@ -141,7 +159,7 @@ describe("updateEvent tool handler", () => {
         description: "some notes with no step lines",
       })
     ).rejects.toThrow(/refusing to update 'description' on a WORKOUT event/);
-    expect(client.updateEvent).not.toHaveBeenCalled();
+    expect(client.events.updateEvent).not.toHaveBeenCalled();
   });
 
   it("allows prose plus step lines on a WORKOUT event", async () => {
@@ -156,7 +174,7 @@ describe("updateEvent tool handler", () => {
     });
     const description = "Circulation, not stimulus.\n\n- Easy 40m 125w-165w";
     await updateEvent(client, { id: 1, description });
-    expect(client.updateEvent).toHaveBeenCalledWith(1, { description });
+    expect(client.events.updateEvent).toHaveBeenCalledWith(1, { description });
   });
 
   it("passes notes through to the description rebuild", async () => {
@@ -166,7 +184,7 @@ describe("updateEvent tool handler", () => {
       steps: [{ duration: "10m", target: "150w" }],
       notes: "Easy day.",
     });
-    expect(client.buildWorkoutDescription).toHaveBeenCalledWith(
+    expect(client.workoutBuilder.toDescription).toHaveBeenCalledWith(
       [{ duration: "10m", target: "150w" }],
       "Easy day."
     );
@@ -190,7 +208,7 @@ describe("updateEvent tool handler", () => {
     });
     await updateEvent(client, { id: 1, description: "new prose" });
 
-    expect(client.updateEvent).toHaveBeenCalledWith(1, {
+    expect(client.events.updateEvent).toHaveBeenCalledWith(1, {
       description: "new prose",
     });
   });
@@ -199,8 +217,8 @@ describe("updateEvent tool handler", () => {
     const client = createMockClient();
     await updateEvent(client, { id: 1, name: "Renamed", color: "#abc" });
 
-    expect(client.getEvent).not.toHaveBeenCalled();
-    expect(client.updateEvent).toHaveBeenCalledWith(1, {
+    expect(client.events.getEvent).not.toHaveBeenCalled();
+    expect(client.events.updateEvent).toHaveBeenCalledWith(1, {
       name: "Renamed",
       color: "#abc",
     });
@@ -217,7 +235,7 @@ describe("deleteEvents tool handler", () => {
 
     expect(parsed.success).toBe(true);
     expect(parsed.deleted).toBe(2);
-    expect(client.deleteEvents).toHaveBeenCalledWith([
+    expect(client.events.deleteEvents).toHaveBeenCalledWith([
       { id: 1 },
       { external_id: "test-2" },
     ]);

@@ -1,13 +1,13 @@
 import { z } from "zod";
 import type { IIntervalsClient } from "../index.js";
+import { defineTool, UPSERT } from "./define.js";
 import {
   unreviewableWorkSteps,
   type UnreviewableStep,
 } from "../services/prescription/index.js";
 import { KEY_SESSION_FLOOR_PCT_FTP } from "../services/execution-digest/index.js";
-import type { WorkoutPlan } from "../services/workout-builder/index.js";
-import { slugify } from "../services/workout-builder/index.js";
-import type { IntervalsEvent, SportType } from "../types.js";
+import { workoutEvent } from "../services/workout-builder/index.js";
+import type { SportType } from "../types.js";
 import { dateString } from "./common.js";
 
 const sportTypeEnum = z.enum([
@@ -60,7 +60,7 @@ export const repeatBlockSchema = z.object({
   steps: z.array(workoutStepSchema).describe("Steps to repeat"),
 });
 
-export const createWorkoutSchema = z.object({
+const createWorkoutSchema = z.object({
   name: z.string().describe("Workout name"),
   date: dateString.describe("Date in YYYY-MM-DD format"),
   sportType: sportTypeEnum.describe(
@@ -90,7 +90,7 @@ export const createWorkoutSchema = z.object({
   color: z.string().optional().describe("Optional event color"),
 });
 
-export const createWorkoutOutputSchema = z.object({
+const createWorkoutOutputSchema = z.object({
   success: z.literal(true),
   created: z.number(),
   unreviewableSteps: z
@@ -117,28 +117,31 @@ export const createWorkoutOutputSchema = z.object({
   ),
 });
 
-export async function createWorkout(
-  client: IIntervalsClient,
-  args: z.infer<typeof createWorkoutSchema>
-): Promise<z.infer<typeof createWorkoutOutputSchema>> {
-  const plan: WorkoutPlan = {
-    name: args.name,
-    date: args.date,
-    sportType: args.sportType,
-    steps: args.steps,
-    notes: args.notes,
-    externalId: args.externalId,
-    color: args.color,
-  };
+export const createWorkoutTool = defineTool({
+  name: "create_workout",
+  description:
+    "Create a structured workout on the athlete's Intervals.icu calendar. " +
+    "IMPORTANT: When the user specifies power targets in watts, always use absolute watts " +
+    '(e.g. "200w", "160w-256w") — do NOT convert to percentages. ' +
+    'Percentage targets like "75%" are relative to FTP which may not match the user\'s intent. ' +
+    "Supports simple steps, ramps, and repeat blocks. " +
+    "Optional 'notes' carries session-level prose above the steps. " +
+    "To schedule a saved library workout use schedule_library_workout instead. " +
+    "Idempotent on externalId — same externalId upserts the existing event. " +
+    "Returns: { success: true, created: N, events: [...] }.",
+  schema: createWorkoutSchema,
+  annotations: UPSERT,
+  outputSchema: createWorkoutOutputSchema,
+  async handler(client, args) {
+    const event = client.workoutBuilder.buildEvent(args);
+    const result = await client.events.createEvents([event]);
 
-  const event = client.buildWorkoutEvent(plan);
-  const result = await client.createEvents([event]);
-
-  return {
-    ...formatResponse(result),
-    ...(await unreviewableWarning(client, event.description)),
-  };
-}
+    return {
+      ...formatResponse(result),
+      ...(await unreviewableWarning(client, event.description)),
+    };
+  },
+});
 
 /**
  * Best-effort: a warning is worth one athlete lookup, and worth nothing if it
@@ -152,7 +155,7 @@ async function unreviewableWarning(
 ): Promise<{ unreviewableSteps?: UnreviewableStep[] }> {
   let anchors;
   try {
-    anchors = await client.getAthleteAnchors();
+    anchors = await client.anchors.getAthleteAnchors();
   } catch {
     return {};
   }
@@ -163,7 +166,7 @@ async function unreviewableWarning(
   return steps.length > 0 ? { unreviewableSteps: steps } : {};
 }
 
-export const scheduleLibraryWorkoutSchema = z.object({
+const scheduleLibraryWorkoutSchema = z.object({
   id: z.number().describe("Library workout ID (from list_workout_library)"),
   date: dateString.describe("Date in YYYY-MM-DD format"),
   externalId: z
@@ -173,32 +176,40 @@ export const scheduleLibraryWorkoutSchema = z.object({
   color: z.string().optional().describe("Optional event color"),
 });
 
-export async function scheduleLibraryWorkout(
-  client: IIntervalsClient,
-  args: z.infer<typeof scheduleLibraryWorkoutSchema>
-): Promise<z.infer<typeof createWorkoutOutputSchema>> {
-  const { workout } = await client.getWorkoutLibraryItem(args.id);
-  const description = workout.description ?? "";
+export const scheduleLibraryWorkoutTool = defineTool({
+  name: "schedule_library_workout",
+  description:
+    "Schedule a saved library workout onto the calendar, copying its description " +
+    "verbatim — prose, steps and template trailer — so nothing is lost. " +
+    "Prefer this to re-expressing a library item as create_workout steps. " +
+    "Idempotent on externalId — same externalId upserts the existing event. " +
+    "Returns: { success: true, created: N, events: [...] }.",
+  schema: scheduleLibraryWorkoutSchema,
+  annotations: UPSERT,
+  outputSchema: createWorkoutOutputSchema,
+  async handler(client, args) {
+    const { workout } = await client.workoutLibrary.get(args.id);
+    const description = workout.description ?? "";
 
-  const event: IntervalsEvent = {
-    category: "WORKOUT",
-    start_date_local: `${args.date}T00:00:00`,
-    type: workout.type as SportType,
-    name: workout.name,
-    description,
-    external_id: args.externalId || `mcp-${args.date}-${slugify(workout.name)}`,
-    ...(args.color ? { color: args.color } : {}),
-  };
+    const event = workoutEvent({
+      name: workout.name,
+      date: args.date,
+      type: workout.type as SportType,
+      description,
+      externalId: args.externalId,
+      color: args.color,
+    });
 
-  const result = await client.createEvents([event]);
+    const result = await client.events.createEvents([event]);
 
-  return {
-    ...formatResponse(result),
-    ...(await unreviewableWarning(client, description)),
-  };
-}
+    return {
+      ...formatResponse(result),
+      ...(await unreviewableWarning(client, description)),
+    };
+  },
+});
 
-export const createStrengthWorkoutSchema = z.object({
+const createStrengthWorkoutSchema = z.object({
   name: z.string().describe("Strength session name"),
   date: dateString.describe("Date in YYYY-MM-DD format"),
   description: z
@@ -215,27 +226,23 @@ export const createStrengthWorkoutSchema = z.object({
   color: z.string().optional().describe("Optional event color"),
 });
 
-export async function createStrengthWorkout(
-  client: IIntervalsClient,
-  args: z.infer<typeof createStrengthWorkoutSchema>
-): Promise<z.infer<typeof createWorkoutOutputSchema>> {
-  const externalId =
-    args.externalId || `mcp-${args.date}-${slugify(args.name)}`;
-
-  const event = {
-    category: "WORKOUT" as const,
-    start_date_local: `${args.date}T00:00:00`,
-    type: "WeightTraining" as const,
-    name: args.name,
-    description: args.description,
-    external_id: externalId,
-    ...(args.color ? { color: args.color } : {}),
-  };
-
-  const result = await client.createEvents([event]);
-
-  return formatResponse(result);
-}
+export const createStrengthWorkoutTool = defineTool({
+  name: "create_strength_workout",
+  description:
+    "Create a strength/gym session on the athlete's Intervals.icu calendar as a WeightTraining event. " +
+    "Provide a free-form description of exercises, sets, reps, load, and RPE. " +
+    "Use this instead of create_workout for gym/strength sessions. " +
+    "Idempotent on externalId — same externalId upserts the existing event. " +
+    "Returns: { success: true, created: N, events: [...] }.",
+  schema: createStrengthWorkoutSchema,
+  annotations: UPSERT,
+  outputSchema: createWorkoutOutputSchema,
+  async handler(client, args) {
+    const event = workoutEvent({ ...args, type: "WeightTraining" });
+    const result = await client.events.createEvents([event]);
+    return formatResponse(result);
+  },
+});
 
 function formatResponse(
   events: Array<{
