@@ -12,7 +12,7 @@ export interface DecouplingResult {
 }
 
 export function computeAerobicDecoupling(
-  powerStream: number[],
+  powerStream: Array<number | null>,
   hrStream: number[]
 ): DecouplingResult {
   const filtered: { power: number; hr: number }[] = [];

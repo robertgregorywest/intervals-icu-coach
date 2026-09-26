@@ -1,20 +1,31 @@
 import type { IEventsApi } from "../events/index.js";
-import type { Activity, IActivitiesApi } from "../activities/index.js";
+import type { IActivitiesApi } from "../activities/index.js";
 import type { IntervalsEvent } from "../../types.js";
-import type { ISessionReview } from "../session-review/types.js";
+import {
+  DEFAULT_TOLERANCE,
+  reviewPairedSession,
+  unpairedReview,
+} from "../session-review/index.js";
 import type {
   AlignedStep,
   PlannedVsActualResult,
 } from "../session-review/types.js";
+import {
+  distributeWindow,
+  distributionFrame,
+  type CoachingZones,
+} from "../intensity-distribution/index.js";
 import type {
-  IIntensityDistribution,
   IntensityDistributionRangeResult,
   RangeSessionRow,
 } from "../intensity-distribution/types.js";
-import { MAX_RANGE_DAYS } from "../intensity-distribution/index.js";
 import { readPrescription, type PlannedStep } from "../prescription/index.js";
 import { planFtp } from "../athlete-anchors/index.js";
-import { PAIR_SEARCH_WINDOW_DAYS, shiftDate } from "../session-review/index.js";
+import {
+  createPairedSessionLoader,
+  type LoadedWindow,
+  type PairedSessionLoader,
+} from "../paired-sessions/index.js";
 import type {
   CadenceRollup,
   DigestSession,
@@ -46,12 +57,11 @@ const COASTING_WORTH_REPORTING = 0.05;
 
 export interface ExecutionDigestDeps {
   eventsApi: IEventsApi;
-  /** The rides paired to the window's events, whose FTP a plan is read at. */
   activitiesApi: IActivitiesApi;
-  sessionReview: ISessionReview;
-  intensityDistribution: IIntensityDistribution;
   /** The athlete's FTP, for events whose own and paired ride carry none. */
   getFtp(): Promise<number | null>;
+  /** The distribution's bucketing frame, read only when a session is key. */
+  getCoachingZones(): Promise<CoachingZones>;
 }
 
 /**
@@ -63,33 +73,24 @@ export interface ExecutionDigestDeps {
  * test working, what to change — is judgement, and stays with the coaching
  * thread that has the athlete's context loaded. See
  * `docs/adr/0010-work-steps-declared-in-the-label.md`.
+ *
+ * The window is loaded once and both lenses read the same sessions, so each
+ * event and ride is fetched at most once however many lenses read it.
  */
 export class ExecutionDigest implements IExecutionDigest {
-  constructor(private deps: ExecutionDigestDeps) {}
+  private loader: PairedSessionLoader;
+
+  constructor(private deps: ExecutionDigestDeps) {
+    this.loader = createPairedSessionLoader(deps);
+  }
 
   async getExecutionDigest(
     options: GetExecutionDigestOptions
   ): Promise<ExecutionDigestResult> {
     const { oldest, newest } = options;
-    const days = daysBetween(oldest, newest);
-    if (days < 0) {
-      throw new Error(
-        `Window ${oldest}..${newest} ends before it starts. ` +
-          "Supply oldest then newest."
-      );
-    }
-    if (days > MAX_RANGE_DAYS) {
-      throw new Error(
-        `Window ${oldest}..${newest} spans ${days} days, over the ` +
-          `${MAX_RANGE_DAYS}-day maximum. Narrow it — a longer window stops ` +
-          "describing one block."
-      );
-    }
+    // Throws on a window failing its guard, before any fetch.
+    const loaded = await this.loader.loadWindow({ oldest, newest });
 
-    const [events, rides] = await Promise.all([
-      this.deps.eventsApi.getEvents(oldest, newest),
-      this.pairedRides(oldest, newest),
-    ]);
     let athleteFtp: Promise<number | null> | undefined;
     const lazyAthleteFtp = () => (athleteFtp ??= this.deps.getFtp());
 
@@ -98,16 +99,12 @@ export class ExecutionDigest implements IExecutionDigest {
     // It reads each plan at the FTP the review will judge it at, so a step is
     // selected and judged against the same target.
     const planned = await Promise.all(
-      events
+      loaded.events
         .filter((e) => e.category === "WORKOUT")
         .map(async (event) =>
           plannedSummary(
             event,
-            await planFtp(
-              event,
-              event.id !== undefined ? rides.get(event.id) : undefined,
-              lazyAthleteFtp
-            )
+            await planFtp(event, rideFor(loaded, event), lazyAthleteFtp)
           )
         )
     );
@@ -129,16 +126,19 @@ export class ExecutionDigest implements IExecutionDigest {
     }
 
     const [distribution, reviews] = await Promise.all([
-      this.deps.intensityDistribution.compareIntensityDistributionRange({
-        oldest,
-        newest,
-      }),
+      distributionFrame(this.deps.getCoachingZones).then((frame) =>
+        distributeWindow(loaded, frame)
+      ),
       Promise.all(
-        key.map((p) =>
-          this.deps.sessionReview.comparePlannedVsActual({
-            eventId: p.event.id!,
-          })
-        )
+        key.map(({ event }) => {
+          const found = loaded.lookup(event.id!);
+          return found.session
+            ? reviewPairedSession(found.session, {
+                tolerance: DEFAULT_TOLERANCE,
+                athleteFtp: lazyAthleteFtp,
+              })
+            : unpairedReview(found, DEFAULT_TOLERANCE);
+        })
       ),
     ]);
 
@@ -164,26 +164,13 @@ export class ExecutionDigest implements IExecutionDigest {
       nonKeySessions: planned.length - key.length,
     };
   }
+}
 
-  /**
-   * The rides paired to events in the window, keyed by event. Widened by the
-   * review's own pairing reach, so a ride the review would find for an event is
-   * one found here too.
-   */
-  private async pairedRides(
-    oldest: string,
-    newest: string
-  ): Promise<Map<number, Activity>> {
-    const activities = await this.deps.activitiesApi.getActivities(
-      shiftDate(oldest, -PAIR_SEARCH_WINDOW_DAYS),
-      shiftDate(newest, PAIR_SEARCH_WINDOW_DAYS)
-    );
-    const byEvent = new Map<number, Activity>();
-    for (const a of activities) {
-      if (a.paired_event_id) byEvent.set(a.paired_event_id, a);
-    }
-    return byEvent;
-  }
+/** The ride paired to an event, whose FTP its plan is read at. */
+function rideFor(loaded: LoadedWindow, event: IntervalsEvent) {
+  return event.id !== undefined
+    ? loaded.lookup(event.id).session?.activity
+    : undefined;
 }
 
 interface PlannedSummary {
@@ -227,7 +214,7 @@ function plannedSummary(
  * met both its power and its cadence, and a band step outside its band by less
  * than noise. What survives is a rep that did not do what it was asked to.
  */
-function digestSession(
+export function digestSession(
   review: PlannedVsActualResult,
   planned: PlannedStep[],
   doseByEvent: Map<number, RangeSessionRow>
@@ -330,12 +317,6 @@ function windowDose(
     ...(distribution.zones ? { zones: distribution.zones } : {}),
     ...(distribution.boundaries ? { boundaries: distribution.boundaries } : {}),
   };
-}
-
-function daysBetween(oldest: string, newest: string): number {
-  const from = Date.parse(`${oldest}T00:00:00Z`);
-  const to = Date.parse(`${newest}T00:00:00Z`);
-  return Math.round((to - from) / 86_400_000);
 }
 
 export function createExecutionDigest(

@@ -1,9 +1,11 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { HttpClient } from "../../../src/client.js";
-import { ActivitiesApi } from "../../../src/services/activities/activities.js";
-import { EventsApi } from "../../../src/services/events/events.js";
+import {
+  intervalsApis,
+  routedFetch,
+  type RoutedFetch,
+} from "../../helpers/intervals-fixture.js";
 import {
   IntensityDistribution,
   MAX_RANGE_DAYS,
@@ -26,38 +28,12 @@ const FRAME = fixture("coaching-zones") as {
   mapZones: ZoneRow[];
 };
 
-const config = {
-  apiKey: "test-api-key",
-  athleteId: "i12345",
-  baseUrl: "https://intervals.icu",
-};
-
-function routedFetch(routes: Array<[RegExp, unknown]>) {
-  return vi.fn(async (url: string) => {
-    for (const [pattern, body] of routes) {
-      if (pattern.test(url)) {
-        return {
-          ok: true,
-          status: 200,
-          statusText: "OK",
-          headers: new Headers({ "content-type": "application/json" }),
-          json: () => Promise.resolve(body),
-          text: () => Promise.resolve(JSON.stringify(body)),
-        } as unknown as Response;
-      }
-    }
-    throw new Error(`unexpected request: ${url}`);
-  });
-}
-
 function build(
-  fetchFn: ReturnType<typeof routedFetch>,
+  fetchFn: RoutedFetch,
   zones: Partial<{ zones: ZoneRow[] | null; ftp: number | null }> = {}
 ) {
-  const httpClient = new HttpClient(config, fetchFn as never);
   return new IntensityDistribution({
-    activitiesApi: new ActivitiesApi(httpClient, config.athleteId),
-    eventsApi: new EventsApi(httpClient, config.athleteId),
+    ...intervalsApis(fetchFn),
     getCoachingZones: async () => ({
       zones: zones.zones !== undefined ? zones.zones : FRAME.mapZones,
       ftp: zones.ftp !== undefined ? zones.ftp : FRAME.ftp,

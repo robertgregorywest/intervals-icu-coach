@@ -3,6 +3,7 @@ import type { IWellnessApi, WellnessRecord } from "../wellness/index.js";
 import type { IActivitiesApi } from "../activities/index.js";
 import type { IPowerCurvesApi } from "../power-curves/index.js";
 import { isoToday } from "../../clock.js";
+import { shiftDate } from "../../dates.js";
 import { deriveMapAnchors, readAthlete } from "../athlete-anchors/index.js";
 import type {
   AthleteSnapshot,
@@ -32,7 +33,7 @@ export async function buildCoachingContext(
 ): Promise<CoachingContext> {
   const days = clampDays(opts.days);
   const today = opts.today ?? isoToday();
-  const oldest = addDays(today, -(days - 1));
+  const oldest = shiftDate(today, -(days - 1));
 
   // MAP zones come from the Athlete anchors module, the one place they are
   // derived; the athlete record is read through its field reader.
@@ -68,12 +69,6 @@ function clampDays(input?: number): number {
     throw new Error(`days must be <= ${MAX_DAYS}, got ${input}`);
   }
   return Math.floor(input);
-}
-
-function addDays(date: string, delta: number): string {
-  const d = new Date(`${date}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + delta);
-  return d.toISOString().slice(0, 10);
 }
 
 function summarizeAthlete(raw: unknown): AthleteSnapshot {

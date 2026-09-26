@@ -5,12 +5,17 @@ import type { IntervalsEvent } from "../../types.js";
 import { plannedDuration, readPrescription } from "../prescription/index.js";
 import { planFtp } from "../athlete-anchors/index.js";
 import {
+  createPairedSessionLoader,
+  type PairedSession,
+  type PairedSessionLoader,
+  type Unpaired,
+} from "../paired-sessions/index.js";
+import {
   DEFAULT_TOLERANCE,
   reviewSession,
   type RawPowerStream,
 } from "./review.js";
-import { executionCandidates, type ExecutionCandidate } from "./delivered.js";
-import { resolvePair } from "./pair.js";
+import type { ExecutionCandidate } from "./delivered.js";
 import type {
   ComparePlannedVsActualOptions,
   ISessionReview,
@@ -18,8 +23,6 @@ import type {
   ReviewReason,
   SessionRollup,
 } from "./types.js";
-
-export { PAIR_SEARCH_WINDOW_DAYS } from "./pair.js";
 
 export interface SessionReviewDeps {
   activitiesApi: IActivitiesApi;
@@ -29,160 +32,187 @@ export interface SessionReviewDeps {
 }
 
 export class SessionReview implements ISessionReview {
-  constructor(private deps: SessionReviewDeps) {}
+  private loader: PairedSessionLoader;
 
-  private athleteFtp = async () => (await this.deps.getFtp?.()) ?? null;
+  constructor(private deps: SessionReviewDeps) {
+    this.loader = createPairedSessionLoader(deps);
+  }
 
   async comparePlannedVsActual(
     options: ComparePlannedVsActualOptions
   ): Promise<PlannedVsActualResult> {
     const tolerance = options.tolerance ?? DEFAULT_TOLERANCE;
+    const found = await this.loader.find(options);
 
-    const pair = await resolvePair(this.deps, options);
+    return found.session
+      ? reviewPairedSession(found.session, {
+          tolerance,
+          athleteFtp: async () => (await this.deps.getFtp?.()) ?? null,
+        })
+      : unpairedReview(found, tolerance);
+  }
+}
 
-    if (pair.reason) {
-      return this.refuse(
-        pair.activity,
-        pair.event,
-        tolerance,
-        pair.reason,
-        pair.message!
-      );
-    }
+export interface ReviewOptions {
+  tolerance: number;
+  /** The athlete's FTP, for a session whose event and ride both carry none. */
+  athleteFtp: () => Promise<number | null>;
+}
 
-    const activity = pair.activity!;
-    const event = pair.event!;
+/**
+ * The step lens over one loaded session: each **Planned step** judged against
+ * the **Delivered interval** paired to it, read from the best **Execution
+ * record** that aligns at all.
+ */
+export async function reviewPairedSession(
+  session: PairedSession,
+  options: ReviewOptions
+): Promise<PlannedVsActualResult> {
+  const { event, activity } = session;
+  const { tolerance } = options;
 
-    const ftp = await planFtp(event, activity, this.athleteFtp);
-    const planned = readPrescription(event.workout_doc, { ftp }).steps;
+  const ftp = await planFtp(event, activity, options.athleteFtp);
+  const planned = readPrescription(event.workout_doc, { ftp }).steps;
 
-    if (planned.length === 0) {
-      return this.refuse(
-        activity,
-        event,
-        tolerance,
-        "no-structured-steps",
-        `Planned event ${event.id} carries no structured workout steps, so ` +
-          "there is nothing to compare the ride against."
-      );
-    }
-
-    const laps = await this.deps.activitiesApi.getActivityLaps(activity.id);
-    const candidates = executionCandidates(activity, laps);
-    const powerStream = await this.getPowerStream(activity.id);
-
-    if (candidates.length === 0) {
-      return this.refuse(
-        activity,
-        event,
-        tolerance,
-        "no-intervals",
-        `Activity ${activity.id} has neither recorded laps nor detected ` +
-          "intervals, so per-step delivery cannot be read. Whole-activity " +
-          "averages are not a substitute.",
-        planned.length ? plannedDuration(planned) : undefined
-      );
-    }
-
-    const rollupInputs = {
-      plannedLoad: event.icu_training_load,
-      actualLoad: numberOrUndefined(activity.icu_training_load),
-      plannedDurationSeconds: plannedDuration(planned),
-      actualDurationSeconds: numberOrUndefined(activity.moving_time),
-      platformCompliance: numberOrUndefined(activity.compliance),
-    };
-
-    const chosen = pickCandidate(candidates, (candidate) =>
-      reviewSession({
-        planned,
-        intervals: candidate.intervals,
-        tolerance,
-        powerStream,
-        ...rollupInputs,
-      })
+  if (planned.length === 0) {
+    return refuse(
+      activity,
+      event,
+      tolerance,
+      "no-structured-steps",
+      `Planned event ${event.id} carries no structured workout steps, so ` +
+        "there is nothing to compare the ride against."
     );
+  }
 
-    return {
-      activityId: activity.id,
-      eventId: event.id,
-      activityName: activity.name,
-      eventName: event.name,
-      date: activity.start_date_local,
+  const [ride, candidates, powerStream] = await Promise.all([
+    session.detail(),
+    session.executionRecord(),
+    powerStreamOf(session),
+  ]);
+
+  if (candidates.length === 0) {
+    return refuse(
+      ride,
+      event,
       tolerance,
-      executionRecord: chosen.candidate.source,
-      ...(chosen.candidate.note
-        ? { executionRecordNote: chosen.candidate.note }
-        : {}),
-      ...chosen.core,
-    };
+      "no-intervals",
+      `Activity ${ride.id} has neither recorded laps nor detected ` +
+        "intervals, so per-step delivery cannot be read. Whole-activity " +
+        "averages are not a substitute.",
+      plannedDuration(planned)
+    );
   }
 
-  /**
-   * The raw power/time streams behind the normalized-power verdict. Fetched
-   * best-effort, the same as `getActivityLaps`: a failure (or an activity with
-   * no recorded power) is not a comparison failure, it just means every step
-   * falls back to its average-watts verdict.
-   */
-  private async getPowerStream(
-    activityId: string
-  ): Promise<RawPowerStream | undefined> {
-    let streams: { watts?: Array<number | null>; time?: number[] };
-    try {
-      streams = (await this.deps.activitiesApi.getActivityStreams(activityId, [
-        "watts",
-        "time",
-      ])) as { watts?: Array<number | null>; time?: number[] };
-    } catch {
-      return undefined;
-    }
+  const rollupInputs = {
+    plannedLoad: event.icu_training_load,
+    actualLoad: numberOrUndefined(ride.icu_training_load),
+    plannedDurationSeconds: plannedDuration(planned),
+    actualDurationSeconds: numberOrUndefined(ride.moving_time),
+    platformCompliance: numberOrUndefined(ride.compliance),
+  };
 
-    const { watts, time } = streams;
-    if (!watts?.length || !time?.length) return undefined;
-
-    return { watts, time };
-  }
-
-  /**
-   * Every dead end returns the same shape: an empty step list, a named reason,
-   * and the roll-up, which still answers the coarse question.
-   *
-   * `executionRecord` reports the source that would have been read, so a refusal
-   * still says what it was looking at.
-   */
-  private refuse(
-    activity: Activity | undefined,
-    event: IntervalsEvent | undefined,
-    tolerance: number,
-    reason: ReviewReason,
-    message: string,
-    plannedDurationSeconds?: number
-  ): PlannedVsActualResult {
-    const rollup: SessionRollup = {
-      plannedLoad: event?.icu_training_load,
-      actualLoad: numberOrUndefined(activity?.icu_training_load),
-      plannedDurationSeconds:
-        plannedDurationSeconds ?? numberOrUndefined(event?.moving_time),
-      actualDurationSeconds: numberOrUndefined(activity?.moving_time),
-      platformCompliance: numberOrUndefined(activity?.compliance),
-      unplannedIntervals: [],
-    };
-
-    return {
-      activityId: activity?.id,
-      eventId: event?.id,
-      activityName: activity?.name,
-      eventName: event?.name,
-      date: activity?.start_date_local ?? event?.start_date_local,
+  const chosen = pickCandidate(candidates, (candidate) =>
+    reviewSession({
+      planned,
+      intervals: candidate.intervals,
       tolerance,
-      executionRecord: "detected-intervals",
-      alignmentBasis: "none",
-      matchedFraction: 0,
-      steps: [],
-      rollup,
-      reason,
-      message,
-    };
+      powerStream,
+      ...rollupInputs,
+    })
+  );
+
+  return {
+    activityId: ride.id,
+    eventId: event.id,
+    activityName: ride.name,
+    eventName: event.name,
+    date: ride.start_date_local,
+    tolerance,
+    executionRecord: chosen.candidate.source,
+    ...(chosen.candidate.note
+      ? { executionRecordNote: chosen.candidate.note }
+      : {}),
+    ...chosen.core,
+  };
+}
+
+/** A half-session reviewed: no steps, the named reason, and the roll-up. */
+export function unpairedReview(
+  found: Unpaired,
+  tolerance: number
+): PlannedVsActualResult {
+  return refuse(
+    found.activity,
+    found.event,
+    tolerance,
+    found.reason,
+    found.message
+  );
+}
+
+/**
+ * The raw power/time streams behind the normalized-power verdict. Read
+ * best-effort: a failure (or an activity with no recorded power) is not a
+ * comparison failure, it just means every step falls back to its average-watts
+ * verdict.
+ */
+async function powerStreamOf(
+  session: PairedSession
+): Promise<RawPowerStream | undefined> {
+  let streams;
+  try {
+    streams = await session.streams();
+  } catch {
+    return undefined;
   }
+
+  const { watts, time } = streams;
+  if (!watts?.length || !time?.length) return undefined;
+
+  return { watts, time };
+}
+
+/**
+ * Every dead end returns the same shape: an empty step list, a named reason,
+ * and the roll-up, which still answers the coarse question.
+ *
+ * `executionRecord` reports the source that would have been read, so a refusal
+ * still says what it was looking at.
+ */
+function refuse(
+  activity: Activity | undefined,
+  event: IntervalsEvent | undefined,
+  tolerance: number,
+  reason: ReviewReason,
+  message: string,
+  plannedDurationSeconds?: number
+): PlannedVsActualResult {
+  const rollup: SessionRollup = {
+    plannedLoad: event?.icu_training_load,
+    actualLoad: numberOrUndefined(activity?.icu_training_load),
+    plannedDurationSeconds:
+      plannedDurationSeconds ?? numberOrUndefined(event?.moving_time),
+    actualDurationSeconds: numberOrUndefined(activity?.moving_time),
+    platformCompliance: numberOrUndefined(activity?.compliance),
+    unplannedIntervals: [],
+  };
+
+  return {
+    activityId: activity?.id,
+    eventId: event?.id,
+    activityName: activity?.name,
+    eventName: event?.name,
+    date: activity?.start_date_local ?? event?.start_date_local,
+    tolerance,
+    executionRecord: "detected-intervals",
+    alignmentBasis: "none",
+    matchedFraction: 0,
+    steps: [],
+    rollup,
+    reason,
+    message,
+  };
 }
 
 type ReviewCore = ReturnType<typeof reviewSession>;

@@ -279,23 +279,23 @@ export class IntervalsClient implements IIntervalsClient {
       eventsApi: this.events,
       getFtp,
     });
+    const getCoachingZones = async () => {
+      const [{ mapZones }, ftp] = await Promise.all([
+        this.anchors.getMapAnchors(),
+        getFtp(),
+      ]);
+      return { zones: mapZones, ftp };
+    };
     this.intensityDistribution = createIntensityDistribution({
       activitiesApi: this.activities,
       eventsApi: this.events,
-      getCoachingZones: async () => {
-        const [{ mapZones }, ftp] = await Promise.all([
-          this.anchors.getMapAnchors(),
-          getFtp(),
-        ]);
-        return { zones: mapZones, ftp };
-      },
+      getCoachingZones,
     });
     this.executionDigest = createExecutionDigest({
       eventsApi: this.events,
       activitiesApi: this.activities,
-      sessionReview: this.sessionReview,
-      intensityDistribution: this.intensityDistribution,
       getFtp,
+      getCoachingZones,
     });
     this.trackLapAlignment = createTrackLapAlignment({
       activitiesApi: this.activities,

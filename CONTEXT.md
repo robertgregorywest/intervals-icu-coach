@@ -105,8 +105,12 @@ Seconds in the 76–106% FTP window — tempo through threshold — the coaching
 _Avoid_: treating it as a roll-up of the zone breakdown (the two are anchored on FTP and MAP respectively, and neither derives from the other); calling a session "delivered" on duration when its middle-band dose fell short.
 
 **Review window / watermark**:
-The span an execution review sweeps, running from the `reviewed-through` date in the coaching log's live-state header to today. Advanced to today only as part of a confirmed log write, so an unconfirmed session leaves the window intact. Capped at 28 days (the block cadence); skipped when the window holds no key session.
+The span an execution review sweeps, running from the `reviewed-through` date in the coaching log's live-state header to today. Advanced to today only as part of a confirmed log write, so an unconfirmed session leaves the window intact. Capped at 28 days counting both ends (the block cadence), checked once by the **Paired session loader**; skipped when the window holds no key session.
 _Avoid_: "since last time" or any window derived from conversation history rather than the watermark — the watermark is what makes the review neither re-review nor silently skip.
+
+**Paired session loader**:
+`src/services/paired-sessions/` — the one place a planned event is paired to the ride that executed it, for one session or a whole **Review window**. Each paired session carries its event, its ride, and the ride's **Execution record** candidates and null-safe power stream, each fetched on first ask and never again, so the step lens, the band lens and the **Execution digest** share one set of fetches. The window's day count and cap are checked here and nowhere else.
+_Avoid_: pairing an event to its ride, or counting a window's days, inside a lens.
 
 **Work step**:
 A **Planned step** that carries the session's prescribed intent, as against one that serves it (warm-up, recovery, cool-down). **Declared by the step's author in the first word of its own label**, against the **Work-word vocabulary** — not inferred from intensity, and not read from the delivered `type` field, which is auto-detected and unreliable. Every other step is _unclassified_ and is judged by nothing: a support step and a label outside the vocabulary fall out the same way. See ADR 0010.

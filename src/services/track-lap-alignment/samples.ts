@@ -12,7 +12,8 @@
 /** A stream paired with the time base its samples sit on. */
 export interface TimedStream {
   times: number[];
-  values: number[];
+  /** Nulls are dropouts, skipped rather than read as zero. */
+  values: Array<number | null>;
 }
 
 /**

@@ -8,6 +8,10 @@
  */
 
 /** Intervals.icu's defaults, applied when the athlete has set no constants. */
+import { shiftDate } from "../../dates.js";
+
+export { shiftDate };
+
 export const DEFAULT_CTL_DAYS = 42;
 export const DEFAULT_ATL_DAYS = 7;
 
@@ -94,13 +98,6 @@ export function project(
   }
 
   return days;
-}
-
-/** Calendar arithmetic in UTC, so a local DST shift cannot drop or repeat a day. */
-export function shiftDate(date: string, delta: number): string {
-  const d = new Date(`${date}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + delta);
-  return d.toISOString().slice(0, 10);
 }
 
 /** Every date from `oldest` to `newest` inclusive. */

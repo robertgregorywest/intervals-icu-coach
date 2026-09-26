@@ -13,6 +13,7 @@ import {
   project,
   shiftDate,
 } from "./trajectory.js";
+import { mondayOf } from "../../dates.js";
 import type {
   ForecastBasis,
   ForecastOptions,
@@ -371,13 +372,6 @@ function rollUpWeeks(
       complete: weekStart >= oldest && weekEnd <= newest,
     };
   });
-}
-
-function mondayOf(date: string): string {
-  const d = new Date(`${date}T00:00:00Z`);
-  // getUTCDay is 0 on Sunday, which is the last day of the week here.
-  const offset = (d.getUTCDay() + 6) % 7;
-  return shiftDate(date, -offset);
 }
 
 function numberOrNull(

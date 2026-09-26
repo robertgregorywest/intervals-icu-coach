@@ -2,10 +2,14 @@ export {
   IntensityDistribution,
   createIntensityDistribution,
   MAX_RANGE_DAYS,
+  distributionFrame,
+  distributeSession,
+  distributeWindow,
 } from "./intensity-distribution.js";
 export type {
   IntensityDistributionDeps,
   CoachingZones,
+  DistributionFrame,
 } from "./intensity-distribution.js";
 export {
   derivePartition,

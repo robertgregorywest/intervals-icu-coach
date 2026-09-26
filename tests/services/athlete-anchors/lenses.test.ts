@@ -85,9 +85,8 @@ function lenses(ride: Activity | null) {
   const digest = createExecutionDigest({
     eventsApi,
     activitiesApi,
-    sessionReview,
-    intensityDistribution,
     getFtp,
+    getCoachingZones: async () => ({ zones: null, ftp: await getFtp() }),
   });
   return { sessionReview, intensityDistribution, digest, athleteFtpReads };
 }

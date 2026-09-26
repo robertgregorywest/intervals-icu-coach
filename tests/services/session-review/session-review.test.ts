@@ -1,9 +1,11 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { HttpClient } from "../../../src/client.js";
-import { ActivitiesApi } from "../../../src/services/activities/activities.js";
-import { EventsApi } from "../../../src/services/events/events.js";
+import {
+  intervalsApis,
+  routedFetch,
+  type RoutedFetch,
+} from "../../helpers/intervals-fixture.js";
 import { SessionReview } from "../../../src/services/session-review/session-review.js";
 
 function fixture(name: string) {
@@ -13,66 +15,6 @@ function fixture(name: string) {
   return JSON.parse(readFileSync(path, "utf8"));
 }
 
-const config = {
-  apiKey: "test-api-key",
-  athleteId: "i12345",
-  baseUrl: "https://intervals.icu",
-};
-
-/**
- * Route requests by URL so a test can describe the whole Intervals.icu surface
- * a comparison touches, and assert on exactly which calls were made.
- *
- * A `null` body answers 404 — the shape of an activity with no original upload
- * to read laps from. A `Uint8Array` body is served as raw bytes.
- */
-function routedFetch(routes: Array<[RegExp, unknown]>) {
-  return vi.fn(async (url: string) => {
-    for (const [pattern, body] of routes) {
-      if (!pattern.test(url)) continue;
-
-      if (body === null) {
-        return {
-          ok: false,
-          status: 404,
-          statusText: "Not Found",
-          headers: new Headers({ "content-type": "application/json" }),
-          json: () => Promise.resolve({ message: "not found" }),
-          text: () => Promise.resolve('{"message":"not found"}'),
-        } as unknown as Response;
-      }
-
-      if (body instanceof Uint8Array) {
-        return {
-          ok: true,
-          status: 200,
-          statusText: "OK",
-          headers: new Headers({
-            "content-type": "application/octet-stream",
-          }),
-          arrayBuffer: () =>
-            Promise.resolve(
-              body.buffer.slice(
-                body.byteOffset,
-                body.byteOffset + body.byteLength
-              )
-            ),
-        } as unknown as Response;
-      }
-
-      return {
-        ok: true,
-        status: 200,
-        statusText: "OK",
-        headers: new Headers({ "content-type": "application/json" }),
-        json: () => Promise.resolve(body),
-        text: () => Promise.resolve(JSON.stringify(body)),
-      } as unknown as Response;
-    }
-    throw new Error(`unexpected request: ${url}`);
-  });
-}
-
 /**
  * The activity has no original upload, so the comparison falls back to
  * Intervals.icu's detected intervals. Must be routed before the broader
@@ -80,12 +22,8 @@ function routedFetch(routes: Array<[RegExp, unknown]>) {
  */
 const NO_LAP_FILE: [RegExp, unknown] = [/\/activity\/[^/]+\/file$/, null];
 
-function build(fetchFn: ReturnType<typeof routedFetch>) {
-  const httpClient = new HttpClient(config, fetchFn as never);
-  return new SessionReview({
-    activitiesApi: new ActivitiesApi(httpClient, config.athleteId),
-    eventsApi: new EventsApi(httpClient, config.athleteId),
-  });
+function build(fetchFn: RoutedFetch) {
+  return new SessionReview(intervalsApis(fetchFn));
 }
 
 describe("SessionReview — argument handling", () => {

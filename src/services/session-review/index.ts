@@ -1,11 +1,10 @@
 export {
   SessionReview,
   createSessionReview,
-  PAIR_SEARCH_WINDOW_DAYS,
+  reviewPairedSession,
+  unpairedReview,
 } from "./session-review.js";
-export type { SessionReviewDeps } from "./session-review.js";
-export { resolvePair, shiftDate } from "./pair.js";
-export type { PairDeps } from "./pair.js";
+export type { SessionReviewDeps, ReviewOptions } from "./session-review.js";
 export {
   reviewSession,
   judgeStep,

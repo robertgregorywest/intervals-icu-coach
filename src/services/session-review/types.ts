@@ -1,5 +1,4 @@
 import type { Activity, ActivityInterval } from "../activities/types.js";
-import type { IntervalsEvent } from "../../types.js";
 import type {
   CadenceRange,
   FlatPlannedStep,
@@ -184,14 +183,6 @@ export interface ISessionReview {
   comparePlannedVsActual(
     options: ComparePlannedVsActualOptions
   ): Promise<PlannedVsActualResult>;
-}
-
-/** The two halves of a comparison, once both have been resolved. */
-export interface ResolvedPair {
-  activity?: Activity;
-  event?: IntervalsEvent;
-  reason?: ReviewReason;
-  message?: string;
 }
 
 export type { Activity, ActivityInterval };

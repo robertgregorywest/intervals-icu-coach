@@ -1,9 +1,11 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { HttpClient } from "../../../src/client.js";
-import { ActivitiesApi } from "../../../src/services/activities/activities.js";
-import { EventsApi } from "../../../src/services/events/events.js";
+import {
+  intervalsApis,
+  routedFetch as routed,
+  type RoutedFetch,
+} from "../../helpers/intervals-fixture.js";
 import { SessionReview } from "../../../src/services/session-review/session-review.js";
 import {
   executionCandidates,
@@ -11,12 +13,6 @@ import {
 } from "../../../src/services/session-review/delivered.js";
 import type { Activity } from "../../../src/services/activities/types.js";
 import type { FitLap } from "../../../src/services/activities/fit-laps.js";
-
-const config = {
-  apiKey: "test-api-key",
-  athleteId: "i12345",
-  baseUrl: "https://intervals.icu",
-};
 
 function fixturePath(name: string) {
   return fileURLToPath(
@@ -43,54 +39,8 @@ function pursuitFixture() {
   return { activity, event, fit };
 }
 
-function routed(routes: Array<[RegExp, unknown]>) {
-  return vi.fn(async (url: string) => {
-    for (const [pattern, body] of routes) {
-      if (!pattern.test(url)) continue;
-      if (body === null) {
-        return {
-          ok: false,
-          status: 404,
-          statusText: "Not Found",
-          headers: new Headers({ "content-type": "application/json" }),
-          json: () => Promise.resolve({ message: "not found" }),
-          text: () => Promise.resolve("{}"),
-        } as unknown as Response;
-      }
-      if (body instanceof Uint8Array) {
-        return {
-          ok: true,
-          status: 200,
-          statusText: "OK",
-          headers: new Headers({ "content-type": "application/octet-stream" }),
-          arrayBuffer: () =>
-            Promise.resolve(
-              body.buffer.slice(
-                body.byteOffset,
-                body.byteOffset + body.byteLength
-              )
-            ),
-        } as unknown as Response;
-      }
-      return {
-        ok: true,
-        status: 200,
-        statusText: "OK",
-        headers: new Headers({ "content-type": "application/json" }),
-        json: () => Promise.resolve(body),
-        text: () => Promise.resolve(JSON.stringify(body)),
-      } as unknown as Response;
-    }
-    throw new Error(`unexpected request: ${url}`);
-  });
-}
-
-function build(fetchFn: ReturnType<typeof routed>) {
-  const httpClient = new HttpClient(config, fetchFn as never);
-  return new SessionReview({
-    activitiesApi: new ActivitiesApi(httpClient, config.athleteId),
-    eventsApi: new EventsApi(httpClient, config.athleteId),
-  });
+function build(fetchFn: RoutedFetch) {
+  return new SessionReview(intervalsApis(fetchFn));
 }
 
 /** The four race-pace reps, in order, as the review reported them. */

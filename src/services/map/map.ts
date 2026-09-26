@@ -1,6 +1,7 @@
 import type { Activity, IActivitiesApi } from "../activities/index.js";
 import { computeBestPower } from "../analysis/index.js";
 import type { MapDerivation } from "./types.js";
+import { daysBetween, shiftDate } from "../../dates.js";
 
 export const MAP_LOOKBACK_DAYS = 90;
 export const RAMP_TEST_NAME_PREFIX = "map ramp test";
@@ -10,7 +11,7 @@ export async function deriveLatestMap(
   activitiesApi: IActivitiesApi,
   today: string
 ): Promise<MapDerivation> {
-  const oldest = addDays(today, -(MAP_LOOKBACK_DAYS - 1));
+  const oldest = shiftDate(today, -(MAP_LOOKBACK_DAYS - 1));
   let activities: Activity[];
   try {
     activities = await activitiesApi.getActivities(oldest, today);
@@ -40,7 +41,7 @@ export async function deriveLatestMap(
 
   const test = candidates[0];
   const activityDate = String(test.start_date_local).slice(0, 10);
-  const daysAgo = daysBetween(activityDate, today);
+  const daysAgo = Math.max(0, daysBetween(activityDate, today) || 0);
 
   let stream;
   try {
@@ -94,17 +95,4 @@ function isRampTest(name: unknown): boolean {
   if (!lower.startsWith(RAMP_TEST_NAME_PREFIX)) return false;
   if (lower.includes(RAMP_TEST_SKIP_MARKER)) return false;
   return true;
-}
-
-function daysBetween(earlier: string, later: string): number {
-  const a = Date.parse(`${earlier}T00:00:00Z`);
-  const b = Date.parse(`${later}T00:00:00Z`);
-  if (Number.isNaN(a) || Number.isNaN(b)) return 0;
-  return Math.max(0, Math.round((b - a) / 86_400_000));
-}
-
-function addDays(date: string, delta: number): string {
-  const d = new Date(`${date}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + delta);
-  return d.toISOString().slice(0, 10);
 }

@@ -2,9 +2,15 @@ import type { IActivitiesApi } from "../activities/index.js";
 import type { IEventsApi } from "../events/index.js";
 import type { Activity } from "../activities/types.js";
 import type { IntervalsEvent } from "../../types.js";
-import { resolvePair, shiftDate } from "../session-review/index.js";
 import { readPrescription } from "../prescription/index.js";
 import { planFtp } from "../athlete-anchors/index.js";
+import {
+  createPairedSessionLoader,
+  MAX_WINDOW_DAYS,
+  type LoadedWindow,
+  type PairedSession,
+  type PairedSessionLoader,
+} from "../paired-sessions/index.js";
 import {
   bucketDelivered,
   bucketPlanned,
@@ -31,12 +37,8 @@ import type {
   ZoneRow,
 } from "./types.js";
 
-/**
- * Longest range the aggregate will span. Matches the 3–4 week block cadence the
- * coaching philosophy works in: a longer window stops describing one block, and
- * costs one activity fetch plus one stream fetch per paired session.
- */
-export const MAX_RANGE_DAYS = 28;
+/** Longest range the aggregate will span — the **Review window**'s cap. */
+export const MAX_RANGE_DAYS = MAX_WINDOW_DAYS;
 
 export interface CoachingZones {
   zones: ZoneRow[] | null;
@@ -55,254 +57,230 @@ export interface IntensityDistributionDeps {
 }
 
 export class IntensityDistribution implements IIntensityDistribution {
-  constructor(private deps: IntensityDistributionDeps) {}
+  private loader: PairedSessionLoader;
+
+  constructor(private deps: IntensityDistributionDeps) {
+    this.loader = createPairedSessionLoader(deps);
+  }
 
   async compareIntensityDistribution(
     options: CompareIntensityDistributionOptions
   ): Promise<IntensityDistributionResult> {
     // Throws on both-or-neither, before any HTTP.
-    const pair = await resolvePair(this.deps, options);
+    const found = await this.loader.find(options);
 
-    if (pair.reason) {
-      return refuse(
-        pair.activity,
-        pair.event,
-        pair.reason as DistributionReason,
-        pair.message!
-      );
+    if (!found.session) {
+      return refuse(found.activity, found.event, found.reason, found.message);
     }
 
-    const frame = await this.frame();
-    return this.compare(pair.activity!, pair.event!, frame);
+    const frame = await distributionFrame(this.deps.getCoachingZones);
+    return distributeSession(found.session, frame);
   }
 
   async compareIntensityDistributionRange(
     options: CompareIntensityDistributionRangeOptions
   ): Promise<IntensityDistributionRangeResult> {
-    const { oldest, newest } = options;
-    const days = daysBetween(oldest, newest);
-    if (days > MAX_RANGE_DAYS) {
-      throw new Error(
-        `Range ${oldest}..${newest} spans ${days} days, over the ${MAX_RANGE_DAYS}-day ` +
-          "maximum. Narrow the range — a longer window stops describing one block."
-      );
-    }
+    // Throws on a window over the cap, before any HTTP.
+    const loaded = await this.loader.loadWindow(options);
+    const frame = await distributionFrame(this.deps.getCoachingZones);
+    return distributeWindow(loaded, frame);
+  }
+}
 
-    const frame = await this.frame();
-    const activities = await this.deps.activitiesApi.getActivities(
-      oldest,
-      newest
-    );
+/** The bucketing frame, resolved once per call rather than per session. */
+export async function distributionFrame(
+  getCoachingZones: () => Promise<CoachingZones>
+): Promise<DistributionFrame> {
+  const { zones, ftp } = await getCoachingZones();
+  return {
+    partition: zones ? derivePartition(zones) : [],
+    middle: ftp && ftp > 0 ? middleBandBounds(ftp) : undefined,
+    athleteFtp: ftp,
+  };
+}
 
-    const plannedByZone = new Map<ZoneRow["name"], number>();
-    const deliveredByZone = new Map<ZoneRow["name"], number>();
-    let middlePlanned = 0;
-    let middleDelivered = 0;
-    const sessions: RangeSessionRow[] = [];
-    const excluded: ExcludedSession[] = [];
+/**
+ * The band lens over a loaded window: every paired session bucketed and summed.
+ * Unpaired rides and unridden plans are excluded and named — neither has the
+ * other half to have been delivered against.
+ */
+export async function distributeWindow(
+  loaded: LoadedWindow,
+  frame: DistributionFrame
+): Promise<IntensityDistributionRangeResult> {
+  const { oldest, newest } = loaded.window;
+  const results = await Promise.all(
+    loaded.sessions.map((session) => distributeSession(session, frame))
+  );
 
-    for (const listed of activities) {
-      const eventId = listed.paired_event_id;
-      if (!eventId) {
-        // Unpaired work neither inflates nor deflates the aggregate — there is
-        // no prescription for it to have been delivered against.
-        excluded.push({
-          date: listed.start_date_local,
-          activityId: listed.id,
-          name: listed.name,
-          reason: "no-paired-event",
-          message: `Activity ${listed.id} is not paired to a planned workout.`,
-        });
-        continue;
-      }
+  const plannedByZone = new Map<ZoneRow["name"], number>();
+  const deliveredByZone = new Map<ZoneRow["name"], number>();
+  let middlePlanned = 0;
+  let middleDelivered = 0;
+  const sessions: RangeSessionRow[] = [];
+  const excluded: ExcludedSession[] = [];
 
-      const activity = await this.deps.activitiesApi.getActivity(
-        listed.id,
-        true
-      );
-      const event = await this.deps.eventsApi.getEvent(eventId);
-      const result = await this.compare(activity, event, frame);
-
-      if (result.reason || !result.middleBand) {
-        excluded.push({
-          date: result.date,
-          activityId: result.activityId,
-          eventId: result.eventId,
-          name: result.activityName ?? result.eventName,
-          reason: result.reason ?? "no-coaching-zones",
-          message: result.message ?? "No comparison could be computed.",
-        });
-        continue;
-      }
-
-      for (const row of result.zones ?? []) {
-        plannedByZone.set(
-          row.zone,
-          (plannedByZone.get(row.zone) ?? 0) + row.plannedSeconds
-        );
-        deliveredByZone.set(
-          row.zone,
-          (deliveredByZone.get(row.zone) ?? 0) + row.deliveredSeconds
-        );
-      }
-      middlePlanned += result.middleBand.plannedSeconds;
-      middleDelivered += result.middleBand.deliveredSeconds;
-
-      sessions.push({
+  for (const result of results) {
+    if (result.reason || !result.middleBand) {
+      excluded.push({
         date: result.date,
         activityId: result.activityId,
         eventId: result.eventId,
         name: result.activityName ?? result.eventName,
-        middleBandPlannedSeconds: result.middleBand.plannedSeconds,
-        middleBandDeliveredSeconds: result.middleBand.deliveredSeconds,
-        middleBandDeliveredFraction: result.middleBand.deliveredFraction,
+        reason: result.reason ?? "no-coaching-zones",
+        message: result.message ?? "No comparison could be computed.",
       });
+      continue;
     }
 
-    // Planned events in the range that no activity was paired to: the session
-    // was prescribed and not delivered, which the sums must not absorb.
-    const events = await this.deps.eventsApi.getEvents(oldest, newest);
-    const pairedIds = new Set(
-      activities.map((a) => a.paired_event_id).filter(Boolean)
-    );
-    for (const event of events) {
-      if (event.category !== "WORKOUT") continue;
-      if (event.id && pairedIds.has(event.id)) continue;
-      excluded.push({
-        date: event.start_date_local,
-        eventId: event.id,
-        name: event.name,
-        reason: "no-paired-activity",
-        message: `Planned event ${event.id} has no completed activity paired to it.`,
-      });
-    }
-
-    return {
-      oldest,
-      newest,
-      boundaries: frame.partition,
-      zones: frame.partition.length
-        ? toRows(frame.partition, plannedByZone, deliveredByZone)
-        : undefined,
-      middleBand: frame.middle
-        ? rollUpMiddleBand(
-            frame.middle,
-            MIDDLE_BAND_LOW_PCT_FTP,
-            MIDDLE_BAND_HIGH_PCT_FTP,
-            middlePlanned,
-            middleDelivered
-          )
-        : undefined,
-      sessions,
-      excluded,
-    };
-  }
-
-  /** The bucketing frame, resolved once per call rather than per session. */
-  private async frame(): Promise<Frame> {
-    const { zones, ftp } = await this.deps.getCoachingZones();
-    return {
-      partition: zones ? derivePartition(zones) : [],
-      middle: ftp && ftp > 0 ? middleBandBounds(ftp) : undefined,
-      athleteFtp: ftp,
-    };
-  }
-
-  private async compare(
-    activity: Activity,
-    event: IntervalsEvent,
-    frame: Frame
-  ): Promise<IntensityDistributionResult> {
-    const ftp = await planFtp(event, activity, async () => frame.athleteFtp);
-    const planned = readPrescription(event.workout_doc, { ftp }).steps;
-
-    if (planned.length === 0) {
-      return refuse(
-        activity,
-        event,
-        "no-structured-steps",
-        `Planned event ${event.id} carries no structured workout steps, so there ` +
-          "is no prescribed distribution to compare the ride against."
+    for (const row of result.zones ?? []) {
+      plannedByZone.set(
+        row.zone,
+        (plannedByZone.get(row.zone) ?? 0) + row.plannedSeconds
+      );
+      deliveredByZone.set(
+        row.zone,
+        (deliveredByZone.get(row.zone) ?? 0) + row.deliveredSeconds
       );
     }
+    middlePlanned += result.middleBand.plannedSeconds;
+    middleDelivered += result.middleBand.deliveredSeconds;
 
-    const streams = (await this.deps.activitiesApi.getActivityStreams(
-      activity.id,
-      ["watts"]
-    )) as { watts?: (number | null)[] };
-    const watts = streams.watts;
+    sessions.push({
+      date: result.date,
+      activityId: result.activityId,
+      eventId: result.eventId,
+      name: result.activityName ?? result.eventName,
+      middleBandPlannedSeconds: result.middleBand.plannedSeconds,
+      middleBandDeliveredSeconds: result.middleBand.deliveredSeconds,
+      middleBandDeliveredFraction: result.middleBand.deliveredFraction,
+    });
+  }
 
-    if (!watts?.length) {
-      return refuse(
-        activity,
-        event,
-        "no-recorded-power",
-        `Activity ${activity.id} has no recorded power, so what was delivered ` +
-          "cannot be bucketed. Duration alone is not a substitute for intensity."
-      );
-    }
+  // Unpaired work neither inflates nor deflates the aggregate, and a session
+  // prescribed and not delivered is not one the sums may absorb.
+  for (const half of [...loaded.unpairedRides, ...loaded.unriddenEvents]) {
+    const { activity, event } = half;
+    excluded.push({
+      date: activity?.start_date_local ?? event?.start_date_local,
+      ...(activity ? { activityId: activity.id } : { eventId: event?.id }),
+      name: activity?.name ?? event?.name,
+      reason: half.reason,
+      message: half.message,
+    });
+  }
 
-    const plannedBuckets = bucketPlanned(
-      planned,
-      frame.partition,
-      frame.middle
-    );
-    const deliveredBuckets = bucketDelivered(
-      watts,
-      frame.partition,
-      frame.middle
-    );
-
-    const base = {
-      activityId: activity.id,
-      eventId: event.id,
-      activityName: activity.name,
-      eventName: event.name,
-      date: activity.start_date_local,
-      plannedTotalSeconds: plannedBuckets.totalSeconds,
-      deliveredTotalSeconds: deliveredBuckets.totalSeconds,
-      unbucketedSteps: plannedBuckets.unbucketed,
-      boundarySpanningSteps: plannedBuckets.boundarySpanning,
-    };
-
-    // The middle band survives a missing zone frame: its bounds come from FTP,
-    // not from the zones, so losing one does not cost the other.
-    const middleBand = frame.middle
+  return {
+    oldest,
+    newest,
+    boundaries: frame.partition,
+    zones: frame.partition.length
+      ? toRows(frame.partition, plannedByZone, deliveredByZone)
+      : undefined,
+    middleBand: frame.middle
       ? rollUpMiddleBand(
           frame.middle,
           MIDDLE_BAND_LOW_PCT_FTP,
           MIDDLE_BAND_HIGH_PCT_FTP,
-          plannedBuckets.middleBandSeconds,
-          deliveredBuckets.middleBandSeconds
+          middlePlanned,
+          middleDelivered
         )
-      : undefined;
-
-    if (frame.partition.length === 0) {
-      return {
-        ...base,
-        middleBand,
-        reason: "no-coaching-zones",
-        message:
-          "The athlete's coaching zones could not be resolved, so there is no " +
-          "frame to bucket into. The middle band is reported regardless, its " +
-          "bounds being a percentage of FTP rather than of the zone model.",
-      };
-    }
-
-    return {
-      ...base,
-      boundaries: frame.partition,
-      zones: toRows(
-        frame.partition,
-        plannedBuckets.byZone,
-        deliveredBuckets.byZone
-      ),
-      middleBand,
-    };
-  }
+      : undefined,
+    sessions,
+    excluded,
+  };
 }
 
-interface Frame {
+/**
+ * The band lens over one loaded session: planned steps and the recorded power
+ * stream bucketed against the same frame.
+ */
+export async function distributeSession(
+  session: PairedSession,
+  frame: DistributionFrame
+): Promise<IntensityDistributionResult> {
+  const { activity, event } = session;
+  const ftp = await planFtp(event, activity, async () => frame.athleteFtp);
+  const planned = readPrescription(event.workout_doc, { ftp }).steps;
+
+  if (planned.length === 0) {
+    return refuse(
+      activity,
+      event,
+      "no-structured-steps",
+      `Planned event ${event.id} carries no structured workout steps, so there ` +
+        "is no prescribed distribution to compare the ride against."
+    );
+  }
+
+  const { watts } = await session.streams();
+
+  if (!watts?.length) {
+    return refuse(
+      activity,
+      event,
+      "no-recorded-power",
+      `Activity ${activity.id} has no recorded power, so what was delivered ` +
+        "cannot be bucketed. Duration alone is not a substitute for intensity."
+    );
+  }
+
+  const plannedBuckets = bucketPlanned(planned, frame.partition, frame.middle);
+  const deliveredBuckets = bucketDelivered(
+    watts,
+    frame.partition,
+    frame.middle
+  );
+
+  const base = {
+    activityId: activity.id,
+    eventId: event.id,
+    activityName: activity.name,
+    eventName: event.name,
+    date: activity.start_date_local,
+    plannedTotalSeconds: plannedBuckets.totalSeconds,
+    deliveredTotalSeconds: deliveredBuckets.totalSeconds,
+    unbucketedSteps: plannedBuckets.unbucketed,
+    boundarySpanningSteps: plannedBuckets.boundarySpanning,
+  };
+
+  // The middle band survives a missing zone frame: its bounds come from FTP,
+  // not from the zones, so losing one does not cost the other.
+  const middleBand = frame.middle
+    ? rollUpMiddleBand(
+        frame.middle,
+        MIDDLE_BAND_LOW_PCT_FTP,
+        MIDDLE_BAND_HIGH_PCT_FTP,
+        plannedBuckets.middleBandSeconds,
+        deliveredBuckets.middleBandSeconds
+      )
+    : undefined;
+
+  if (frame.partition.length === 0) {
+    return {
+      ...base,
+      middleBand,
+      reason: "no-coaching-zones",
+      message:
+        "The athlete's coaching zones could not be resolved, so there is no " +
+        "frame to bucket into. The middle band is reported regardless, its " +
+        "bounds being a percentage of FTP rather than of the zone model.",
+    };
+  }
+
+  return {
+    ...base,
+    boundaries: frame.partition,
+    zones: toRows(
+      frame.partition,
+      plannedBuckets.byZone,
+      deliveredBuckets.byZone
+    ),
+    middleBand,
+  };
+}
+
+export interface DistributionFrame {
   partition: PartitionBand[];
   middle?: MiddleBandBounds;
   /** The last resort for a session whose event and ride both lack an FTP. */
@@ -354,22 +332,8 @@ function refuse(
   };
 }
 
-/** Whole days spanned by an inclusive YYYY-MM-DD range. */
-function daysBetween(oldest: string, newest: string): number {
-  const a = Date.parse(`${oldest}T00:00:00Z`);
-  const b = Date.parse(`${newest}T00:00:00Z`);
-  if (Number.isNaN(a) || Number.isNaN(b)) {
-    throw new Error(
-      `Range dates must be YYYY-MM-DD; got "${oldest}".."${newest}".`
-    );
-  }
-  return Math.round((b - a) / 86_400_000) + 1;
-}
-
 export function createIntensityDistribution(
   deps: IntensityDistributionDeps
 ): IntensityDistribution {
   return new IntensityDistribution(deps);
 }
-
-export { shiftDate };

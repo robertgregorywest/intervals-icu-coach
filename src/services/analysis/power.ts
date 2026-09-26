@@ -28,7 +28,7 @@ export function normalizedPower(stream: number[]): number | undefined {
 }
 
 export function computeBestPower(
-  powerStream: number[],
+  powerStream: Array<number | null>,
   durationSeconds: number
 ): { bestPower: number; startIndex: number } | null {
   if (durationSeconds > powerStream.length) {

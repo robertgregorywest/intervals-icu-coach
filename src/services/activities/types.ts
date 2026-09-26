@@ -80,7 +80,8 @@ export interface IntervalWrite {
 }
 
 export interface ActivityStreams {
-  watts?: number[];
+  /** Nulls where the recording dropped power — a gap, not a zero. */
+  watts?: Array<number | null>;
   heartrate?: number[];
   cadence?: number[];
   time?: number[];

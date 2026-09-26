@@ -1,4 +1,5 @@
 import { isoToday } from "../../clock.js";
+import { mondayOf, shiftDate } from "../../dates.js";
 import type { Activity } from "../activities/index.js";
 import type { WellnessRecord } from "../wellness/index.js";
 import type { IntervalsEvent } from "../../types.js";
@@ -26,7 +27,7 @@ export class TrainingWeek implements ITrainingWeek {
     weekStart?: string
   ): Promise<TrainingWeekSummary> {
     const start = weekStart ?? mondayOf((this.deps.today ?? isoToday)());
-    const end = addDays(start, 6);
+    const end = shiftDate(start, 6);
 
     const [activities, wellness, events] = await Promise.all([
       this.deps.activitiesApi.getActivities(start, end),
@@ -67,10 +68,9 @@ export class TrainingWeek implements ITrainingWeek {
     const perActivity = await Promise.all(
       activities.map(async (a) => {
         if (!numericField(a, "icu_average_watts")) return null;
-        const streams = (await this.deps.activitiesApi.getActivityStreams(
-          a.id,
-          ["watts"]
-        )) as { watts?: (number | null)[] };
+        const streams = await this.deps.activitiesApi.getActivityStreams(a.id, [
+          "watts",
+        ]);
         if (!streams.watts?.length) return null;
         const bucketed = bucketDelivered(streams.watts, [], bounds);
         bandSeconds += bucketed.middleBandSeconds;
@@ -191,15 +191,4 @@ function numericField(obj: Record<string, unknown>, key: string): number {
 
 function round1(n: number): number {
   return Math.round(n * 10) / 10;
-}
-
-function mondayOf(date: string): string {
-  const dow = new Date(`${date}T00:00:00Z`).getUTCDay();
-  return addDays(date, dow === 0 ? -6 : 1 - dow);
-}
-
-function addDays(date: string, days: number): string {
-  const d = new Date(`${date}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + days);
-  return d.toISOString().slice(0, 10);
 }
