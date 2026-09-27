@@ -76,6 +76,18 @@ describe("computeDrivetrainSpeed", () => {
     expect(stream.counts.missingCadence).toBe(1);
   });
 
+  it("claims no speed at cadence 0 — rolling without torque reads the same as stopped", () => {
+    const stream = computeDrivetrainSpeed(records([60, 0, 0, 60]), DEV_110);
+    expect(stream.values.map((v) => v.speed === null)).toEqual([
+      false,
+      true,
+      true,
+      false,
+    ]);
+    expect(stream.values[3].distance).toBeCloseTo(DEV_110, 9);
+    expect(stream.counts).toMatchObject({ zeroCadence: 2, withSpeed: 2 });
+  });
+
   it("adds no distance across a pause, beyond one sampling interval", () => {
     const stream = computeDrivetrainSpeed(
       records([60, 60, 60, 60], [0, 1, 2, 302]),

@@ -104,6 +104,8 @@ export interface DrivetrainSpeedResult {
     records: number;
     withSpeed: number;
     missingCadence: number;
+    /** Cadence 0 — rolling without torque, or stopped; no speed claimed. */
+    zeroCadence: number;
     outsideOnTrack: number;
     pauses: number;
     pausedSeconds: number;

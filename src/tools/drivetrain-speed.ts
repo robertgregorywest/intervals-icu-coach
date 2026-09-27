@@ -68,6 +68,7 @@ const createDrivetrainSpeedFitOutputSchema = z.object({
     records: z.number(),
     withSpeed: z.number(),
     missingCadence: z.number(),
+    zeroCadence: z.number(),
     outsideOnTrack: z.number(),
     pauses: z.number(),
     pausedSeconds: z.number(),
@@ -130,6 +131,8 @@ export const createDrivetrainSpeedFitTool = defineTool({
     "record carries Drivetrain speed — true development (chainring/cog × rollout) × " +
     "cadence ÷ 60 — and lap/session distance and speed totals are recomputed to match. " +
     "Everything else in the file is copied byte for byte; upload the result yourself. " +
+    "Cadence 0 is written as no speed rather than a stop: the power meter reports it " +
+    "whenever the rider is not driving the pedals, though a fixed gear is still rolling. " +
     "Speed the file already had is replaced and reported as a sensor cross-check. " +
     "With a sessionId, each run's drivetrain distance over its aligned window is " +
     "checked against the lap splits — the reference. Nothing on Intervals.icu changes. " +

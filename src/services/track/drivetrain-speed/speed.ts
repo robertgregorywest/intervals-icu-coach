@@ -13,6 +13,12 @@
  * gap longer than `PAUSE_FACTOR` sampling intervals is a pause in the
  * recording: the sample before it holds for one interval and the rest of the
  * gap adds no distance.
+ *
+ * Cadence 0 is no reading, not a stop. The power meter reports cadence 0 (with
+ * power 0) whenever the rider is not driving the pedals, even though a fixed
+ * gear keeps the legs turning: on 2026-07-12 that includes a 50 s roll-down
+ * from 12 m/s. A genuine stop reads the same, so no speed is claimed for either,
+ * and neither adds distance.
  */
 
 import type { FitRecord, RecordSpeed } from "../../fit/index.js";
@@ -39,6 +45,8 @@ export interface DrivetrainSpeedStream {
     records: number;
     withSpeed: number;
     missingCadence: number;
+    /** Cadence 0: rolling without torque, or stopped — no speed claimed. */
+    zeroCadence: number;
     outsideOnTrack: number;
     pauses: number;
     pausedSeconds: number;
@@ -68,6 +76,7 @@ export function computeDrivetrainSpeed(
     records: records.length,
     withSpeed: 0,
     missingCadence: 0,
+    zeroCadence: 0,
     outsideOnTrack: 0,
     pauses: 0,
     pausedSeconds: 0,
@@ -93,6 +102,7 @@ export function computeDrivetrainSpeed(
     let speed: number | null = null;
     if (!inRange(times[i])) counts.outsideOnTrack += 1;
     else if (r.cadence === null) counts.missingCadence += 1;
+    else if (r.cadence === 0) counts.zeroCadence += 1;
     else {
       speed = (developmentMeters * r.cadence) / 60;
       counts.withSpeed += 1;
