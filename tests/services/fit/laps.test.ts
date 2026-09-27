@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { decodeFitLaps } from "../../../src/services/activities/fit-laps.js";
+import { decodeFitLaps } from "../../../src/services/fit/index.js";
 
 /**
  * Real bytes from the Wahoo ELEMNT BOLT that recorded the 2026-08-06 pursuit

@@ -1,6 +1,10 @@
 import type { TrackLapAlignmentResult } from "./alignment/types.js";
 import type { TrackRunWriteResult } from "./writeback/types.js";
 import type {
+  DrivetrainSpeedInput,
+  DrivetrainSpeedResult,
+} from "./drivetrain-speed/types.js";
+import type {
   CompareTrackSessionsOptions,
   GetTrackSessionOptions,
   ListTrackSessionsResult,
@@ -49,6 +53,12 @@ export interface ITrack {
   align(input: TrackInput): Promise<TrackLapAlignmentResult>;
   /** Replace the activity's intervals with one per aligned run. */
   write(input: TrackWriteInput): Promise<TrackRunWriteResult>;
+  /**
+   * Rewrite the activity's original FIT file with **Drivetrain speed** and
+   * distance, write it locally, and report it against the sensor it replaced
+   * and, given a `sessionId`, the splits.
+   */
+  drivetrainSpeed(input: DrivetrainSpeedInput): Promise<DrivetrainSpeedResult>;
 
   listSessions(): Promise<ListTrackSessionsResult>;
   getSession(options: GetTrackSessionOptions): Promise<TrackSessionDetail>;

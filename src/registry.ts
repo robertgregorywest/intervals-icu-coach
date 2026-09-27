@@ -35,6 +35,7 @@ import { compareIntensityDistributionTool } from "./tools/intensity-distribution
 import { getExecutionDigestTool } from "./tools/execution-digest.js";
 import { computeTrackLapPowerTool } from "./tools/track-lap-alignment.js";
 import { writeTrackRunsTool } from "./tools/track-lap-writeback.js";
+import { createDrivetrainSpeedFitTool } from "./tools/drivetrain-speed.js";
 import {
   listTrackSessionsTool,
   getTrackSessionTool,
@@ -81,6 +82,7 @@ export const TOOLS: ToolDef[] = [
   getExecutionDigestTool,
   computeTrackLapPowerTool,
   writeTrackRunsTool,
+  createDrivetrainSpeedFitTool,
   listTrackSessionsTool,
   getTrackSessionTool,
   compareTrackSessionsTool,

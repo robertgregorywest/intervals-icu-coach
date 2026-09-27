@@ -6,3 +6,4 @@ dist/
 docs/personal/
 .DS_Store
 docs/architecture/*.html
+out/

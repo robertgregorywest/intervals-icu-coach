@@ -1,3 +1,5 @@
+import { mkdir, writeFile } from "node:fs/promises";
+import { dirname } from "node:path";
 import type { IActivitiesApi } from "../activities/index.js";
 import { computeTrackLapPower } from "./alignment/align.js";
 import type { TrackLapAlignmentResult } from "./alignment/types.js";
@@ -20,6 +22,11 @@ import type {
   TrackSessionDetail,
 } from "./records/types.js";
 import { resolveTrackInput } from "./input.js";
+import { createDrivetrainSpeedFit } from "./drivetrain-speed/drivetrain-speed.js";
+import type {
+  DrivetrainSpeedInput,
+  DrivetrainSpeedResult,
+} from "./drivetrain-speed/types.js";
 import type { ITrack, TrackInput, TrackWriteInput } from "./types.js";
 
 export interface TrackDeps {
@@ -27,19 +34,29 @@ export interface TrackDeps {
   activitiesApi: IActivitiesApi;
   /** Overridden in tests; production reads the records directory. */
   load?: () => LoadedRecords;
+  /** Overridden in tests; production writes the file, creating its directory. */
+  writeFile?: (path: string, bytes: Uint8Array) => Promise<void>;
 }
 
 /**
  * The records touch no Intervals.icu endpoint — listing, reading and comparing
- * them needs no API key. Only `align` and `write` reach the activity.
+ * them needs no API key. Only `align`, `write` and `drivetrainSpeed` reach the
+ * activity, and `drivetrainSpeed` only reads it: its output is a local file.
  */
 export class Track implements ITrack {
   private activitiesApi: IActivitiesApi;
   private load: () => LoadedRecords;
+  private writeFile: (path: string, bytes: Uint8Array) => Promise<void>;
 
   constructor(deps: TrackDeps) {
     this.activitiesApi = deps.activitiesApi;
     this.load = deps.load ?? (() => loadTrackSessionRecords());
+    this.writeFile =
+      deps.writeFile ??
+      (async (path, bytes) => {
+        await mkdir(dirname(path), { recursive: true });
+        await writeFile(path, bytes);
+      });
   }
 
   async align(input: TrackInput): Promise<TrackLapAlignmentResult> {
@@ -57,6 +74,21 @@ export class Track implements ITrack {
           computeTrackLapPower({ activitiesApi: this.activitiesApi }, options),
       },
       { ...this.resolve(input), preview: input.preview }
+    );
+  }
+
+  async drivetrainSpeed(
+    input: DrivetrainSpeedInput
+  ): Promise<DrivetrainSpeedResult> {
+    return createDrivetrainSpeedFit(
+      {
+        activitiesApi: this.activitiesApi,
+        align: (options) =>
+          computeTrackLapPower({ activitiesApi: this.activitiesApi }, options),
+        records: () => this.load().records,
+        writeFile: this.writeFile,
+      },
+      input
     );
   }
 

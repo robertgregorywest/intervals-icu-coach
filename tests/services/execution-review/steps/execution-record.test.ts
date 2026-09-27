@@ -12,7 +12,7 @@ import {
   lapsToDeliveredIntervals,
 } from "../../../../src/services/execution-review/steps/delivered.js";
 import type { Activity } from "../../../../src/services/activities/types.js";
-import type { FitLap } from "../../../../src/services/activities/fit-laps.js";
+import type { FitLap } from "../../../../src/services/fit/index.js";
 
 function fixturePath(name: string) {
   return fileURLToPath(

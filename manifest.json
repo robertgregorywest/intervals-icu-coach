@@ -103,6 +103,9 @@
       "name": "write_track_runs"
     },
     {
+      "name": "create_drivetrain_speed_fit"
+    },
+    {
       "name": "get_training_week_summary"
     },
     {

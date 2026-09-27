@@ -7,8 +7,8 @@ export type {
   ActivityStreams,
   IntervalWrite,
 } from "./types.js";
-export { decodeFitLaps } from "./fit-laps.js";
-export type { FitLap } from "./fit-laps.js";
+export { decodeFitLaps } from "../fit/index.js";
+export type { FitLap } from "../fit/index.js";
 export {
   normalizeActivityId,
   compactIntervalAnalysis,

@@ -26,3 +26,12 @@ export type {
   GetTrackSessionOptions,
   CompareTrackSessionsOptions,
 } from "./records/types.js";
+export type {
+  DrivetrainSpeedInput,
+  DrivetrainSpeedResult,
+  SensorComparison,
+  SplitsComparison,
+  RunDistanceCheck,
+  LapDistanceCheck,
+  TimeRange,
+} from "./drivetrain-speed/types.js";

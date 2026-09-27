@@ -1,5 +1,5 @@
 import { HttpError, type IHttpClient } from "../../client.js";
-import { decodeFitLaps, type FitLap } from "./fit-laps.js";
+import { decodeFitLaps, type FitLap } from "../fit/index.js";
 import type {
   Activity,
   ActivityIntervalsDoc,
@@ -19,6 +19,11 @@ export interface IActivitiesApi {
    * have them — Strava-synced activities carry no original file.
    */
   getActivityLaps(id: string): Promise<FitLap[] | null>;
+  /**
+   * The original upload's bytes, or `null` when there is none (a
+   * Strava-synced activity) or it cannot be fetched.
+   */
+  getActivityFile(id: string): Promise<Uint8Array | null>;
   /** The activity's interval analysis, as its own document. */
   getActivityIntervals(id: string): Promise<ActivityIntervalsDoc>;
   /**
@@ -66,6 +71,11 @@ export class ActivitiesApi implements IActivitiesApi {
    * back to the derived intervals, not to distinguish why the laps are absent.
    */
   async getActivityLaps(id: string): Promise<FitLap[] | null> {
+    const bytes = await this.getActivityFile(id);
+    return bytes ? decodeFitLaps(bytes) : null;
+  }
+
+  async getActivityFile(id: string): Promise<Uint8Array | null> {
     let bytes: Uint8Array;
     try {
       bytes = await this.httpClient.request<Uint8Array>(
@@ -77,7 +87,7 @@ export class ActivitiesApi implements IActivitiesApi {
       throw error;
     }
     if (!(bytes instanceof Uint8Array) || bytes.length === 0) return null;
-    return decodeFitLaps(bytes);
+    return bytes;
   }
 
   async getActivityStreams(
