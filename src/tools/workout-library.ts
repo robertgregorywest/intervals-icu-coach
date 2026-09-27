@@ -47,7 +47,7 @@ export const listWorkoutLibraryTool = defineTool({
   schema: listWorkoutLibrarySchema,
   annotations: READ_ONLY,
   outputSchema: listWorkoutLibraryOutputSchema,
-  handler: (client, args) => client.workoutLibrary.list(args.folder),
+  handler: (services, args) => services.workoutLibrary.list(args.folder),
 });
 
 const getWorkoutLibraryItemSchema = z.object({
@@ -63,7 +63,7 @@ export const getWorkoutLibraryItemTool = defineTool({
   schema: getWorkoutLibraryItemSchema,
   annotations: READ_ONLY,
   outputSchema: null,
-  handler: (client, args) => client.workoutLibrary.get(args.id),
+  handler: (services, args) => services.workoutLibrary.get(args.id),
 });
 
 const syncWorkoutLibrarySchema = z.object({
@@ -140,7 +140,7 @@ export const syncWorkoutLibraryTool = defineTool({
   schema: syncWorkoutLibrarySchema,
   annotations: UPSERT,
   outputSchema: syncWorkoutLibraryOutputSchema,
-  handler: (client, args) => client.workoutLibrary.sync(args),
+  handler: (services, args) => services.workoutLibrary.sync(args),
 });
 
 const deleteWorkoutLibraryItemSchema = z.object({
@@ -166,8 +166,8 @@ export const deleteWorkoutLibraryItemTool = defineTool({
   schema: deleteWorkoutLibraryItemSchema,
   annotations: MUTATING,
   outputSchema: deleteWorkoutLibraryItemOutputSchema,
-  async handler(client, args) {
-    await client.workoutLibrary.delete(args.id);
+  async handler(services, args) {
+    await services.workoutLibrary.delete(args.id);
     return { success: true as const, deleted: args.id };
   },
 });

@@ -176,7 +176,7 @@ export const listTrackSessionsTool = defineTool({
   schema: listTrackSessionsSchema,
   annotations: READ_ONLY,
   outputSchema: listTrackSessionsOutputSchema,
-  handler: (client) => client.track.listSessions(),
+  handler: (services) => services.track.listSessions(),
 });
 
 export const getTrackSessionTool = defineTool({
@@ -196,7 +196,7 @@ export const getTrackSessionTool = defineTool({
   schema: getTrackSessionSchema,
   annotations: READ_ONLY,
   outputSchema: getTrackSessionOutputSchema,
-  handler: (client, args) => client.track.getSession(args),
+  handler: (services, args) => services.track.getSession(args),
 });
 
 export const compareTrackSessionsTool = defineTool({
@@ -216,5 +216,5 @@ export const compareTrackSessionsTool = defineTool({
   schema: compareTrackSessionsSchema,
   annotations: READ_ONLY,
   outputSchema: compareTrackSessionsOutputSchema,
-  handler: (client, args) => client.track.compareSessions(args),
+  handler: (services, args) => services.track.compareSessions(args),
 });

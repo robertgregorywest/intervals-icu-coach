@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { compareIntensityDistributionTool } from "../../src/tools/intensity-distribution.js";
-import type { IIntervalsClient } from "../../src/index.js";
+import type { IServices } from "../../src/index.js";
 import {
   createExecutionReview,
   type IntensityDistributionRangeResult,
@@ -57,12 +57,12 @@ function clientWith() {
   const one = vi.fn().mockResolvedValue(single);
   const many = vi.fn().mockResolvedValue(range);
   return {
-    client: {
+    services: {
       executionReview: {
         compareIntensityDistribution: one,
         compareIntensityDistributionRange: many,
       },
-    } as unknown as IIntervalsClient,
+    } as unknown as IServices,
     one,
     many,
   };
@@ -71,36 +71,36 @@ function clientWith() {
 /** The real service over a fetch that answers nothing. */
 function realClient() {
   const fetchFn = routedFetch([]);
-  const client = {
+  const services = {
     executionReview: createExecutionReview(intervalsApis(fetchFn)),
-  } as unknown as IIntervalsClient;
-  return { client, fetchFn };
+  } as unknown as IServices;
+  return { services, fetchFn };
 }
 
 describe("compare_intensity_distribution handler", () => {
   it("rejects both identifiers before making any request", async () => {
-    const { client, fetchFn } = realClient();
+    const { services, fetchFn } = realClient();
 
     await expect(
-      compareIntensityDistribution(client, { activityId: "i1", eventId: 2 })
+      compareIntensityDistribution(services, { activityId: "i1", eventId: 2 })
     ).rejects.toThrow(/exactly one/);
     expect(requested(fetchFn)).toEqual([]);
   });
 
   it("rejects neither identifier nor range", async () => {
-    const { client, fetchFn } = realClient();
+    const { services, fetchFn } = realClient();
 
-    await expect(compareIntensityDistribution(client, {})).rejects.toThrow(
+    await expect(compareIntensityDistribution(services, {})).rejects.toThrow(
       /exactly one/
     );
     expect(requested(fetchFn)).toEqual([]);
   });
 
   it("rejects mixing a session with a range", async () => {
-    const { client, one, many } = clientWith();
+    const { services, one, many } = clientWith();
 
     await expect(
-      compareIntensityDistribution(client, {
+      compareIntensityDistribution(services, {
         activityId: "i1",
         oldest: "2026-07-21",
         newest: "2026-08-03",
@@ -111,18 +111,18 @@ describe("compare_intensity_distribution handler", () => {
   });
 
   it("rejects a half-supplied range", async () => {
-    const { client, many } = clientWith();
+    const { services, many } = clientWith();
 
     await expect(
-      compareIntensityDistribution(client, { oldest: "2026-07-21" })
+      compareIntensityDistribution(services, { oldest: "2026-07-21" })
     ).rejects.toThrow(/both oldest and newest/);
     expect(many).not.toHaveBeenCalled();
   });
 
   it("passes a single activityId through", async () => {
-    const { client, one } = clientWith();
+    const { services, one } = clientWith();
 
-    await compareIntensityDistribution(client, { activityId: "i170317118" });
+    await compareIntensityDistribution(services, { activityId: "i170317118" });
 
     expect(one).toHaveBeenCalledWith({
       activityId: "i170317118",
@@ -131,9 +131,9 @@ describe("compare_intensity_distribution handler", () => {
   });
 
   it("prefixes a bare numeric activity ID", async () => {
-    const { client, one } = clientWith();
+    const { services, one } = clientWith();
 
-    await compareIntensityDistribution(client, { activityId: 170317118 });
+    await compareIntensityDistribution(services, { activityId: 170317118 });
 
     expect(one).toHaveBeenCalledWith({
       activityId: "i170317118",
@@ -142,9 +142,9 @@ describe("compare_intensity_distribution handler", () => {
   });
 
   it("routes a range to the aggregate", async () => {
-    const { client, one, many } = clientWith();
+    const { services, one, many } = clientWith();
 
-    await compareIntensityDistribution(client, {
+    await compareIntensityDistribution(services, {
       oldest: "2026-07-21",
       newest: "2026-08-03",
     });

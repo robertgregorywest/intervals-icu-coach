@@ -11,7 +11,7 @@
 import "dotenv/config";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { createClient } from "../src/index.js";
+import { createServices } from "../src/index.js";
 
 const CASES: Array<{ name: string; activityId?: string; eventId?: number }> = [
   // The clean paired case: structured SST, head unit, intervals that align.
@@ -23,7 +23,7 @@ const CASES: Array<{ name: string; activityId?: string; eventId?: number }> = [
   { name: "no-power", activityId: "i170871150" },
 ];
 
-const client = createClient({
+const services = createServices({
   apiKey: process.env.INTERVALS_API_KEY!,
   athleteId: process.env.INTERVALS_ATHLETE_ID ?? "0",
 });
@@ -42,10 +42,10 @@ type Fixture = {
 const captured = new Map<string, Fixture>();
 
 for (const c of CASES) {
-  const activity = await client.activities.getActivity(c.activityId!, true);
+  const activity = await services.activities.getActivity(c.activityId!, true);
   const eventId = c.eventId ?? activity.paired_event_id;
-  const event = eventId ? await client.events.getEvent(eventId) : undefined;
-  const streams = (await client.activities.getActivityStreams(c.activityId!, [
+  const event = eventId ? await services.events.getEvent(eventId) : undefined;
+  const streams = (await services.activities.getActivityStreams(c.activityId!, [
     "watts",
   ])) as Record<string, unknown>;
 
@@ -106,7 +106,7 @@ console.log("no-structured-steps: composed from the two above");
 
 // The zone frame the fixtures are bucketed against, so tests stay hermetic
 // rather than depending on the athlete's MAP moving.
-const ctx = await client.coachingContext.getCoachingContext();
+const ctx = await services.coachingContext.getCoachingContext();
 writeFixture("coaching-zones", {
   ftp: ctx.athlete.ftp,
   map: ctx.map,

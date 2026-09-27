@@ -12,5 +12,5 @@ export const getAthleteTool = defineTool({
   schema: z.object({}),
   annotations: READ_ONLY,
   outputSchema: null,
-  handler: (client) => client.athlete.getAthlete(),
+  handler: (services) => services.athlete.getAthlete(),
 });

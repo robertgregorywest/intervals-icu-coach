@@ -7,7 +7,7 @@
  * Usage: npx tsx scripts/exercise-library.ts
  */
 import "dotenv/config";
-import { IntervalsClient } from "../src/index.js";
+import { createServices } from "../src/index.js";
 
 function header(s: string) {
   console.log("\n" + "=".repeat(70) + "\n" + s + "\n" + "=".repeat(70));
@@ -19,11 +19,11 @@ function pretty(obj: unknown, max = 2000) {
 }
 
 async function main() {
-  const client = new IntervalsClient();
+  const services = createServices();
 
   header("1. listFolders() — raw API response shape");
   const rawFolders = await (
-    client as unknown as {
+    services as unknown as {
       httpClient: { request: <T>(p: string) => Promise<T> };
     }
   ).httpClient.request<unknown>(
@@ -47,7 +47,7 @@ async function main() {
   });
 
   header("2. workoutLibrary.list() — parsed listing");
-  const listing = await client.workoutLibrary.list();
+  const listing = await services.workoutLibrary.list();
   console.log("folders:", listing.folders.length);
   console.log("workouts:", listing.workouts.length);
   if (listing.workouts.length > 0) {
@@ -62,7 +62,7 @@ async function main() {
     const id = listing.workouts[0].id;
     console.log(`fetching workout id=${id}...`);
     try {
-      const item = await client.workoutLibrary.get(id);
+      const item = await services.workoutLibrary.get(id);
       console.log("workout keys:", Object.keys(item.workout));
       console.log("description_text:");
       console.log(item.description_text || "(empty)");

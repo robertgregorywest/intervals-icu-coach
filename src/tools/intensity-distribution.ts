@@ -186,7 +186,7 @@ export const compareIntensityDistributionTool = defineTool({
   schema: compareIntensityDistributionSchema,
   annotations: READ_ONLY,
   outputSchema: compareIntensityDistributionOutputSchema,
-  async handler(client, args) {
+  async handler(services, args) {
     const hasRange = !!args.oldest || !!args.newest;
     const hasSession = !!args.activityId || !!args.eventId;
 
@@ -205,13 +205,13 @@ export const compareIntensityDistributionTool = defineTool({
           "The range form needs both oldest and newest (YYYY-MM-DD)."
         );
       }
-      return client.executionReview.compareIntensityDistributionRange({
+      return services.executionReview.compareIntensityDistributionRange({
         oldest: args.oldest,
         newest: args.newest,
       });
     }
 
-    return client.executionReview.compareIntensityDistribution({
+    return services.executionReview.compareIntensityDistribution({
       activityId:
         args.activityId === undefined
           ? undefined

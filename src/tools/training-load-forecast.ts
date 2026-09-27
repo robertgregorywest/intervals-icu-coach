@@ -177,10 +177,10 @@ export const forecastTrainingLoadTool = defineTool({
   schema: forecastTrainingLoadSchema,
   annotations: READ_ONLY,
   outputSchema: forecastTrainingLoadOutputSchema,
-  async handler(client, args) {
+  async handler(services, args) {
     assertForecastWindow(args.oldest, args.newest);
 
-    const result = await client.trainingLoadForecast.forecastTrainingLoad({
+    const result = await services.trainingLoadForecast.forecastTrainingLoad({
       oldest: args.oldest,
       newest: args.newest,
       sessions: args.sessions?.map((s) => ({

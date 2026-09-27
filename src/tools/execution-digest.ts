@@ -180,8 +180,8 @@ export const getExecutionDigestTool = defineTool({
   schema: getExecutionDigestSchema,
   annotations: READ_ONLY,
   outputSchema: getExecutionDigestOutputSchema,
-  handler: (client, args) =>
-    client.executionReview.getExecutionDigest({
+  handler: (services, args) =>
+    services.executionReview.getExecutionDigest({
       oldest: args.oldest,
       newest: args.newest,
     }),

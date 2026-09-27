@@ -18,8 +18,8 @@
     {
       "id": "root",
       "type": "frontend",
-      "label": "IntervalsClient",
-      "sublabel": "composition root: builds each service once",
+      "label": "Services",
+      "sublabel": "createServices(): builds each service once",
       "pos": [700, 30],
       "size": [290, 64]
     },
@@ -253,7 +253,7 @@
       "title": "Edges",
       "items": [
         "Tool registry \u2192 both adapters; handlers only shape responses",
-        "IntervalsClient wires services; forwards nothing"
+        "Services (composition root) wires; forwards nothing"
       ]
     },
     {

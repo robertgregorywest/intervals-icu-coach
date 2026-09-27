@@ -8,7 +8,7 @@ import {
 import type { ZoneRow } from "../../../src/services/power-profile/index.js";
 import type { PlannedDocStep } from "../../../src/types.js";
 import { defineGrader, isoDate } from "../lib/grader.js";
-import { scenarioClient } from "../lib/scenario-client.js";
+import { scenarioServices } from "../lib/scenario-services.js";
 import type { GradeOutcome, RunArtifacts } from "../lib/types.js";
 
 const parser = createWorkoutParser();
@@ -84,7 +84,7 @@ async function anchorsFor(
     return { ftp: o.ftp, powerZones: o.powerZones ?? null };
   }
   const sport = o.sport ?? "Ride";
-  const athlete = await scenarioClient(run.evalCase).athlete.getAthlete();
+  const athlete = await scenarioServices(run.evalCase).athlete.getAthlete();
   // The platform returns `sportSettings`; the type still names the old key.
   const settings = (athlete["sportSettings"] ??
     athlete.sport_settings ??
@@ -173,7 +173,7 @@ async function zoneBand(
   run: RunArtifacts
 ): Promise<{ band: [number, number]; label: string }> {
   const [from, to] = Array.isArray(zone) ? zone : [zone, zone];
-  const ctx = await scenarioClient(
+  const ctx = await scenarioServices(
     run.evalCase
   ).coachingContext.getCoachingContext();
   if (!ctx.mapZones) {

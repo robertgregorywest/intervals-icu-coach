@@ -59,9 +59,9 @@ export const getEventsTool = defineTool({
   schema: getEventsSchema,
   annotations: READ_ONLY,
   outputSchema: getEventsOutputSchema,
-  async handler(client, args) {
+  async handler(services, args) {
     assertDateRange(args.oldest, args.newest);
-    const all = await client.events.getEvents(args.oldest, args.newest);
+    const all = await services.events.getEvents(args.oldest, args.newest);
     const limit = args.limit ?? 50;
     const { items, total, truncated } = applyLimit(all, limit);
     return {
@@ -91,7 +91,7 @@ export const getEventTool = defineTool({
   schema: getEventSchema,
   annotations: READ_ONLY,
   outputSchema: null,
-  handler: (client, args) => client.events.getEvent(args.id),
+  handler: (services, args) => services.events.getEvent(args.id),
 });
 
 const updateEventSchema = z.object({
@@ -136,8 +136,8 @@ export const updateEventTool = defineTool({
   schema: updateEventSchema,
   annotations: MUTATING,
   outputSchema: null,
-  handler: (client, { id, ...changes }) =>
-    client.workoutScheduling.updateEvent(id, changes),
+  handler: (services, { id, ...changes }) =>
+    services.workoutScheduling.updateEvent(id, changes),
 });
 
 const deleteEventsSchema = z.object({
@@ -169,8 +169,8 @@ export const deleteEventsTool = defineTool({
   schema: deleteEventsSchema,
   annotations: MUTATING,
   outputSchema: deleteEventsOutputSchema,
-  async handler(client, args) {
-    await client.events.deleteEvents(args.ids);
+  async handler(services, args) {
+    await services.events.deleteEvents(args.ids);
     return { success: true as const, deleted: args.ids.length };
   },
 });

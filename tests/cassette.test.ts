@@ -4,12 +4,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   cassetteKey,
-  evalClientOptions,
+  evalServicesOptions,
   readCassette,
   recordingFetch,
   replayFetch,
 } from "../src/cassette.js";
-import { IntervalsClient } from "../src/index.js";
+import { createServices } from "../src/index.js";
 import { getFitnessSummaryTool } from "../src/tools/wellness.js";
 
 const BASE = "https://intervals.icu/api/v1/athlete/i1";
@@ -192,25 +192,25 @@ describe("write capture", () => {
   });
 });
 
-describe("evalClientOptions", () => {
+describe("evalServicesOptions", () => {
   it("is empty when no switch is set", () => {
-    expect(evalClientOptions({})).toEqual({});
+    expect(evalServicesOptions({})).toEqual({});
   });
 
   it("pins today from ICU_NOW", () => {
-    expect(evalClientOptions({ ICU_NOW: "2026-09-06" }).today?.()).toBe(
+    expect(evalServicesOptions({ ICU_NOW: "2026-09-06" }).today?.()).toBe(
       "2026-09-06"
     );
   });
 
   it("rejects a malformed ICU_NOW", () => {
-    expect(() => evalClientOptions({ ICU_NOW: "yesterday" })).toThrow(
+    expect(() => evalServicesOptions({ ICU_NOW: "yesterday" })).toThrow(
       /YYYY-MM-DD/
     );
   });
 
   it("supplies a dummy key in replay mode", () => {
-    const opts = evalClientOptions({
+    const opts = evalServicesOptions({
       ICU_REPLAY_DIR: dir,
       ICU_CAPTURE_FILE: captureFile,
     });
@@ -219,7 +219,7 @@ describe("evalClientOptions", () => {
   });
 
   it("keeps the real key when topping up a cassette", () => {
-    const opts = evalClientOptions({
+    const opts = evalServicesOptions({
       ICU_REPLAY_DIR: dir,
       ICU_CAPTURE_FILE: captureFile,
       ICU_RECORD_MISSING: "1",
@@ -231,7 +231,7 @@ describe("evalClientOptions", () => {
   it.each(["ICU_REPLAY_DIR", "ICU_RECORD_DIR"])(
     "requires a capture file with %s",
     (switchName) => {
-      expect(() => evalClientOptions({ [switchName]: dir })).toThrow(
+      expect(() => evalServicesOptions({ [switchName]: dir })).toThrow(
         /ICU_CAPTURE_FILE is required/
       );
     }
@@ -239,14 +239,14 @@ describe("evalClientOptions", () => {
 
   it("rejects replay and record together", () => {
     expect(() =>
-      evalClientOptions({ ICU_REPLAY_DIR: dir, ICU_RECORD_DIR: dir })
+      evalServicesOptions({ ICU_REPLAY_DIR: dir, ICU_RECORD_DIR: dir })
     ).toThrow(/not both/);
   });
 });
 
-describe("IntervalsClient with eval seams", () => {
-  function client(fetchFn: typeof fetch) {
-    return new IntervalsClient({
+describe("createServices with eval seams", () => {
+  function services(fetchFn: typeof fetch) {
+    return createServices({
       apiKey: "k",
       athleteId: "i1",
       fetchFn,
@@ -263,13 +263,14 @@ describe("IntervalsClient with eval seams", () => {
 
   it("routes requests through the injected fetch on the pinned day", async () => {
     const fetchFn = vi.fn().mockResolvedValue(okJson({ id: "2026-09-06" }));
-    await getFitnessSummaryTool.handler(client(fetchFn), {});
+    await getFitnessSummaryTool.handler(services(fetchFn), {});
     expect(fetchFn.mock.calls[0][0]).toBe(`${BASE}/wellness/2026-09-06`);
   });
 
   it("starts the default training week on the pinned day's Monday", async () => {
     const fetchFn = vi.fn().mockImplementation(async () => okJson([]));
-    const summary = await client(fetchFn).trainingWeek.getTrainingWeekSummary();
+    const summary =
+      await services(fetchFn).trainingWeek.getTrainingWeekSummary();
     // 2026-09-06 is a Sunday.
     expect(summary.week).toEqual({ start: "2026-08-31", end: "2026-09-06" });
   });

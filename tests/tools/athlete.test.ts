@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 import { getAthleteTool } from "../../src/tools/athlete.js";
-import type { IIntervalsClient } from "../../src/index.js";
+import type { IServices } from "../../src/index.js";
 
-function createMockClient(): IIntervalsClient {
+function createMockServices(): IServices {
   return {
     athlete: {
       getAthlete: vi.fn().mockResolvedValue({
@@ -13,19 +13,19 @@ function createMockClient(): IIntervalsClient {
         weight: 75,
       }),
     },
-  } as unknown as IIntervalsClient;
+  } as unknown as IServices;
 }
 
 describe("getAthlete tool handler", () => {
   it("returns athlete profile as JSON", async () => {
-    const client = createMockClient();
-    const parsed = (await getAthleteTool.handler(client, {})) as Record<
+    const services = createMockServices();
+    const parsed = (await getAthleteTool.handler(services, {})) as Record<
       string,
       unknown
     >;
 
     expect(parsed.name).toBe("Test Athlete");
     expect(parsed.ftp).toBe(280);
-    expect(client.athlete.getAthlete).toHaveBeenCalledOnce();
+    expect(services.athlete.getAthlete).toHaveBeenCalledOnce();
   });
 });

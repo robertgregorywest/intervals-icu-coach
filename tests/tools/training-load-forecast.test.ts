@@ -4,7 +4,7 @@ import {
   assertForecastWindow,
   forecastTrainingLoadTool,
 } from "../../src/tools/training-load-forecast.js";
-import type { IIntervalsClient } from "../../src/index.js";
+import type { IServices } from "../../src/index.js";
 import type { ForecastResult } from "../../src/services/training-load-forecast/index.js";
 
 const RESULT: ForecastResult = {
@@ -69,13 +69,13 @@ function stubClient() {
   const forecast = { forecastTrainingLoad: vi.fn(async () => RESULT) };
   return {
     trainingLoadForecast: forecast,
-  } as unknown as IIntervalsClient & { trainingLoadForecast: typeof forecast };
+  } as unknown as IServices & { trainingLoadForecast: typeof forecast };
 }
 
 describe("forecast_training_load tool", () => {
   it("passes the window, sessions, seed and threshold straight through", async () => {
-    const client = stubClient();
-    await forecastTrainingLoad(client, {
+    const services = stubClient();
+    await forecastTrainingLoad(services, {
       oldest: "2026-08-10",
       newest: "2026-08-16",
       sessions: [{ date: "2026-08-11", description: "- 60m 200w" }],
@@ -83,7 +83,7 @@ describe("forecast_training_load tool", () => {
       ftp: 300,
     });
     expect(
-      client.trainingLoadForecast.forecastTrainingLoad
+      services.trainingLoadForecast.forecastTrainingLoad
     ).toHaveBeenCalledWith({
       oldest: "2026-08-10",
       newest: "2026-08-16",

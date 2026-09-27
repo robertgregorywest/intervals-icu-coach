@@ -1,6 +1,6 @@
 import { createRequire } from "node:module";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { IIntervalsClient } from "../index.js";
+import type { IServices } from "../index.js";
 import { logResponse, logError } from "./logger.js";
 import { formatToolError } from "../errors.js";
 import { TOOLS } from "../registry.js";
@@ -10,7 +10,7 @@ import { STATIC_INSTRUCTIONS } from "./syntax-doc.js";
 const require = createRequire(import.meta.url);
 const { version } = require("../../package.json") as { version: string };
 
-export function createMcpServer(client: IIntervalsClient): McpServer {
+export function createMcpServer(services: IServices): McpServer {
   const server = new McpServer(
     {
       name: "intervals-icu-mcp",
@@ -33,7 +33,7 @@ export function createMcpServer(client: IIntervalsClient): McpServer {
     const cb = async (args: any) => {
       const start = Date.now();
       try {
-        const data = await t.handler(client, args);
+        const data = await t.handler(services, args);
         const text = JSON.stringify(data);
         logResponse(t.name, text, Date.now() - start);
         const result: Record<string, unknown> = {

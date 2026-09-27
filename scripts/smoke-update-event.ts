@@ -4,7 +4,7 @@
  * handler against the live Intervals.icu account. Cleans up after itself.
  */
 import "dotenv/config";
-import { IntervalsClient } from "../src/index.js";
+import { createServices } from "../src/index.js";
 import { buildEvent } from "../src/services/workout-scheduling/builder.js";
 import { updateEvent } from "../src/mcp/tools/events.js";
 
@@ -20,7 +20,7 @@ function summary(ev: Record<string, unknown> | undefined): string {
 }
 
 async function main() {
-  const client = new IntervalsClient();
+  const services = createServices();
   const date = "2030-01-15";
   let createdId: number | undefined;
 
@@ -44,20 +44,20 @@ async function main() {
       ],
       externalId: `smoke-update-event-${Date.now()}`,
     });
-    const created = (await client.events.createEvents([seed])) as Array<
+    const created = (await services.events.createEvents([seed])) as Array<
       Record<string, unknown>
     >;
     createdId = created[0]?.id as number;
     if (!createdId) throw new Error("no id from create");
-    let cur = (await client.events.getEvent(createdId)) as unknown as Record<
+    let cur = (await services.events.getEvent(createdId)) as unknown as Record<
       string,
       unknown
     >;
     console.log("after seed:", summary(cur));
 
     header("A. update_event with name only — steps should survive");
-    await updateEvent(client, { id: createdId, name: "SMOKE renamed (A)" });
-    cur = (await client.events.getEvent(createdId)) as unknown as Record<
+    await updateEvent(services, { id: createdId, name: "SMOKE renamed (A)" });
+    cur = (await services.events.getEvent(createdId)) as unknown as Record<
       string,
       unknown
     >;
@@ -68,7 +68,7 @@ async function main() {
     header(
       "B. update_event with steps — should rebuild description, keep structure"
     );
-    await updateEvent(client, {
+    await updateEvent(services, {
       id: createdId,
       steps: [
         { label: "Warmup", duration: "8m", target: "140w" },
@@ -83,7 +83,7 @@ async function main() {
         { label: "Cool", duration: "5m", target: "130w" },
       ],
     });
-    cur = (await client.events.getEvent(createdId)) as unknown as Record<
+    cur = (await services.events.getEvent(createdId)) as unknown as Record<
       string,
       unknown
     >;
@@ -94,7 +94,7 @@ async function main() {
     header("C. update_event with description on WORKOUT — must reject");
     let rejected = false;
     try {
-      await updateEvent(client, {
+      await updateEvent(services, {
         id: createdId,
         description: "- some prose notes",
       });
@@ -103,7 +103,7 @@ async function main() {
       console.log("rejected as expected:", (e as Error).message.slice(0, 120));
     }
     if (!rejected) throw new Error("C FAIL: should have rejected");
-    cur = (await client.events.getEvent(createdId)) as unknown as Record<
+    cur = (await services.events.getEvent(createdId)) as unknown as Record<
       string,
       unknown
     >;
@@ -114,7 +114,7 @@ async function main() {
     header("D. update_event with both steps and description — must reject");
     rejected = false;
     try {
-      await updateEvent(client, {
+      await updateEvent(services, {
         id: createdId,
         steps: [{ duration: "10m", target: "150w" }],
         description: "x",
@@ -130,7 +130,7 @@ async function main() {
     if (createdId !== undefined) {
       header("cleanup");
       try {
-        await client.events.deleteEvents([{ id: createdId }]);
+        await services.events.deleteEvents([{ id: createdId }]);
         console.log("deleted", createdId);
       } catch (e) {
         console.log("delete ERROR:", (e as Error).message);

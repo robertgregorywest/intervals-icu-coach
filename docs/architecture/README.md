@@ -4,7 +4,7 @@ Sources for [Archify](https://github.com/tt-a1i/archify) diagrams. The `*.archif
 
 ## Deep modules
 
-`deep-modules.archify.json` — the service modules in `src/services/`, their one-line responsibilities, and the layers around them (Tool registry and `IntervalsClient` above, the thin Intervals.icu API wrappers and `HttpClient` below).
+`deep-modules.archify.json` — the service modules in `src/services/`, their one-line responsibilities, and the layers around them (Tool registry and **Services** above, the thin Intervals.icu API wrappers and `HttpClient` below).
 
 Rebuild:
 

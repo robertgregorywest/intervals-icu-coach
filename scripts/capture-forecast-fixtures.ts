@@ -12,14 +12,14 @@
 import "dotenv/config";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { createClient } from "../src/index.js";
+import { createServices } from "../src/index.js";
 import type { SportSetting } from "../src/services/athlete/index.js";
 
 /** A long enough run that the 42-day fitness constant is exercised, not just ATL. */
 const OLDEST = "2026-05-01";
 const NEWEST = "2026-08-20";
 
-const client = createClient({
+const services = createServices({
   apiKey: process.env.INTERVALS_API_KEY!,
   athleteId: process.env.INTERVALS_ATHLETE_ID ?? "0",
 });
@@ -31,9 +31,9 @@ const outDir = resolve(
 mkdirSync(outDir, { recursive: true });
 
 const [wellness, events, athlete] = await Promise.all([
-  client.wellness.getWellness(OLDEST, NEWEST),
-  client.events.getEvents(OLDEST, NEWEST),
-  client.athlete.getAthlete(),
+  services.wellness.getWellness(OLDEST, NEWEST),
+  services.events.getEvents(OLDEST, NEWEST),
+  services.athlete.getAthlete(),
 ]);
 
 const raw = athlete as unknown as {

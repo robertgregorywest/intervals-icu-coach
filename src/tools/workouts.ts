@@ -125,8 +125,8 @@ export const createWorkoutTool = defineTool({
   schema: createWorkoutSchema,
   annotations: UPSERT,
   outputSchema: createWorkoutOutputSchema,
-  handler: async (client, args) =>
-    formatResponse(await client.workoutScheduling.schedulePlan(args)),
+  handler: async (services, args) =>
+    formatResponse(await services.workoutScheduling.schedulePlan(args)),
 });
 
 const scheduleLibraryWorkoutSchema = z.object({
@@ -150,8 +150,10 @@ export const scheduleLibraryWorkoutTool = defineTool({
   schema: scheduleLibraryWorkoutSchema,
   annotations: UPSERT,
   outputSchema: createWorkoutOutputSchema,
-  handler: async (client, args) =>
-    formatResponse(await client.workoutScheduling.scheduleLibraryWorkout(args)),
+  handler: async (services, args) =>
+    formatResponse(
+      await services.workoutScheduling.scheduleLibraryWorkout(args)
+    ),
 });
 
 const createStrengthWorkoutSchema = z.object({
@@ -182,8 +184,8 @@ export const createStrengthWorkoutTool = defineTool({
   schema: createStrengthWorkoutSchema,
   annotations: UPSERT,
   outputSchema: createWorkoutOutputSchema,
-  handler: async (client, args) =>
-    formatResponse(await client.workoutScheduling.scheduleStrength(args)),
+  handler: async (services, args) =>
+    formatResponse(await services.workoutScheduling.scheduleStrength(args)),
 });
 
 function formatResponse({

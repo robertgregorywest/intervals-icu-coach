@@ -40,7 +40,7 @@ import type { IPowerProfile } from "./services/power-profile/index.js";
  * The services a Tool handler can reach. Handlers take what they need from
  * here; nothing on it forwards to anything else.
  */
-export interface IIntervalsClient {
+export interface IServices {
   readonly events: IEventsApi;
   /** Every workout write to the calendar, and the update_event structure guard. */
   readonly workoutScheduling: IWorkoutScheduling;
@@ -64,7 +64,7 @@ export interface IIntervalsClient {
   readonly today: () => string;
 }
 
-export interface IntervalsClientOptions {
+export interface ServicesOptions {
   apiKey?: string;
   athleteId?: string;
   baseUrl?: string;
@@ -75,93 +75,87 @@ export interface IntervalsClientOptions {
 }
 
 /** The composition root: builds every service once, over one HTTP client. */
-export class IntervalsClient implements IIntervalsClient {
-  readonly events: IEventsApi;
-  readonly workoutScheduling: IWorkoutScheduling;
-  readonly athlete: IAthleteApi;
-  readonly anchors: IAthleteAnchors;
-  readonly activities: IActivitiesApi;
-  readonly wellness: IWellnessApi;
-  readonly powerCurves: IPowerCurvesApi;
-  readonly workoutLibrary: IWorkoutLibrary;
-  readonly analysis: IActivityAnalysis;
-  readonly executionReview: IExecutionReview;
-  readonly track: ITrack;
-  readonly trainingWeek: ITrainingWeek;
-  readonly trainingLoadForecast: ITrainingLoadForecast;
-  readonly coachingContext: ICoachingContext;
-  readonly powerProfile: IPowerProfile;
-  readonly today: () => string;
+export function createServices(options: ServicesOptions = {}): IServices {
+  const config = parseClientConfig({
+    apiKey: options.apiKey ?? process.env.INTERVALS_API_KEY,
+    athleteId: options.athleteId ?? process.env.INTERVALS_ATHLETE_ID ?? "0",
+    baseUrl: options.baseUrl ?? "https://intervals.icu",
+  });
+  const { athleteId } = config;
+  const today = options.today ?? isoToday;
 
-  constructor(options: IntervalsClientOptions = {}) {
-    const config = parseClientConfig({
-      apiKey: options.apiKey ?? process.env.INTERVALS_API_KEY,
-      athleteId: options.athleteId ?? process.env.INTERVALS_ATHLETE_ID ?? "0",
-      baseUrl: options.baseUrl ?? "https://intervals.icu",
-    });
-    const { athleteId } = config;
-    this.today = options.today ?? isoToday;
+  const httpClient = createHttpClient(config, options.fetchFn);
+  const events = createEventsApi(httpClient, athleteId);
+  const athlete = createAthleteApi(httpClient, athleteId);
+  const activities = createActivitiesApi(httpClient, athleteId);
+  const wellness = createWellnessApi(httpClient, athleteId);
+  const powerCurves = createPowerCurvesApi(httpClient, athleteId);
+  const workoutLibrary = createWorkoutLibrary(
+    createWorkoutLibraryApi(httpClient, athleteId)
+  );
+  const analysis = createActivityAnalysis({ activitiesApi: activities });
+  // One source for every FTP and MAP-zone reader, so nothing builds the
+  // coaching context to get them.
+  const anchors = createAthleteAnchors({
+    athleteApi: athlete,
+    activitiesApi: activities,
+    powerCurvesApi: powerCurves,
+    today,
+  });
+  const workoutScheduling = createWorkoutScheduling({
+    eventsApi: events,
+    workoutLibrary,
+    anchors,
+  });
+  const executionReview = createExecutionReview({
+    activitiesApi: activities,
+    eventsApi: events,
+    anchors,
+  });
+  // The records are tracked files, not Intervals.icu; only aligning a
+  // record's splits to a ride reaches the activities API.
+  const track = createTrack({ activitiesApi: activities });
+  const trainingLoadForecast = createTrainingLoadForecast({
+    eventsApi: events,
+    wellnessApi: wellness,
+    anchors,
+  });
+  const trainingWeek = createTrainingWeek({
+    activitiesApi: activities,
+    wellnessApi: wellness,
+    eventsApi: events,
+    anchors,
+    today,
+  });
+  const coachingContext = createCoachingContext({
+    anchors,
+    wellnessApi: wellness,
+    today,
+  });
+  const powerProfile = createPowerProfile({
+    anchors,
+    powerCurvesApi: powerCurves,
+    today,
+  });
 
-    const httpClient = createHttpClient(config, options.fetchFn);
-    this.events = createEventsApi(httpClient, athleteId);
-    this.athlete = createAthleteApi(httpClient, athleteId);
-    this.activities = createActivitiesApi(httpClient, athleteId);
-    this.wellness = createWellnessApi(httpClient, athleteId);
-    this.powerCurves = createPowerCurvesApi(httpClient, athleteId);
-    this.workoutLibrary = createWorkoutLibrary(
-      createWorkoutLibraryApi(httpClient, athleteId)
-    );
-    this.analysis = createActivityAnalysis({ activitiesApi: this.activities });
-    // One source for every FTP and MAP-zone reader, so nothing builds the
-    // coaching context to get them.
-    this.anchors = createAthleteAnchors({
-      athleteApi: this.athlete,
-      activitiesApi: this.activities,
-      powerCurvesApi: this.powerCurves,
-      today: this.today,
-    });
-    this.workoutScheduling = createWorkoutScheduling({
-      eventsApi: this.events,
-      workoutLibrary: this.workoutLibrary,
-      anchors: this.anchors,
-    });
-    this.executionReview = createExecutionReview({
-      activitiesApi: this.activities,
-      eventsApi: this.events,
-      anchors: this.anchors,
-    });
-    // The records are tracked files, not Intervals.icu; only aligning a
-    // record's splits to a ride reaches the activities API.
-    this.track = createTrack({ activitiesApi: this.activities });
-    this.trainingLoadForecast = createTrainingLoadForecast({
-      eventsApi: this.events,
-      wellnessApi: this.wellness,
-      anchors: this.anchors,
-    });
-    this.trainingWeek = createTrainingWeek({
-      activitiesApi: this.activities,
-      wellnessApi: this.wellness,
-      eventsApi: this.events,
-      anchors: this.anchors,
-      today: this.today,
-    });
-    this.coachingContext = createCoachingContext({
-      anchors: this.anchors,
-      wellnessApi: this.wellness,
-      today: this.today,
-    });
-    this.powerProfile = createPowerProfile({
-      anchors: this.anchors,
-      powerCurvesApi: this.powerCurves,
-      today: this.today,
-    });
-  }
-}
-
-export function createClient(
-  options?: IntervalsClientOptions
-): IntervalsClient {
-  return new IntervalsClient(options);
+  return {
+    events,
+    workoutScheduling,
+    athlete,
+    anchors,
+    activities,
+    wellness,
+    powerCurves,
+    workoutLibrary,
+    analysis,
+    executionReview,
+    track,
+    trainingWeek,
+    trainingLoadForecast,
+    coachingContext,
+    powerProfile,
+    today,
+  };
 }
 
 // Re-export types

@@ -5,14 +5,14 @@
  * with the tool's output schema to surface the exact mismatch.
  */
 import "dotenv/config";
-import { IntervalsClient } from "../src/index.js";
+import { createServices } from "../src/index.js";
 import {
   getCoachingContext,
   getCoachingContextOutputSchema,
 } from "../src/mcp/tools/coaching-context.js";
 
 async function main() {
-  const client = new IntervalsClient();
+  const services = createServices();
 
   for (const days of [undefined, 7, 14, 30]) {
     console.log(
@@ -21,7 +21,7 @@ async function main() {
     let raw: unknown;
     try {
       raw = await getCoachingContext(
-        client,
+        services,
         days === undefined ? {} : { days }
       );
     } catch (e) {

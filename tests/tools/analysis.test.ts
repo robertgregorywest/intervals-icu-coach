@@ -3,9 +3,9 @@ import {
   getAerobicDecouplingTool,
   compareIntervalsTool,
 } from "../../src/tools/analysis.js";
-import type { IIntervalsClient } from "../../src/index.js";
+import type { IServices } from "../../src/index.js";
 
-function createMockClient(): IIntervalsClient {
+function createMockServices(): IServices {
   const analysis = {
     getAerobicDecoupling: vi.fn().mockResolvedValue({
       firstHalf: { avgPower: 200, avgHR: 140, hrPowerRatio: 0.7 },
@@ -23,33 +23,33 @@ function createMockClient(): IIntervalsClient {
       summaries: [{ activityId: 1, intervalCount: 1, avgPower: 300 }],
     }),
   };
-  return { analysis } as unknown as IIntervalsClient;
+  return { analysis } as unknown as IServices;
 }
 
 describe("getAerobicDecoupling tool handler", () => {
   it("returns decoupling analysis as JSON", async () => {
-    const client = createMockClient();
-    const result = await getAerobicDecouplingTool.handler(client, {
+    const services = createMockServices();
+    const result = await getAerobicDecouplingTool.handler(services, {
       activityId: "i42",
     });
     const parsed = result;
 
     expect(parsed.decouplingPercent).toBe(7.14);
     expect(parsed.interpretation).toContain("Moderate");
-    expect(client.analysis.getAerobicDecoupling).toHaveBeenCalledWith("i42");
+    expect(services.analysis.getAerobicDecoupling).toHaveBeenCalledWith("i42");
   });
 
   it("normalizes bare number to i-prefixed string", async () => {
-    const client = createMockClient();
-    await getAerobicDecouplingTool.handler(client, { activityId: 42 });
-    expect(client.analysis.getAerobicDecoupling).toHaveBeenCalledWith("i42");
+    const services = createMockServices();
+    await getAerobicDecouplingTool.handler(services, { activityId: 42 });
+    expect(services.analysis.getAerobicDecoupling).toHaveBeenCalledWith("i42");
   });
 });
 
 describe("compare_intervals tool handler", () => {
   it("returns interval comparison as JSON", async () => {
-    const client = createMockClient();
-    const result = await compareIntervalsTool.handler(client, {
+    const services = createMockServices();
+    const result = await compareIntervalsTool.handler(services, {
       activityIds: ["i1", "i2"],
       minPower: 200,
     });
@@ -57,7 +57,7 @@ describe("compare_intervals tool handler", () => {
 
     expect(parsed.intervals).toHaveLength(1);
     expect(parsed.summaries).toHaveLength(1);
-    expect(client.analysis.compareIntervals).toHaveBeenCalledWith(
+    expect(services.analysis.compareIntervals).toHaveBeenCalledWith(
       ["i1", "i2"],
       {
         minPower: 200,
@@ -68,9 +68,9 @@ describe("compare_intervals tool handler", () => {
   });
 
   it("normalizes bare numbers in activityIds", async () => {
-    const client = createMockClient();
-    await compareIntervalsTool.handler(client, { activityIds: [1, 2] });
-    expect(client.analysis.compareIntervals).toHaveBeenCalledWith(
+    const services = createMockServices();
+    await compareIntervalsTool.handler(services, { activityIds: [1, 2] });
+    expect(services.analysis.compareIntervals).toHaveBeenCalledWith(
       ["i1", "i2"],
       expect.any(Object)
     );

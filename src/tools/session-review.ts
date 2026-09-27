@@ -164,8 +164,8 @@ export const comparePlannedVsActualTool = defineTool({
   schema: comparePlannedVsActualSchema,
   annotations: READ_ONLY,
   outputSchema: comparePlannedVsActualOutputSchema,
-  handler: (client, args) =>
-    client.executionReview.comparePlannedVsActual({
+  handler: (services, args) =>
+    services.executionReview.comparePlannedVsActual({
       activityId:
         args.activityId === undefined
           ? undefined

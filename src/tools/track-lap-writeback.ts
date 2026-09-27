@@ -71,5 +71,6 @@ export const writeTrackRunsTool = defineTool({
   annotations: DESTRUCTIVE_IDEMPOTENT,
   outputSchema: writeTrackRunsOutputSchema,
   // The schema cannot say "exactly one of"; `write` checks it.
-  handler: async (client, args) => client.track.write(args as TrackWriteInput),
+  handler: async (services, args) =>
+    services.track.write(args as TrackWriteInput),
 });

@@ -128,5 +128,5 @@ export const computePowerProfileTool = defineTool({
   schema: computePowerProfileSchema,
   annotations: READ_ONLY,
   outputSchema: null,
-  handler: (client, args) => client.powerProfile.computePowerProfile(args),
+  handler: (services, args) => services.powerProfile.computePowerProfile(args),
 });

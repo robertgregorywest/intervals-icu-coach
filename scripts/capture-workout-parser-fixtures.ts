@@ -24,7 +24,7 @@
 import "dotenv/config";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { createClient } from "../src/index.js";
+import { createServices } from "../src/index.js";
 import type { PlannedDocStep, WorkoutDoc } from "../src/types.js";
 import type { SportSetting } from "../src/services/athlete/index.js";
 
@@ -32,7 +32,7 @@ import type { SportSetting } from "../src/services/athlete/index.js";
 const OLDEST = "2025-01-01";
 const NEWEST = "2026-12-31";
 
-const client = createClient({
+const services = createServices({
   apiKey: process.env.INTERVALS_API_KEY!,
   athleteId: process.env.INTERVALS_ATHLETE_ID ?? "0",
 });
@@ -41,8 +41,8 @@ const outDir = resolve(import.meta.dirname, "../tests/fixtures/workout-parser");
 mkdirSync(outDir, { recursive: true });
 
 const [events, athlete] = await Promise.all([
-  client.events.getEvents(OLDEST, NEWEST),
-  client.athlete.getAthlete(),
+  services.events.getEvents(OLDEST, NEWEST),
+  services.athlete.getAthlete(),
 ]);
 
 /**
@@ -213,8 +213,8 @@ async function captureZoneTargets(): Promise<void> {
 
   let written: Array<{ id?: number; name: string; doc?: unknown }> = [];
   try {
-    await client.events.createEvents(drafts);
-    const back = (await client.events.getEvents(date, date)).filter((e) =>
+    await services.events.createEvents(drafts);
+    const back = (await services.events.getEvents(date, date)).filter((e) =>
       e.name.startsWith("zone-target probe ")
     );
     written = back.map((e) => ({ id: e.id, name: e.name, doc: e.workout_doc }));
@@ -257,7 +257,7 @@ async function captureZoneTargets(): Promise<void> {
       .map((e) => e.id)
       .filter((id): id is number => typeof id === "number");
     if (ids.length > 0) {
-      await client.events.deleteEvents(ids.map((id) => ({ id })));
+      await services.events.deleteEvents(ids.map((id) => ({ id })));
       console.log(`zone probes deleted: ${ids.length}`);
     }
   }

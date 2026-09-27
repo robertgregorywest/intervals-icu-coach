@@ -2,9 +2,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { IntervalsClient, type IIntervalsClient } from "../../src/index.js";
+import { createServices, type IServices } from "../../src/index.js";
 import { runCli, type CliIO } from "../../src/cli/main.js";
-import { evalClientOptions, recordingFetch } from "../../src/cassette.js";
+import { evalServicesOptions, recordingFetch } from "../../src/cassette.js";
 
 function makeIO(isTTY = false): CliIO & {
   outLines: string[];
@@ -33,7 +33,7 @@ function makeIO(isTTY = false): CliIO & {
   };
 }
 
-function makeClient(): IIntervalsClient {
+function makeServices(): IServices {
   return {
     athlete: {
       getAthlete: vi.fn().mockResolvedValue({ id: "i0", name: "Test" }),
@@ -50,13 +50,13 @@ function makeClient(): IIntervalsClient {
       updateEvent: vi.fn().mockResolvedValue({ id: 1 }),
     },
     today: () => "2026-01-01",
-  } as unknown as IIntervalsClient;
+  } as unknown as IServices;
 }
 
 describe("CLI describe command", () => {
   it("emits 33 tools and instructions when called with no names", async () => {
     const io = makeIO();
-    await runCli(["describe"], () => makeClient(), io);
+    await runCli(["describe"], () => makeServices(), io);
 
     expect(io.exitCode).toBeNull();
     expect(io.outLines).toHaveLength(1);
@@ -70,7 +70,7 @@ describe("CLI describe command", () => {
     const io = makeIO();
     await runCli(
       ["describe", "get_athlete", "create_workout"],
-      () => makeClient(),
+      () => makeServices(),
       io
     );
 
@@ -84,7 +84,7 @@ describe("CLI describe command", () => {
 
   it("each tool entry has name, description, annotations, inputSchema", async () => {
     const io = makeIO();
-    await runCli(["describe", "get_athlete"], () => makeClient(), io);
+    await runCli(["describe", "get_athlete"], () => makeServices(), io);
 
     const doc = JSON.parse(io.outLines[0]);
     const t = doc.tools[0];
@@ -97,7 +97,7 @@ describe("CLI describe command", () => {
 
   it("exits 1 when a named tool does not exist", async () => {
     const io = makeIO();
-    await runCli(["describe", "nonexistent_tool"], () => makeClient(), io);
+    await runCli(["describe", "nonexistent_tool"], () => makeServices(), io);
 
     expect(io.exitCode).toBe(1);
     expect(io.errLines[0]).toContain("nonexistent_tool");
@@ -105,7 +105,7 @@ describe("CLI describe command", () => {
 
   it("pretty-prints when isTTY=true", async () => {
     const io = makeIO(true);
-    await runCli(["describe", "get_athlete"], () => makeClient(), io);
+    await runCli(["describe", "get_athlete"], () => makeServices(), io);
 
     expect(io.exitCode).toBeNull();
     expect(io.outLines[0]).toContain("\n");
@@ -113,13 +113,13 @@ describe("CLI describe command", () => {
 
   it("compact output when isTTY=false", async () => {
     const io = makeIO(false);
-    await runCli(["describe", "get_athlete"], () => makeClient(), io);
+    await runCli(["describe", "get_athlete"], () => makeServices(), io);
 
     expect(io.outLines[0]).not.toContain("\n");
   });
 
   it("does not call clientFactory for describe", async () => {
-    const factory = vi.fn().mockReturnValue(makeClient());
+    const factory = vi.fn().mockReturnValue(makeServices());
     const io = makeIO();
     await runCli(["describe"], factory, io);
 
@@ -129,9 +129,9 @@ describe("CLI describe command", () => {
 
 describe("CLI tool invocation", () => {
   it("runs get_athlete with empty JSON input", async () => {
-    const client = makeClient();
+    const services = makeServices();
     const io = makeIO();
-    await runCli(["get_athlete", "--json", "{}"], () => client, io);
+    await runCli(["get_athlete", "--json", "{}"], () => services, io);
 
     expect(io.exitCode).toBeNull();
     const result = JSON.parse(io.outLines[0]);
@@ -139,9 +139,9 @@ describe("CLI tool invocation", () => {
   });
 
   it("runs get_athlete with no --json (empty input implied)", async () => {
-    const client = makeClient();
+    const services = makeServices();
     const io = makeIO();
-    await runCli(["get_athlete"], () => client, io);
+    await runCli(["get_athlete"], () => services, io);
 
     expect(io.exitCode).toBeNull();
     const result = JSON.parse(io.outLines[0]);
@@ -150,7 +150,7 @@ describe("CLI tool invocation", () => {
 
   it("exits 1 when tool not found", async () => {
     const io = makeIO();
-    await runCli(["no_such_tool"], () => makeClient(), io);
+    await runCli(["no_such_tool"], () => makeServices(), io);
 
     expect(io.exitCode).toBe(1);
     expect(io.errLines[0]).toContain("no_such_tool");
@@ -160,7 +160,7 @@ describe("CLI tool invocation", () => {
     const io = makeIO();
     await runCli(
       ["get_events", "--json", '{"oldest":"bad-date","newest":"2026-01-01"}'],
-      () => makeClient(),
+      () => makeServices(),
       io
     );
 
@@ -169,12 +169,12 @@ describe("CLI tool invocation", () => {
   });
 
   it("exits 1 on handler error", async () => {
-    const client = makeClient();
-    (client.athlete.getAthlete as ReturnType<typeof vi.fn>).mockRejectedValue(
+    const services = makeServices();
+    (services.athlete.getAthlete as ReturnType<typeof vi.fn>).mockRejectedValue(
       new Error("API down")
     );
     const io = makeIO();
-    await runCli(["get_athlete"], () => client, io);
+    await runCli(["get_athlete"], () => services, io);
 
     expect(io.exitCode).toBe(1);
     expect(io.errLines[0]).toContain("API down");
@@ -183,38 +183,38 @@ describe("CLI tool invocation", () => {
 
 describe("CLI --yes guard for destructive tools", () => {
   it("refuses delete_events without --yes", async () => {
-    const client = makeClient();
+    const services = makeServices();
     const io = makeIO();
     await runCli(
       ["delete_events", "--json", '{"ids":[{"id":1}]}'],
-      () => client,
+      () => services,
       io
     );
 
     expect(io.exitCode).toBe(1);
     expect(io.errLines[0]).toContain("--yes");
-    expect(client.events.deleteEvents).not.toHaveBeenCalled();
+    expect(services.events.deleteEvents).not.toHaveBeenCalled();
   });
 
   it("runs delete_events with --yes", async () => {
-    const client = makeClient();
+    const services = makeServices();
     const io = makeIO();
     await runCli(
       ["delete_events", "--json", '{"ids":[{"id":1}]}', "--yes"],
-      () => client,
+      () => services,
       io
     );
 
     expect(io.exitCode).toBeNull();
-    expect(client.events.deleteEvents).toHaveBeenCalled();
+    expect(services.events.deleteEvents).toHaveBeenCalled();
   });
 
   it("refuses update_event without --yes", async () => {
-    const client = makeClient();
+    const services = makeServices();
     const io = makeIO();
     await runCli(
       ["update_event", "--json", '{"id":1,"name":"Renamed"}'],
-      () => client,
+      () => services,
       io
     );
 
@@ -226,7 +226,7 @@ describe("CLI --yes guard for destructive tools", () => {
 describe("CLI --help", () => {
   it("exits 0 and mentions describe", async () => {
     const io = makeIO();
-    await runCli(["--help"], () => makeClient(), io);
+    await runCli(["--help"], () => makeServices(), io);
 
     expect(io.exitCode).toBe(0);
     const output = io.outLines.join("\n") + io.errLines.join("\n");
@@ -234,7 +234,7 @@ describe("CLI --help", () => {
   });
 });
 
-// What bin/icu does under the eval harness: the client built from the env
+// What bin/icu does under the eval harness: the services built from the env
 // switches, so a skill's CLI calls replay a cassette and capture writes.
 describe("CLI under eval replay", () => {
   let tmp: string;
@@ -262,16 +262,16 @@ describe("CLI under eval replay", () => {
 
   afterEach(() => rmSync(tmp, { recursive: true, force: true }));
 
-  const client = () =>
-    new IntervalsClient({
+  const services = () =>
+    createServices({
       apiKey: "",
       athleteId: "i1",
-      ...evalClientOptions(env),
+      ...evalServicesOptions(env),
     });
 
   it("answers a read from the cassette with no API key", async () => {
     const io = makeIO();
-    await runCli(["get_athlete"], client, io);
+    await runCli(["get_athlete"], services, io);
     expect(io.exitCode).toBeNull();
     expect(JSON.parse(io.outLines[0])).toMatchObject({ name: "Recorded" });
   });
@@ -289,7 +289,7 @@ describe("CLI under eval replay", () => {
           steps: [{ duration: "4m", target: "300w" }],
         }),
       ],
-      client,
+      services,
       io
     );
     expect(io.errLines).toEqual([]);
@@ -306,7 +306,7 @@ describe("CLI under eval replay", () => {
 
   it("reports an unrecorded read as a clear error", async () => {
     const io = makeIO();
-    await runCli(["get_fitness_summary"], client, io);
+    await runCli(["get_fitness_summary"], services, io);
     expect(io.exitCode).toBe(1);
     expect(io.errLines.join("\n")).toMatch(/Not in the recorded scenario/);
   });

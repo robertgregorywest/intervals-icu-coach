@@ -3,12 +3,10 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { createMcpServer } from "../../src/mcp/server.js";
 import { TOOLS } from "../../src/registry.js";
-import type { IIntervalsClient } from "../../src/index.js";
+import type { IServices } from "../../src/index.js";
 
-async function connectedClient(
-  intervalsClient: IIntervalsClient
-): Promise<Client> {
-  const server = createMcpServer(intervalsClient);
+async function connectedClient(services: IServices): Promise<Client> {
+  const server = createMcpServer(services);
   const [clientTransport, serverTransport] =
     InMemoryTransport.createLinkedPair();
   const client = new Client({ name: "test-client", version: "0.0.0" });
@@ -23,7 +21,7 @@ describe("createMcpServer", () => {
   let client: Client;
 
   beforeAll(async () => {
-    client = await connectedClient({} as IIntervalsClient);
+    client = await connectedClient({} as IServices);
   });
 
   afterAll(async () => {
@@ -100,7 +98,7 @@ describe("createMcpServer", () => {
       .mockResolvedValue({ id: "i1", name: "Test Athlete" });
     const mockClient = {
       athlete: { getAthlete },
-    } as unknown as IIntervalsClient;
+    } as unknown as IServices;
     const c = await connectedClient(mockClient);
 
     const result = await c.callTool({ name: "get_athlete", arguments: {} });
@@ -119,7 +117,7 @@ describe("createMcpServer", () => {
     const getActivities = vi.fn().mockResolvedValue([]);
     const mockClient = {
       activities: { getActivities },
-    } as unknown as IIntervalsClient;
+    } as unknown as IServices;
     const c = await connectedClient(mockClient);
 
     const result = await c.callTool({

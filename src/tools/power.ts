@@ -121,9 +121,9 @@ export const getPowerCurveTool = defineTool({
   schema: getPowerCurveSchema,
   annotations: READ_ONLY,
   outputSchema: null,
-  async handler(client, args) {
+  async handler(services, args) {
     const { secs, full, type = "Ride", ...options } = args;
-    const raw = await client.powerCurves.getPowerCurve({ ...options, type });
+    const raw = await services.powerCurves.getPowerCurve({ ...options, type });
     const payload = full ? raw : thinPayload(raw, secs);
     return withCharacterLimit(
       { points: payload },

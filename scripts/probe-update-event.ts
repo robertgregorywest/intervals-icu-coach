@@ -7,7 +7,7 @@
  * Cleans up after itself.
  */
 import "dotenv/config";
-import { IntervalsClient } from "../src/index.js";
+import { createServices } from "../src/index.js";
 import { buildEvent } from "../src/services/workout-scheduling/builder.js";
 
 function header(s: string) {
@@ -26,9 +26,9 @@ function stepSummary(ev: Record<string, unknown> | undefined): string {
 }
 
 async function main() {
-  const client = new IntervalsClient();
+  const services = createServices();
   const httpClient = (
-    client as unknown as {
+    services as unknown as {
       httpClient: { request: <T>(p: string, o?: unknown) => Promise<T> };
     }
   ).httpClient;
@@ -60,14 +60,14 @@ async function main() {
       ],
       externalId,
     });
-    const created = (await client.events.createEvents([event])) as Array<
+    const created = (await services.events.createEvents([event])) as Array<
       Record<string, unknown>
     >;
     createdId = created[0]?.id as number;
     if (!createdId) throw new Error("no id from create");
     console.log("created event id:", createdId);
 
-    let cur = (await client.events.getEvent(createdId)) as unknown as Record<
+    let cur = (await services.events.getEvent(createdId)) as unknown as Record<
       string,
       unknown
     >;
@@ -89,7 +89,7 @@ async function main() {
       `/api/v1/athlete/${athleteId}/events/${createdId}`,
       { method: "PUT", body: { description: fullWorkoutText } }
     );
-    cur = (await client.events.getEvent(createdId)) as unknown as Record<
+    cur = (await services.events.getEvent(createdId)) as unknown as Record<
       string,
       unknown
     >;
@@ -99,7 +99,7 @@ async function main() {
       "F. can we set external_id via PUT on an event that doesn't have one?"
     );
     // first create a no-external-id event
-    const noExt = (await client.events.createEvents([
+    const noExt = (await services.events.createEvents([
       {
         category: "WORKOUT" as const,
         start_date_local: `${date}T00:00:00`,
@@ -122,7 +122,7 @@ async function main() {
         `/api/v1/athlete/${athleteId}/events/${noExtId}`,
         { method: "PUT", body: { external_id: newExtId } }
       );
-      const after = (await client.events.getEvent(
+      const after = (await services.events.getEvent(
         noExtId
       )) as unknown as Record<string, unknown>;
       console.log("after PUT external_id:", { external_id: after.external_id });
@@ -134,7 +134,7 @@ async function main() {
     header("cleanup");
     for (const id of orphans) {
       try {
-        await client.events.deleteEvents([{ id }]);
+        await services.events.deleteEvents([{ id }]);
         console.log("deleted", id);
       } catch (e) {
         console.log("delete ERROR for", id, ":", (e as Error).message);

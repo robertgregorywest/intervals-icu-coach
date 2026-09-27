@@ -3,9 +3,9 @@ import {
   getWellnessTool,
   getFitnessSummaryTool,
 } from "../../src/tools/wellness.js";
-import type { IIntervalsClient } from "../../src/index.js";
+import type { IServices } from "../../src/index.js";
 
-function createMockClient(): IIntervalsClient {
+function createMockServices(): IServices {
   return {
     wellness: {
       getWellness: vi
@@ -18,13 +18,13 @@ function createMockClient(): IIntervalsClient {
       }),
     },
     today: () => "2024-01-15",
-  } as unknown as IIntervalsClient;
+  } as unknown as IServices;
 }
 
 describe("getWellness tool handler", () => {
   it("returns wellness data as JSON", async () => {
-    const client = createMockClient();
-    const result = await getWellnessTool.handler(client, {
+    const services = createMockServices();
+    const result = await getWellnessTool.handler(services, {
       oldest: "2024-01-01",
       newest: "2024-01-31",
     });
@@ -39,13 +39,13 @@ describe("getWellness tool handler", () => {
 
 describe("getFitnessSummary tool handler", () => {
   it("returns today's fitness snapshot", async () => {
-    const client = createMockClient();
-    const parsed = (await getFitnessSummaryTool.handler(client, {})) as Record<
-      string,
-      unknown
-    >;
+    const services = createMockServices();
+    const parsed = (await getFitnessSummaryTool.handler(
+      services,
+      {}
+    )) as Record<string, unknown>;
 
     expect(parsed.ctl).toBe(62);
-    expect(client.wellness.getWellnessDay).toHaveBeenCalledWith("2024-01-15");
+    expect(services.wellness.getWellnessDay).toHaveBeenCalledWith("2024-01-15");
   });
 });

@@ -1,6 +1,6 @@
 import { parseArgs } from "node:util";
 import { zodToJsonSchema } from "zod-to-json-schema";
-import type { IIntervalsClient } from "../index.js";
+import type { IServices } from "../index.js";
 import { TOOLS } from "../registry.js";
 import { STATIC_INSTRUCTIONS } from "../mcp/syntax-doc.js";
 import { formatToolError } from "../errors.js";
@@ -18,7 +18,7 @@ function serialize(value: unknown, isTTY: boolean): string {
 
 export async function runCli(
   argv: string[],
-  getClient: () => IIntervalsClient,
+  getServices: () => IServices,
   io: CliIO
 ): Promise<void> {
   const { values, positionals } = parseArgs({
@@ -137,7 +137,7 @@ export async function runCli(
 
   // invoke handler
   try {
-    const result = await toolDef.handler(getClient(), parsed.data);
+    const result = await toolDef.handler(getServices(), parsed.data);
     io.stdout(serialize(result, io.isTTY));
   } catch (error) {
     io.stderr(formatToolError(error as Error));

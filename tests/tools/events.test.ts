@@ -5,7 +5,7 @@ import {
   updateEventTool,
   deleteEventsTool,
 } from "../../src/tools/events.js";
-import type { IIntervalsClient } from "../../src/index.js";
+import type { IServices } from "../../src/index.js";
 import type { IEventsApi } from "../../src/services/events/index.js";
 import { createWorkoutScheduling } from "../../src/services/workout-scheduling/index.js";
 import type { IWorkoutLibrary } from "../../src/services/workout-library/index.js";
@@ -16,9 +16,7 @@ const getEvent = getEventTool.handler;
 const updateEvent = updateEventTool.handler;
 const deleteEvents = deleteEventsTool.handler;
 
-function createMockClient(
-  overrides: Partial<IEventsApi> = {}
-): IIntervalsClient {
+function createMockServices(overrides: Partial<IEventsApi> = {}): IServices {
   const events = {
     getEvents: vi
       .fn()
@@ -45,13 +43,13 @@ function createMockClient(
       workoutLibrary: {} as IWorkoutLibrary,
       anchors: {} as IAthleteAnchors,
     }),
-  } as unknown as IIntervalsClient;
+  } as unknown as IServices;
 }
 
 describe("getEvents tool handler", () => {
   it("returns events as JSON", async () => {
-    const client = createMockClient();
-    const result = await getEvents(client, {
+    const services = createMockServices();
+    const result = await getEvents(services, {
       oldest: "2024-01-01",
       newest: "2024-01-31",
     });
@@ -61,7 +59,7 @@ describe("getEvents tool handler", () => {
     expect(parsed.count).toBe(1);
     expect(parsed.truncated).toBe(false);
     expect(parsed.events[0].name).toBe("Threshold Intervals");
-    expect(client.events.getEvents).toHaveBeenCalledWith(
+    expect(services.events.getEvents).toHaveBeenCalledWith(
       "2024-01-01",
       "2024-01-31"
     );
@@ -70,42 +68,42 @@ describe("getEvents tool handler", () => {
 
 describe("getEvent tool handler", () => {
   it("returns single event as JSON", async () => {
-    const client = createMockClient();
-    const result = await getEvent(client, { id: 1 });
+    const services = createMockServices();
+    const result = await getEvent(services, { id: 1 });
     const parsed = result;
 
     expect(parsed.description).toBe("- 10m 60%");
-    expect(client.events.getEvent).toHaveBeenCalledWith(1);
+    expect(services.events.getEvent).toHaveBeenCalledWith(1);
   });
 });
 
 describe("updateEvent tool handler", () => {
   it("updates event and returns result", async () => {
-    const client = createMockClient();
-    const result = await updateEvent(client, {
+    const services = createMockServices();
+    const result = await updateEvent(services, {
       id: 1,
       name: "Updated Workout",
     });
     const parsed = result;
 
     expect(parsed.name).toBe("Updated Workout");
-    expect(client.events.updateEvent).toHaveBeenCalledWith(1, {
+    expect(services.events.updateEvent).toHaveBeenCalledWith(1, {
       name: "Updated Workout",
     });
   });
 
   it("converts date to start_date_local", async () => {
-    const client = createMockClient();
-    await updateEvent(client, { id: 1, date: "2024-02-15" });
+    const services = createMockServices();
+    await updateEvent(services, { id: 1, date: "2024-02-15" });
 
-    expect(client.events.updateEvent).toHaveBeenCalledWith(1, {
+    expect(services.events.updateEvent).toHaveBeenCalledWith(1, {
       start_date_local: "2024-02-15T00:00:00",
     });
   });
 
   it("rebuilds description from steps and PUTs (issue #1)", async () => {
-    const client = createMockClient();
-    await updateEvent(client, {
+    const services = createMockServices();
+    await updateEvent(services, {
       id: 1,
       name: "Long Z2 2.5h",
       steps: [
@@ -114,28 +112,28 @@ describe("updateEvent tool handler", () => {
       ],
     });
 
-    expect(client.events.updateEvent).toHaveBeenCalledWith(1, {
+    expect(services.events.updateEvent).toHaveBeenCalledWith(1, {
       name: "Long Z2 2.5h",
       description: "- Warmup 10m 150w\n\n- Main 5m 240w",
     });
     // safety: did not need to fetch the existing event
-    expect(client.events.getEvent).not.toHaveBeenCalled();
+    expect(services.events.getEvent).not.toHaveBeenCalled();
   });
 
   it("rejects when both steps and description are provided", async () => {
-    const client = createMockClient();
+    const services = createMockServices();
     await expect(
-      updateEvent(client, {
+      updateEvent(services, {
         id: 1,
         steps: [{ duration: "10m", target: "150w" }],
         description: "some prose",
       })
     ).rejects.toThrow(/mutually exclusive/i);
-    expect(client.events.updateEvent).not.toHaveBeenCalled();
+    expect(services.events.updateEvent).not.toHaveBeenCalled();
   });
 
   it("rejects description-only update on a WORKOUT event (issue #1 guard)", async () => {
-    const client = createMockClient({
+    const services = createMockServices({
       getEvent: vi.fn().mockResolvedValue({
         id: 1,
         category: "WORKOUT",
@@ -145,17 +143,17 @@ describe("updateEvent tool handler", () => {
       }),
     });
     await expect(
-      updateEvent(client, {
+      updateEvent(services, {
         id: 1,
         name: "Renamed",
         description: "some notes with no step lines",
       })
     ).rejects.toThrow(/refusing to update 'description' on a WORKOUT event/);
-    expect(client.events.updateEvent).not.toHaveBeenCalled();
+    expect(services.events.updateEvent).not.toHaveBeenCalled();
   });
 
   it("allows prose plus step lines on a WORKOUT event", async () => {
-    const client = createMockClient({
+    const services = createMockServices({
       getEvent: vi.fn().mockResolvedValue({
         id: 1,
         category: "WORKOUT",
@@ -165,31 +163,33 @@ describe("updateEvent tool handler", () => {
       }),
     });
     const description = "Circulation, not stimulus.\n\n- Easy 40m 125w-165w";
-    await updateEvent(client, { id: 1, description });
-    expect(client.events.updateEvent).toHaveBeenCalledWith(1, { description });
+    await updateEvent(services, { id: 1, description });
+    expect(services.events.updateEvent).toHaveBeenCalledWith(1, {
+      description,
+    });
   });
 
   it("passes notes through to the description rebuild", async () => {
-    const client = createMockClient();
-    await updateEvent(client, {
+    const services = createMockServices();
+    await updateEvent(services, {
       id: 1,
       steps: [{ duration: "10m", target: "150w" }],
       notes: "Easy day.",
     });
-    expect(client.events.updateEvent).toHaveBeenCalledWith(1, {
+    expect(services.events.updateEvent).toHaveBeenCalledWith(1, {
       description: "Easy day.\n\n- 10m 150w",
     });
   });
 
   it("rejects notes without steps", async () => {
-    const client = createMockClient();
+    const services = createMockServices();
     await expect(
-      updateEvent(client, { id: 1, notes: "Easy day." })
+      updateEvent(services, { id: 1, notes: "Easy day." })
     ).rejects.toThrow(/'notes' requires 'steps'/);
   });
 
   it("allows description-only update on a non-WORKOUT event (NOTE)", async () => {
-    const client = createMockClient({
+    const services = createMockServices({
       getEvent: vi.fn().mockResolvedValue({
         id: 1,
         category: "NOTE",
@@ -197,19 +197,19 @@ describe("updateEvent tool handler", () => {
         description: "old prose",
       }),
     });
-    await updateEvent(client, { id: 1, description: "new prose" });
+    await updateEvent(services, { id: 1, description: "new prose" });
 
-    expect(client.events.updateEvent).toHaveBeenCalledWith(1, {
+    expect(services.events.updateEvent).toHaveBeenCalledWith(1, {
       description: "new prose",
     });
   });
 
   it("metadata-only update does not fetch the existing event (no extra round-trip)", async () => {
-    const client = createMockClient();
-    await updateEvent(client, { id: 1, name: "Renamed", color: "#abc" });
+    const services = createMockServices();
+    await updateEvent(services, { id: 1, name: "Renamed", color: "#abc" });
 
-    expect(client.events.getEvent).not.toHaveBeenCalled();
-    expect(client.events.updateEvent).toHaveBeenCalledWith(1, {
+    expect(services.events.getEvent).not.toHaveBeenCalled();
+    expect(services.events.updateEvent).toHaveBeenCalledWith(1, {
       name: "Renamed",
       color: "#abc",
     });
@@ -218,15 +218,15 @@ describe("updateEvent tool handler", () => {
 
 describe("deleteEvents tool handler", () => {
   it("deletes events and returns success", async () => {
-    const client = createMockClient();
-    const result = await deleteEvents(client, {
+    const services = createMockServices();
+    const result = await deleteEvents(services, {
       ids: [{ id: 1 }, { external_id: "test-2" }],
     });
     const parsed = result;
 
     expect(parsed.success).toBe(true);
     expect(parsed.deleted).toBe(2);
-    expect(client.events.deleteEvents).toHaveBeenCalledWith([
+    expect(services.events.deleteEvents).toHaveBeenCalledWith([
       { id: 1 },
       { external_id: "test-2" },
     ]);

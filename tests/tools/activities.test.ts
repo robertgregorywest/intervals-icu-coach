@@ -5,7 +5,7 @@ import {
   getActivityStreamsTool,
   getActivityLapsTool,
 } from "../../src/tools/activities.js";
-import type { IIntervalsClient } from "../../src/index.js";
+import type { IServices } from "../../src/index.js";
 import type { IActivitiesApi } from "../../src/services/activities/index.js";
 
 const getActivities = getActivitiesTool.handler;
@@ -13,9 +13,9 @@ const getActivity = getActivityTool.handler;
 const getActivityStreams = getActivityStreamsTool.handler;
 const getActivityLaps = getActivityLapsTool.handler;
 
-function createMockClient(
+function createMockServices(
   overrides: Partial<IActivitiesApi> = {}
-): IIntervalsClient {
+): IServices {
   const activities = {
     getActivities: vi
       .fn()
@@ -33,13 +33,13 @@ function createMockClient(
     }),
     ...overrides,
   };
-  return { activities } as unknown as IIntervalsClient;
+  return { activities } as unknown as IServices;
 }
 
 describe("getActivities tool handler", () => {
   it("returns activities as JSON", async () => {
-    const client = createMockClient();
-    const result = await getActivities(client, {
+    const services = createMockServices();
+    const result = await getActivities(services, {
       oldest: "2024-01-01",
       newest: "2024-01-31",
     });
@@ -49,7 +49,7 @@ describe("getActivities tool handler", () => {
     expect(parsed.count).toBe(1);
     expect(parsed.truncated).toBe(false);
     expect(parsed.activities[0].name).toBe("Morning Ride");
-    expect(client.activities.getActivities).toHaveBeenCalledWith(
+    expect(services.activities.getActivities).toHaveBeenCalledWith(
       "2024-01-01",
       "2024-01-31"
     );
@@ -58,30 +58,36 @@ describe("getActivities tool handler", () => {
 
 describe("getActivity tool handler", () => {
   it("returns single activity as JSON", async () => {
-    const client = createMockClient();
-    const result = await getActivity(client, { id: "i1" });
+    const services = createMockServices();
+    const result = await getActivity(services, { id: "i1" });
     const parsed = result;
 
     expect(parsed.name).toBe("Morning Ride");
-    expect(client.activities.getActivity).toHaveBeenCalledWith("i1", undefined);
+    expect(services.activities.getActivity).toHaveBeenCalledWith(
+      "i1",
+      undefined
+    );
   });
 
   it("normalizes bare number to i-prefixed string", async () => {
-    const client = createMockClient();
-    await getActivity(client, { id: 1 });
+    const services = createMockServices();
+    await getActivity(services, { id: 1 });
 
-    expect(client.activities.getActivity).toHaveBeenCalledWith("i1", undefined);
+    expect(services.activities.getActivity).toHaveBeenCalledWith(
+      "i1",
+      undefined
+    );
   });
 
   it("passes includeIntervals flag", async () => {
-    const client = createMockClient();
-    await getActivity(client, { id: "i1", includeIntervals: true });
+    const services = createMockServices();
+    await getActivity(services, { id: "i1", includeIntervals: true });
 
-    expect(client.activities.getActivity).toHaveBeenCalledWith("i1", true);
+    expect(services.activities.getActivity).toHaveBeenCalledWith("i1", true);
   });
 
   it("compacts interval analysis so a 4x2min block is discoverable", async () => {
-    const client = createMockClient({
+    const services = createMockServices({
       getActivity: vi.fn().mockResolvedValue({
         id: "i149578078",
         name: "Pursuit sharpening — 4 × 2min",
@@ -130,7 +136,7 @@ describe("getActivity tool handler", () => {
       }),
     });
 
-    const result = (await getActivity(client, {
+    const result = (await getActivity(services, {
       id: "i149578078",
       includeIntervals: true,
     })) as {
@@ -173,7 +179,7 @@ describe("getActivity tool handler", () => {
   });
 
   it("surfaces Strava stub as a structured limitation message", async () => {
-    const client = createMockClient({
+    const services = createMockServices({
       getActivity: vi.fn().mockResolvedValue({
         id: "i999",
         source: "STRAVA",
@@ -181,7 +187,7 @@ describe("getActivity tool handler", () => {
         _note: "STRAVA activities are not available via the API",
       }),
     });
-    const result = (await getActivity(client, { id: "i999" })) as Record<
+    const result = (await getActivity(services, { id: "i999" })) as Record<
       string,
       unknown
     >;
@@ -193,8 +199,8 @@ describe("getActivity tool handler", () => {
 
 describe("getActivityStreams tool handler", () => {
   it("returns streams in a packed envelope, full resolution when small", async () => {
-    const client = createMockClient();
-    const result = (await getActivityStreams(client, {
+    const services = createMockServices();
+    const result = (await getActivityStreams(services, {
       id: "i1",
     })) as {
       samples: number;
@@ -209,7 +215,7 @@ describe("getActivityStreams tool handler", () => {
     expect(result.samples).toBe(2);
     expect(result.original_samples).toBe(2);
     expect(result.streams.watts).toEqual([200, 210]);
-    expect(client.activities.getActivityStreams).toHaveBeenCalledWith(
+    expect(services.activities.getActivityStreams).toHaveBeenCalledWith(
       "i1",
       undefined
     );
@@ -218,11 +224,11 @@ describe("getActivityStreams tool handler", () => {
   it("downsamples large streams to fit the budget, preserving coverage", async () => {
     const watts = Array.from({ length: 20000 }, (_, i) => i);
     const heartrate = Array.from({ length: 20000 }, (_, i) => 100 + (i % 60));
-    const client = createMockClient({
+    const services = createMockServices({
       getActivityStreams: vi.fn().mockResolvedValue({ watts, heartrate }),
     });
 
-    const result = (await getActivityStreams(client, { id: "i1" })) as {
+    const result = (await getActivityStreams(services, { id: "i1" })) as {
       samples: number;
       original_samples: number;
       downsampled: boolean;
@@ -243,20 +249,20 @@ describe("getActivityStreams tool handler", () => {
   });
 
   it("normalizes bare number to i-prefixed string", async () => {
-    const client = createMockClient();
-    await getActivityStreams(client, { id: 1 });
+    const services = createMockServices();
+    await getActivityStreams(services, { id: 1 });
 
-    expect(client.activities.getActivityStreams).toHaveBeenCalledWith(
+    expect(services.activities.getActivityStreams).toHaveBeenCalledWith(
       "i1",
       undefined
     );
   });
 
   it("passes types filter", async () => {
-    const client = createMockClient();
-    await getActivityStreams(client, { id: "i1", types: ["watts"] });
+    const services = createMockServices();
+    await getActivityStreams(services, { id: "i1", types: ["watts"] });
 
-    expect(client.activities.getActivityStreams).toHaveBeenCalledWith("i1", [
+    expect(services.activities.getActivityStreams).toHaveBeenCalledWith("i1", [
       "watts",
     ]);
   });
@@ -264,7 +270,7 @@ describe("getActivityStreams tool handler", () => {
 
 describe("getActivityLaps tool handler", () => {
   it("returns the recorded laps and names the record", async () => {
-    const client = createMockClient({
+    const services = createMockServices({
       getActivityLaps: vi.fn().mockResolvedValue([
         {
           index: 0,
@@ -285,7 +291,7 @@ describe("getActivityLaps tool handler", () => {
         },
       ]),
     });
-    const result = await getActivityLaps(client, { id: "i176326434" });
+    const result = await getActivityLaps(services, { id: "i176326434" });
 
     expect(result.record).toBe("device-laps");
     expect(result.count).toBe(2);
@@ -299,10 +305,10 @@ describe("getActivityLaps tool handler", () => {
   });
 
   it("reports absent with a reason when no FIT file can be read", async () => {
-    const client = createMockClient({
+    const services = createMockServices({
       getActivityLaps: vi.fn().mockResolvedValue(null),
     });
-    const result = await getActivityLaps(client, { id: "i1" });
+    const result = await getActivityLaps(services, { id: "i1" });
 
     expect(result.record).toBe("absent");
     expect(result.laps).toEqual([]);
@@ -310,14 +316,14 @@ describe("getActivityLaps tool handler", () => {
   });
 
   it("notes that a single lap records no structure", async () => {
-    const client = createMockClient({
+    const services = createMockServices({
       getActivityLaps: vi
         .fn()
         .mockResolvedValue([
           { index: 0, startTimeSeconds: 0, durationSeconds: 3600 },
         ]),
     });
-    const result = await getActivityLaps(client, { id: "i1" });
+    const result = await getActivityLaps(services, { id: "i1" });
 
     expect(result.record).toBe("device-laps");
     expect(result.note).toMatch(/single lap/);
@@ -325,7 +331,7 @@ describe("getActivityLaps tool handler", () => {
 
   it("normalizes a bare numeric id", async () => {
     const getLaps = vi.fn().mockResolvedValue(null);
-    await getActivityLaps(createMockClient({ getActivityLaps: getLaps }), {
+    await getActivityLaps(createMockServices({ getActivityLaps: getLaps }), {
       id: 176326434,
     });
     expect(getLaps).toHaveBeenCalledWith("i176326434");

@@ -34,9 +34,9 @@ export const getWellnessTool = defineTool({
   schema: getWellnessSchema,
   annotations: READ_ONLY,
   outputSchema: getWellnessOutputSchema,
-  async handler(client, args) {
+  async handler(services, args) {
     assertDateRange(args.oldest, args.newest);
-    const all = await client.wellness.getWellness(args.oldest, args.newest);
+    const all = await services.wellness.getWellness(args.oldest, args.newest);
     const limit = args.limit ?? 50;
     const { items, total, truncated } = applyLimit(all, limit);
     return {
@@ -63,5 +63,5 @@ export const getFitnessSummaryTool = defineTool({
   schema: z.object({}),
   annotations: READ_ONLY,
   outputSchema: null,
-  handler: (client) => client.wellness.getWellnessDay(client.today()),
+  handler: (services) => services.wellness.getWellnessDay(services.today()),
 });

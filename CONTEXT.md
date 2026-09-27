@@ -25,6 +25,10 @@ The Adapter at `src/cli/` that projects Tools as Bash subcommands. The agent's z
 **Projection**:
 A single Tool as exposed by one Adapter. An **MCP tool** and a **CLI command** are two Projections of the same Tool.
 
+**Services**:
+The composition root (`src/index.ts`): `createServices(options)` builds every service once, over one `HttpClient`, and returns them as `IServices` — the one object every Tool handler receives, as `services`. It wires; it forwards nothing and holds no logic. Most of what hangs off it is domain logic computed here over Intervals.icu data (**Athlete anchors**, the **Prescription module**, the **Execution review module**, the **Forecast**), beside five thin API wrappers (events, activities, athlete, wellness, power curves).
+_Avoid_: "client" or `IntervalsClient` — the only clients are `HttpClient` and the API wrappers over it; calling the whole set a client reads computed results as though Intervals.icu returned them.
+
 **MAP zones**:
 The canonical coaching training zones, anchored to MAP (Ric Stern / cyclecoach model). Derived live by the **Athlete anchors** module and surfaced by `get_coaching_context` as `mapZones`. The coaching skills reason in these.
 _Avoid_: "power zones" (ambiguous with the FTP set)
@@ -241,7 +245,8 @@ Whether a Trial runs with the skills (`skills`) or without them (`no-skills`, th
 - A **Tool** is registered once in the **Tool registry**
 - Each **Adapter** iterates the **Tool registry** and produces one **Projection** per Tool
 - An **MCP tool** and a **CLI command** are **Projections** of the same **Tool**
-- An **Adapter** holds no business logic — that lives in the Tool's handler and the services it calls
+- An **Adapter** holds no business logic — that lives in the Tool's handler and the service modules it reaches through **Services**
+- A new service is built once in `createServices` and reached by handlers only through **Services**; no handler or service constructs another service
 - A **Workout template** is rendered by **Sync** into exactly one **Library workout**, found by its **Template marker**
 - A **Library workout** with no **Workout template** is an **Orphan**; a **Workout template** with no **Library workout** is created on the next **Sync**
 - An **Anchored target** moves when MAP/FTP moves; a **literal target** does not — that is the whole difference between them
@@ -276,4 +281,5 @@ Whether a Trial runs with the skills (`skills`) or without them (`no-skills`, th
 
 - "verdict" was used for two unrelated judgements — resolved: a **Verdict** judges delivery against prescription, an **Alignment verdict** judges how well a measurement was placed. They travel in different results and neither implies the other; a run can be ridden exactly to prescription and still align `weak`.
 - "seed" has two senses — a **Seed** is where a **Forecast** starts; a _seed case_ (tag `seed`) is one of the first **Scenarios** built for a skill. Unrelated; say "seed case" in full for the latter.
+- "client" named both the HTTP layer and the composition root (`IntervalsClient`) — resolved: `HttpClient` and the API wrappers are the clients; the composition root is **Services**.
 - "tool" was used for both the registered operation and its MCP form — resolved: the registered unit is a **Tool**; its MCP-surface form is an **MCP tool** (a **Projection**), and its CLI-surface form is a **CLI command**.

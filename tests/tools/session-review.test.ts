@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { comparePlannedVsActualTool } from "../../src/tools/session-review.js";
-import type { IIntervalsClient } from "../../src/index.js";
+import type { IServices } from "../../src/index.js";
 import {
   createExecutionReview,
   type PlannedVsActualResult,
@@ -28,9 +28,9 @@ const result: PlannedVsActualResult = {
 
 function clientWith(spy = vi.fn().mockResolvedValue(result)) {
   return {
-    client: {
+    services: {
       executionReview: { comparePlannedVsActual: spy },
-    } as unknown as IIntervalsClient,
+    } as unknown as IServices,
     spy,
   };
 }
@@ -38,35 +38,35 @@ function clientWith(spy = vi.fn().mockResolvedValue(result)) {
 /** The real service over a fetch that answers nothing. */
 function realClient() {
   const fetchFn = routedFetch([]);
-  const client = {
+  const services = {
     executionReview: createExecutionReview(intervalsApis(fetchFn)),
-  } as unknown as IIntervalsClient;
-  return { client, fetchFn };
+  } as unknown as IServices;
+  return { services, fetchFn };
 }
 
 describe("compare_planned_vs_actual handler", () => {
   it("rejects both identifiers before making any request", async () => {
-    const { client, fetchFn } = realClient();
+    const { services, fetchFn } = realClient();
 
     await expect(
-      comparePlannedVsActual(client, { activityId: "i1", eventId: 2 })
+      comparePlannedVsActual(services, { activityId: "i1", eventId: 2 })
     ).rejects.toThrow(/exactly one/);
     expect(requested(fetchFn)).toEqual([]);
   });
 
   it("rejects neither identifier before making any request", async () => {
-    const { client, fetchFn } = realClient();
+    const { services, fetchFn } = realClient();
 
-    await expect(comparePlannedVsActual(client, {})).rejects.toThrow(
+    await expect(comparePlannedVsActual(services, {})).rejects.toThrow(
       /exactly one/
     );
     expect(requested(fetchFn)).toEqual([]);
   });
 
   it("passes a single activityId through", async () => {
-    const { client, spy } = clientWith();
+    const { services, spy } = clientWith();
 
-    await comparePlannedVsActual(client, { activityId: "i171371339" });
+    await comparePlannedVsActual(services, { activityId: "i171371339" });
 
     expect(spy).toHaveBeenCalledWith({
       activityId: "i171371339",
@@ -76,9 +76,9 @@ describe("compare_planned_vs_actual handler", () => {
   });
 
   it("prefixes a bare numeric activity ID", async () => {
-    const { client, spy } = clientWith();
+    const { services, spy } = clientWith();
 
-    await comparePlannedVsActual(client, { activityId: 171371339 });
+    await comparePlannedVsActual(services, { activityId: 171371339 });
 
     expect(spy).toHaveBeenCalledWith(
       expect.objectContaining({ activityId: "i171371339" })
@@ -86,9 +86,9 @@ describe("compare_planned_vs_actual handler", () => {
   });
 
   it("passes a single eventId through untouched", async () => {
-    const { client, spy } = clientWith();
+    const { services, spy } = clientWith();
 
-    await comparePlannedVsActual(client, { eventId: 123780543 });
+    await comparePlannedVsActual(services, { eventId: 123780543 });
 
     expect(spy).toHaveBeenCalledWith({
       activityId: undefined,
@@ -98,9 +98,9 @@ describe("compare_planned_vs_actual handler", () => {
   });
 
   it("passes tolerance through", async () => {
-    const { client, spy } = clientWith();
+    const { services, spy } = clientWith();
 
-    await comparePlannedVsActual(client, {
+    await comparePlannedVsActual(services, {
       activityId: "i171371339",
       tolerance: 0.12,
     });

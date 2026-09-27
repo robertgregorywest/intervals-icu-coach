@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { IntervalsClient } from "../src/index.js";
+import { createServices } from "../src/index.js";
 
-describe("IntervalsClient config validation", () => {
+describe("createServices config validation", () => {
   const original = {
     INTERVALS_API_KEY: process.env.INTERVALS_API_KEY,
     INTERVALS_ATHLETE_ID: process.env.INTERVALS_ATHLETE_ID,
@@ -20,60 +20,56 @@ describe("IntervalsClient config validation", () => {
   });
 
   it("rejects missing apiKey", () => {
-    expect(() => new IntervalsClient()).toThrow(/API key required/);
+    expect(() => createServices()).toThrow(/API key required/);
   });
 
   it("rejects whitespace-only apiKey", () => {
-    expect(() => new IntervalsClient({ apiKey: "   " })).toThrow(
-      /API key required/
-    );
+    expect(() => createServices({ apiKey: "   " })).toThrow(/API key required/);
   });
 
   it("rejects athleteId with non-alphanumeric characters", () => {
-    expect(
-      () => new IntervalsClient({ apiKey: "k", athleteId: "../etc/passwd" })
+    expect(() =>
+      createServices({ apiKey: "k", athleteId: "../etc/passwd" })
     ).toThrow(/Invalid athlete ID/);
   });
 
   it("rejects athleteId with whitespace", () => {
-    expect(
-      () => new IntervalsClient({ apiKey: "k", athleteId: "i 123" })
-    ).toThrow(/Invalid athlete ID/);
+    expect(() => createServices({ apiKey: "k", athleteId: "i 123" })).toThrow(
+      /Invalid athlete ID/
+    );
   });
 
   it("rejects unparseable baseUrl", () => {
-    expect(
-      () => new IntervalsClient({ apiKey: "k", baseUrl: "not a url" })
-    ).toThrow(/Invalid base URL/);
+    expect(() => createServices({ apiKey: "k", baseUrl: "not a url" })).toThrow(
+      /Invalid base URL/
+    );
   });
 
   it("rejects non-http(s) baseUrl protocol", () => {
-    expect(
-      () => new IntervalsClient({ apiKey: "k", baseUrl: "file:///etc/hosts" })
+    expect(() =>
+      createServices({ apiKey: "k", baseUrl: "file:///etc/hosts" })
     ).toThrow(/Invalid base URL/);
   });
 
   it("accepts valid config with default athleteId", () => {
-    expect(() => new IntervalsClient({ apiKey: "k" })).not.toThrow();
+    expect(() => createServices({ apiKey: "k" })).not.toThrow();
   });
 
   it('accepts athleteId "0"', () => {
-    expect(
-      () => new IntervalsClient({ apiKey: "k", athleteId: "0" })
-    ).not.toThrow();
+    expect(() => createServices({ apiKey: "k", athleteId: "0" })).not.toThrow();
   });
 
   it('accepts athleteId "i12345"', () => {
-    expect(
-      () => new IntervalsClient({ apiKey: "k", athleteId: "i12345" })
+    expect(() =>
+      createServices({ apiKey: "k", athleteId: "i12345" })
     ).not.toThrow();
   });
 });
 
-describe("IntervalsClient pinned today", () => {
+describe("createServices pinned today", () => {
   const TODAY = "2026-09-06";
 
-  function pinnedClient() {
+  function pinnedServices() {
     const urls: string[] = [];
     const fetchFn = async (input: Parameters<typeof fetch>[0]) => {
       const url = String(input);
@@ -86,41 +82,41 @@ describe("IntervalsClient pinned today", () => {
         headers: { "content-type": "application/json" },
       });
     };
-    const client = new IntervalsClient({
+    const services = createServices({
       apiKey: "k",
       athleteId: "i1",
       fetchFn,
       today: () => TODAY,
     });
-    return { client, urls };
+    return { services, urls };
   }
 
   it("anchors the coaching context's window on the pinned day", async () => {
-    const { client, urls } = pinnedClient();
-    const ctx = await client.coachingContext.getCoachingContext();
+    const { services, urls } = pinnedServices();
+    const ctx = await services.coachingContext.getCoachingContext();
     expect(ctx.asOf).toBe(TODAY);
     const wellness = urls.find((u) => u.includes("/wellness?"));
     expect(new URL(wellness!).searchParams.get("newest")).toBe(TODAY);
   });
 
   it("looks back for MAP from the pinned day when profiling power", async () => {
-    const { client, urls } = pinnedClient();
-    await client.powerProfile.computePowerProfile().catch(() => undefined);
+    const { services, urls } = pinnedServices();
+    await services.powerProfile.computePowerProfile().catch(() => undefined);
     const activities = urls.find((u) => u.includes("/activities?"));
     expect(new URL(activities!).searchParams.get("newest")).toBe(TODAY);
   });
 
   it("answers FTP from one athlete request, without the coaching context", async () => {
-    const { client, urls } = pinnedClient();
-    await client.anchors.getAthleteAnchors();
+    const { services, urls } = pinnedServices();
+    await services.anchors.getAthleteAnchors();
     expect(urls.map((u) => new URL(u).pathname)).toEqual([
       "/api/v1/athlete/i1",
     ]);
   });
 
   it("builds no coaching context for the execution digest", async () => {
-    const { client, urls } = pinnedClient();
-    await client.executionReview.getExecutionDigest({
+    const { services, urls } = pinnedServices();
+    await services.executionReview.getExecutionDigest({
       oldest: "2026-09-01",
       newest: "2026-09-06",
     });
@@ -129,8 +125,8 @@ describe("IntervalsClient pinned today", () => {
   });
 
   it("keeps an explicit coaching-context today over the pinned one", async () => {
-    const { client } = pinnedClient();
-    const ctx = await client.coachingContext.getCoachingContext({
+    const { services } = pinnedServices();
+    const ctx = await services.coachingContext.getCoachingContext({
       today: "2026-08-01",
     });
     expect(ctx.asOf).toBe("2026-08-01");

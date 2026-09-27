@@ -93,8 +93,10 @@ export const getAerobicDecouplingTool = defineTool({
   schema: getAerobicDecouplingSchema,
   annotations: READ_ONLY,
   outputSchema: getAerobicDecouplingOutputSchema,
-  handler: (client, args) =>
-    client.analysis.getAerobicDecoupling(normalizeActivityId(args.activityId)),
+  handler: (services, args) =>
+    services.analysis.getAerobicDecoupling(
+      normalizeActivityId(args.activityId)
+    ),
 });
 
 export const compareIntervalsTool = defineTool({
@@ -109,8 +111,8 @@ export const compareIntervalsTool = defineTool({
   schema: compareIntervalsSchema,
   annotations: READ_ONLY,
   outputSchema: compareIntervalsOutputSchema,
-  handler: (client, args) =>
-    client.analysis.compareIntervals(
+  handler: (services, args) =>
+    services.analysis.compareIntervals(
       args.activityIds.map(normalizeActivityId),
       {
         minPower: args.minPower,

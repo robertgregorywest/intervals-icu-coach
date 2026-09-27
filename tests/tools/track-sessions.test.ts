@@ -8,14 +8,14 @@ import {
 import { createTrack } from "../../src/services/track/index.js";
 import { loadTrackSessionRecords } from "../../src/services/track/records/loader.js";
 import type { IActivitiesApi } from "../../src/services/activities/index.js";
-import type { IIntervalsClient } from "../../src/index.js";
+import type { IServices } from "../../src/index.js";
 
 const FIXTURES = fileURLToPath(
   new URL("../fixtures/track-sessions", import.meta.url)
 );
 
-/** The real service behind the client interface, reading the fixtures. */
-function fixtureClient(): IIntervalsClient {
+/** The real service behind the services interface, reading the fixtures. */
+function fixtureServices(): IServices {
   const service = createTrack({
     activitiesApi: {} as IActivitiesApi,
     load: () => loadTrackSessionRecords(FIXTURES),
@@ -26,7 +26,7 @@ function fixtureClient(): IIntervalsClient {
       getSession: vi.fn((o) => service.getSession(o)),
       compareSessions: vi.fn((o) => service.compareSessions(o)),
     },
-  } as unknown as IIntervalsClient;
+  } as unknown as IServices;
 }
 
 const listTrackSessions = listTrackSessionsTool.handler;
@@ -71,21 +71,21 @@ describe("track session tool schemas", () => {
 
 describe("track session tool handlers", () => {
   it("lists sessions in a shape matching the declared output schema", async () => {
-    const client = fixtureClient();
-    const result = await listTrackSessions(client, {});
+    const services = fixtureServices();
+    const result = await listTrackSessions(services, {});
     expect(listTrackSessionsOutputSchema.parse(result)).toBeTruthy();
     expect(result.sessions).toHaveLength(4);
-    expect(client.track.listSessions).toHaveBeenCalled();
+    expect(services.track.listSessions).toHaveBeenCalled();
   });
 
   it("passes id and segmentLaps through, and matches the output schema", async () => {
-    const client = fixtureClient();
-    const result = await getTrackSession(client, {
+    const services = fixtureServices();
+    const result = await getTrackSession(services, {
       id: "2026-nationals-ip",
       segmentLaps: 2,
     });
     expect(getTrackSessionOutputSchema.parse(result)).toBeTruthy();
-    expect(client.track.getSession).toHaveBeenCalledWith({
+    expect(services.track.getSession).toHaveBeenCalledWith({
       id: "2026-nationals-ip",
       segmentLaps: 2,
     });
@@ -96,8 +96,8 @@ describe("track session tool handlers", () => {
   });
 
   it("compares runs in a shape matching the declared output schema", async () => {
-    const client = fixtureClient();
-    const result = await compareTrackSessions(client, {
+    const services = fixtureServices();
+    const result = await compareTrackSessions(services, {
       runs: ["2026-09-06-bmrc-ip", "2026-nationals-ip"],
     });
     expect(compareTrackSessionsOutputSchema.parse(result)).toBeTruthy();

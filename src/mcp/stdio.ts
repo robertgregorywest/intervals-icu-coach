@@ -1,19 +1,19 @@
 #!/usr/bin/env node
 import "dotenv/config";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { IntervalsClient } from "../index.js";
+import { createServices, type IServices } from "../index.js";
 import { createMcpServer } from "./server.js";
 
 async function main() {
-  let client: IntervalsClient;
+  let services: IServices;
   try {
-    client = new IntervalsClient();
+    services = createServices();
   } catch (error) {
-    console.error("[intervals-icu-mcp] Failed to create client:", error);
+    console.error("[intervals-icu-mcp] Failed to create services:", error);
     process.exit(1);
   }
 
-  const server = createMcpServer(client);
+  const server = createMcpServer(services);
   const transport = new StdioServerTransport();
 
   process.on("SIGINT", () => {

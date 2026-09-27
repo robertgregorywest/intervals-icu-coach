@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { computeTrackLapPowerTool } from "../../src/tools/track-lap-alignment.js";
 import { createTrack } from "../../src/services/track/index.js";
-import type { IIntervalsClient } from "../../src/index.js";
+import type { IServices } from "../../src/index.js";
 import type { IActivitiesApi } from "../../src/services/activities/index.js";
 import type { ActivityStreams } from "../../src/services/activities/types.js";
 
@@ -19,8 +19,8 @@ function read(name: string) {
 const SESSION = JSON.parse(read("track-session-2026-08-08.json"));
 const SPLITS = read("splits-2026-08-08.csv");
 
-function clientWithStreams(): {
-  client: IIntervalsClient;
+function servicesWithStreams(): {
+  services: IServices;
   requested: string[];
 } {
   const requested: string[] = [];
@@ -40,10 +40,10 @@ function clientWithStreams(): {
       } as ActivityStreams;
     },
   };
-  const client = {
+  const services = {
     track: createTrack({ activitiesApi }),
-  } as unknown as IIntervalsClient;
-  return { client, requested };
+  } as unknown as IServices;
+  return { services, requested };
 }
 
 const computeTrackLapPower = computeTrackLapPowerTool.handler;
@@ -52,8 +52,8 @@ const computeTrackLapPowerOutputSchema = computeTrackLapPowerTool.outputSchema;
 
 describe("compute_track_lap_power", () => {
   it("returns a result its own output schema accepts", async () => {
-    const { client } = clientWithStreams();
-    const result = await computeTrackLapPower(client, {
+    const { services } = servicesWithStreams();
+    const result = await computeTrackLapPower(services, {
       activityId: "i173732945",
       splits: SPLITS,
     });
@@ -65,8 +65,8 @@ describe("compute_track_lap_power", () => {
   });
 
   it("accepts a bare numeric activity id", async () => {
-    const { client, requested } = clientWithStreams();
-    await computeTrackLapPower(client, {
+    const { services, requested } = servicesWithStreams();
+    await computeTrackLapPower(services, {
       activityId: 173732945,
       splits: SPLITS,
     });
@@ -74,8 +74,8 @@ describe("compute_track_lap_power", () => {
   });
 
   it("leaves an already-prefixed id alone", async () => {
-    const { client, requested } = clientWithStreams();
-    await computeTrackLapPower(client, {
+    const { services, requested } = servicesWithStreams();
+    await computeTrackLapPower(services, {
       activityId: "i173732945",
       splits: SPLITS,
     });
@@ -85,17 +85,17 @@ describe("compute_track_lap_power", () => {
   // "splits or sessionId" cannot be a schema refinement — the MCP adapter
   // registers `schema.shape`, which `.refine()` erases — so the handler owns it.
   it("refuses a call with neither splits nor a session id", async () => {
-    const { client } = clientWithStreams();
+    const { services } = servicesWithStreams();
     expect(computeTrackLapPowerSchema.safeParse({}).success).toBe(true);
     await expect(
-      computeTrackLapPower(client, { activityId: "i1" })
+      computeTrackLapPower(services, { activityId: "i1" })
     ).rejects.toThrow(/Supply splits .* or sessionId/);
   });
 
   it("requires an activity id alongside pasted splits", async () => {
-    const { client } = clientWithStreams();
+    const { services } = servicesWithStreams();
     await expect(
-      computeTrackLapPower(client, { splits: SPLITS })
+      computeTrackLapPower(services, { splits: SPLITS })
     ).rejects.toThrow(/activityId is required when splits are pasted/);
   });
 
@@ -110,7 +110,7 @@ describe("compute_track_lap_power", () => {
   });
 
   it("passes a custom lap distance through", async () => {
-    const { client } = clientWithStreams();
+    const { services } = servicesWithStreams();
     const relabelled = SPLITS.split("\n")
       .map((line, i) => {
         if (i === 0 || !line.trim()) return line;
@@ -120,7 +120,7 @@ describe("compute_track_lap_power", () => {
       })
       .join("\n");
 
-    const result = await computeTrackLapPower(client, {
+    const result = await computeTrackLapPower(services, {
       activityId: "i173732945",
       splits: relabelled,
       lapDistanceMeters: 333.33,
@@ -129,9 +129,9 @@ describe("compute_track_lap_power", () => {
   });
 
   it("surfaces a split-record error to the caller", async () => {
-    const { client } = clientWithStreams();
+    const { services } = servicesWithStreams();
     await expect(
-      computeTrackLapPower(client, {
+      computeTrackLapPower(services, {
         activityId: "i173732945",
         splits: "1,250,16.26,16.26\n1,500,32.69,17.43\n",
       })

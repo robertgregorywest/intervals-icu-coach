@@ -1,17 +1,17 @@
 #!/usr/bin/env -S npx tsx
 import "dotenv/config";
-import { IntervalsClient } from "../src/index.js";
-import { evalClientOptions } from "../src/cassette.js";
+import { createServices } from "../src/index.js";
+import { evalServicesOptions } from "../src/cassette.js";
 import { runCli } from "../src/cli/main.js";
 
 await runCli(
   process.argv.slice(2),
   () =>
-    new IntervalsClient({
+    createServices({
       apiKey: process.env.INTERVALS_API_KEY ?? "",
       athleteId: process.env.INTERVALS_ATHLETE_ID,
       // Record/replay and a pinned "today" for skill evals; no-op when unset.
-      ...evalClientOptions(process.env),
+      ...evalServicesOptions(process.env),
     }),
   {
     stdout: (s) => process.stdout.write(s + "\n"),

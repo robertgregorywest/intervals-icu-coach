@@ -16,22 +16,22 @@ import type { FetchFn } from "./client.js";
 // never sent in either mode — they are appended to a capture file and
 // answered with a synthetic success.
 
-export interface EvalClientOptions {
+export interface EvalServicesOptions {
   apiKey?: string;
   fetchFn?: FetchFn;
   today?: () => string;
 }
 
 /**
- * Client options from the eval env switches — `ICU_REPLAY_DIR` (replay) or
+ * `createServices` options from the eval env switches — `ICU_REPLAY_DIR` (replay) or
  * `ICU_RECORD_DIR` (record), each with `ICU_CAPTURE_FILE` for writes, and
  * `ICU_NOW` to pin "today". `ICU_RECORD_MISSING` alongside a replay dir
  * records whatever the cassette lacks. Empty when none are set.
  */
-export function evalClientOptions(
+export function evalServicesOptions(
   env: Record<string, string | undefined>
-): EvalClientOptions {
-  const opts: EvalClientOptions = {};
+): EvalServicesOptions {
+  const opts: EvalServicesOptions = {};
   if (env.ICU_NOW) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(env.ICU_NOW)) {
       throw new Error(`ICU_NOW must be YYYY-MM-DD, got ${env.ICU_NOW}`);

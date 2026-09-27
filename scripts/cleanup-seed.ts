@@ -8,7 +8,7 @@
  * Default = dry run. Pass --apply to actually delete.
  */
 import "dotenv/config";
-import { IntervalsClient } from "../src/index.js";
+import { createServices } from "../src/index.js";
 import {
   CANONICAL_TEMPLATES,
   extractRationale,
@@ -29,9 +29,9 @@ interface RawFolder {
 }
 
 async function main() {
-  const client = new IntervalsClient();
+  const services = createServices();
   const httpClient = (
-    client as unknown as {
+    services as unknown as {
       httpClient: { request: <T>(p: string, o?: unknown) => Promise<T> };
     }
   ).httpClient;

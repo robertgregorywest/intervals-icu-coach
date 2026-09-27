@@ -109,6 +109,6 @@ export const getCoachingContextTool = defineTool({
   schema: getCoachingContextSchema,
   annotations: READ_ONLY,
   outputSchema: getCoachingContextOutputSchema,
-  handler: (client, args) =>
-    client.coachingContext.getCoachingContext({ days: args.days }),
+  handler: (services, args) =>
+    services.coachingContext.getCoachingContext({ days: args.days }),
 });

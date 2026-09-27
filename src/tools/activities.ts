@@ -49,9 +49,12 @@ export const getActivitiesTool = defineTool({
   schema: getActivitiesSchema,
   annotations: READ_ONLY,
   outputSchema: getActivitiesOutputSchema,
-  async handler(client, args) {
+  async handler(services, args) {
     assertDateRange(args.oldest, args.newest);
-    const all = await client.activities.getActivities(args.oldest, args.newest);
+    const all = await services.activities.getActivities(
+      args.oldest,
+      args.newest
+    );
     const limit = args.limit ?? 50;
     const { items, total, truncated } = applyLimit(all, limit);
     return {
@@ -97,9 +100,9 @@ export const getActivityTool = defineTool({
   schema: getActivitySchema,
   annotations: READ_ONLY,
   outputSchema: null,
-  async handler(client, args) {
+  async handler(services, args) {
     const id = normalizeActivityId(args.id);
-    const activity = await client.activities.getActivity(
+    const activity = await services.activities.getActivity(
       id,
       args.includeIntervals
     );
@@ -145,9 +148,12 @@ export const getActivityStreamsTool = defineTool({
   schema: getActivityStreamsSchema,
   annotations: READ_ONLY,
   outputSchema: null,
-  async handler(client, args) {
+  async handler(services, args) {
     const id = normalizeActivityId(args.id);
-    const streams = await client.activities.getActivityStreams(id, args.types);
+    const streams = await services.activities.getActivityStreams(
+      id,
+      args.types
+    );
     return packStreams(
       streams as unknown as Record<string, unknown>,
       STREAMS_CHARACTER_BUDGET
@@ -196,9 +202,9 @@ export const getActivityLapsTool = defineTool({
   schema: getActivityLapsSchema,
   annotations: READ_ONLY,
   outputSchema: getActivityLapsOutputSchema,
-  async handler(client, args) {
+  async handler(services, args) {
     const id = normalizeActivityId(args.id);
-    const laps = await client.activities.getActivityLaps(id);
+    const laps = await services.activities.getActivityLaps(id);
     if (!laps || laps.length === 0) {
       return {
         record: "absent" as const,

@@ -89,5 +89,5 @@ export const computeTrackLapPowerTool = defineTool({
   annotations: READ_ONLY,
   outputSchema: computeTrackLapPowerOutputSchema,
   // The schema cannot say "exactly one of"; `align` checks it.
-  handler: async (client, args) => client.track.align(args as TrackInput),
+  handler: async (services, args) => services.track.align(args as TrackInput),
 });

@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from "vitest";
 import { getPowerCurveTool } from "../../src/tools/power.js";
-import type { IIntervalsClient } from "../../src/index.js";
+import type { IServices } from "../../src/index.js";
 
 const getPowerCurve = getPowerCurveTool.handler;
 
-function createMockClient(): IIntervalsClient {
+function createMockServices(): IServices {
   return {
     powerCurves: {
       getPowerCurve: vi.fn().mockResolvedValue([
@@ -13,13 +13,13 @@ function createMockClient(): IIntervalsClient {
         { secs: 300, value: 320, activity_id: 1 },
       ]),
     },
-  } as unknown as IIntervalsClient;
+  } as unknown as IServices;
 }
 
 describe("getPowerCurve tool handler", () => {
   it("returns power curve as { points: [...] }", async () => {
-    const client = createMockClient();
-    const result = (await getPowerCurve(client, {})) as {
+    const services = createMockServices();
+    const result = (await getPowerCurve(services, {})) as {
       points: Array<{ secs: number; value: number }>;
     };
 
@@ -29,19 +29,19 @@ describe("getPowerCurve tool handler", () => {
   });
 
   it("defaults type to Ride when omitted", async () => {
-    const client = createMockClient();
-    await getPowerCurve(client, { range: "90d" });
-    expect(client.powerCurves.getPowerCurve).toHaveBeenCalledWith({
+    const services = createMockServices();
+    await getPowerCurve(services, { range: "90d" });
+    expect(services.powerCurves.getPowerCurve).toHaveBeenCalledWith({
       type: "Ride",
       range: "90d",
     });
   });
 
   it("passes type and range options", async () => {
-    const client = createMockClient();
-    await getPowerCurve(client, { type: "Ride", range: "90d" });
+    const services = createMockServices();
+    await getPowerCurve(services, { type: "Ride", range: "90d" });
 
-    expect(client.powerCurves.getPowerCurve).toHaveBeenCalledWith({
+    expect(services.powerCurves.getPowerCurve).toHaveBeenCalledWith({
       type: "Ride",
       range: "90d",
     });
@@ -71,17 +71,17 @@ describe("getPowerCurve thinning", () => {
       z: { id: "z" },
     },
   };
-  const client = () =>
+  const services = () =>
     ({
       powerCurves: { getPowerCurve: vi.fn().mockResolvedValue(curve) },
-    }) as unknown as IIntervalsClient;
+    }) as unknown as IServices;
 
   type Out = {
     points: { list: Array<Record<string, unknown>>; activities: object };
   };
 
   it("drops heavy fields by default and keeps powerModels", async () => {
-    const c = client();
+    const c = services();
     const { points } = (await getPowerCurve(c, { type: "Ride" })) as Out;
     const l = points.list[0];
     expect(l).not.toHaveProperty("values");
@@ -96,7 +96,7 @@ describe("getPowerCurve thinning", () => {
   });
 
   it("secs filter picks nearest points and reports the request", async () => {
-    const { points } = (await getPowerCurve(client(), {
+    const { points } = (await getPowerCurve(services(), {
       secs: [60, 240],
     })) as Out;
     const l = points.list[0];
@@ -108,7 +108,7 @@ describe("getPowerCurve thinning", () => {
   });
 
   it("full returns the raw curve", async () => {
-    const { points } = (await getPowerCurve(client(), { full: true })) as Out;
+    const { points } = (await getPowerCurve(services(), { full: true })) as Out;
     expect(points).toEqual(curve);
   });
 });

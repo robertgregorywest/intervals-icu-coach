@@ -4,9 +4,9 @@ MCP server and CLI tool for the Intervals.icu API plus tools and skills to suppo
 
 ## Architecture
 
-- **Services** (`src/services/`) — business logic behind interfaces (`IWorkoutScheduling`, `IEventsApi`, `IWorkoutLibrary`). Each service has `types.ts`, implementation, and `index.ts` re-exporting the interface + factory. Larger services (`workout-library/`) split into multiple files (api/parser/template/render/loader/sync/library) — same pattern, more surface.
+- **Service modules** (`src/services/`) — business logic behind interfaces (`IWorkoutScheduling`, `IEventsApi`, `IWorkoutLibrary`). Each service has `types.ts`, implementation, and `index.ts` re-exporting the interface + factory. Larger services (`workout-library/`) split into multiple files (api/parser/template/render/loader/sync/library) — same pattern, more surface.
 - **Client** (`src/client.ts`) — `HttpClient` with Basic auth, rate limiting, injectable `fetchFn` for testing.
-- **Composition root** (`src/index.ts`) — `IntervalsClient` builds every service once and exposes them as `IIntervalsClient`. Handlers reach services through it; it forwards nothing.
+- **Services** (`src/index.ts`) — the composition root: `createServices()` builds every service once and returns them as `IServices`, which every handler receives as `services`. It forwards nothing.
 - **Tool registry** (`src/registry.ts`) — the list of all Tools (`ToolDef[]`), one line each. Both adapters iterate it — see `docs/adr/0001-cli-adapter-and-tool-registry.md`.
 - **Tools** (`src/tools/`) — each Tool is one `defineTool({ name, description, schema, annotations, outputSchema, handler })`, so the handler's args are typed by its own schema. Logic beyond shaping a response belongs in a service.
 - **MCP adapter** (`src/mcp/`) — `server.ts` registers each Tool; `syntax-doc.ts` is the source of truth for the workout-text `instructions`.
@@ -14,7 +14,7 @@ MCP server and CLI tool for the Intervals.icu API plus tools and skills to suppo
 - **Tests** (`tests/`) — mirror `src/` structure. Use injectable fetch (not global mocks).
 - **Skill evals** (`evals/skills/`) — `npm run eval:skills` scores the coaching skills against recorded scenarios in the private `docs/personal/evals/`. **Manual only, and every run costs money** — never add it to `npm test`, the hook or the release, and don't run it unasked. See `docs/evals.md` and `docs/adr/0009-skill-evals.md`.
 
-New tools: `defineTool` in `src/tools/` → one line in `src/registry.ts` → both adapters pick it up. New behaviour gets a service with an interface, built in the `IntervalsClient` constructor.
+New tools: `defineTool` in `src/tools/` → one line in `src/registry.ts` → both adapters pick it up. New behaviour gets a service with an interface, built in `createServices`.
 
 Domain vocabulary is defined once in `CONTEXT.md` — read it before naming something new.
 

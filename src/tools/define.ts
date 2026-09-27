@@ -1,6 +1,6 @@
 import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import type { z } from "zod";
-import type { IIntervalsClient } from "../index.js";
+import type { IServices } from "../index.js";
 
 export const READ_ONLY: ToolAnnotations = {
   readOnlyHint: true,
@@ -54,7 +54,7 @@ export interface Tool<
   schema: S;
   annotations: ToolAnnotations;
   outputSchema: O;
-  handler(client: IIntervalsClient, args: z.infer<S>): Promise<ToolResult<O>>;
+  handler(services: IServices, args: z.infer<S>): Promise<ToolResult<O>>;
 }
 
 export type ToolDef = Tool;
