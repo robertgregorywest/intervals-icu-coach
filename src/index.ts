@@ -4,10 +4,8 @@ import { isoToday } from "./clock.js";
 import { parseClientConfig } from "./config.js";
 import { createEventsApi } from "./services/events/index.js";
 import type { IEventsApi } from "./services/events/index.js";
-import { createEventUpdate } from "./services/event-update/index.js";
-import type { IEventUpdate } from "./services/event-update/index.js";
-import { createWorkoutBuilder } from "./services/workout-builder/index.js";
-import type { IWorkoutBuilder } from "./services/workout-builder/index.js";
+import { createWorkoutScheduling } from "./services/workout-scheduling/index.js";
+import type { IWorkoutScheduling } from "./services/workout-scheduling/index.js";
 import { createAthleteApi } from "./services/athlete/index.js";
 import type { IAthleteApi } from "./services/athlete/index.js";
 import { createActivitiesApi } from "./services/activities/index.js";
@@ -48,8 +46,8 @@ import type { IPowerProfile } from "./services/power-profile/index.js";
  */
 export interface IIntervalsClient {
   readonly events: IEventsApi;
-  readonly eventUpdate: IEventUpdate;
-  readonly workoutBuilder: IWorkoutBuilder;
+  /** Every workout write to the calendar, and the update_event structure guard. */
+  readonly workoutScheduling: IWorkoutScheduling;
   readonly athlete: IAthleteApi;
   /** FTP, weight, power zones, MAP and MAP zones — the one place they are read. */
   readonly anchors: IAthleteAnchors;
@@ -84,8 +82,7 @@ export interface IntervalsClientOptions {
 /** The composition root: builds every service once, over one HTTP client. */
 export class IntervalsClient implements IIntervalsClient {
   readonly events: IEventsApi;
-  readonly eventUpdate: IEventUpdate;
-  readonly workoutBuilder: IWorkoutBuilder;
+  readonly workoutScheduling: IWorkoutScheduling;
   readonly athlete: IAthleteApi;
   readonly anchors: IAthleteAnchors;
   readonly activities: IActivitiesApi;
@@ -114,11 +111,6 @@ export class IntervalsClient implements IIntervalsClient {
 
     const httpClient = createHttpClient(config, options.fetchFn);
     this.events = createEventsApi(httpClient, athleteId);
-    this.workoutBuilder = createWorkoutBuilder();
-    this.eventUpdate = createEventUpdate({
-      eventsApi: this.events,
-      workoutBuilder: this.workoutBuilder,
-    });
     this.athlete = createAthleteApi(httpClient, athleteId);
     this.activities = createActivitiesApi(httpClient, athleteId);
     this.wellness = createWellnessApi(httpClient, athleteId);
@@ -134,6 +126,11 @@ export class IntervalsClient implements IIntervalsClient {
       activitiesApi: this.activities,
       powerCurvesApi: this.powerCurves,
       today: this.today,
+    });
+    this.workoutScheduling = createWorkoutScheduling({
+      eventsApi: this.events,
+      workoutLibrary: this.workoutLibrary,
+      anchors: this.anchors,
     });
     this.executionReview = createExecutionReview({
       activitiesApi: this.activities,
@@ -191,12 +188,16 @@ export type {
 export type { IHttpClient } from "./client.js";
 export { HttpError } from "./client.js";
 export type { IEventsApi } from "./services/events/index.js";
-export type { IWorkoutBuilder } from "./services/workout-builder/index.js";
 export type {
+  IWorkoutScheduling,
+  EventChanges,
+  LibraryPlacement,
+  StrengthSession,
+  ScheduledWorkouts,
   WorkoutStep,
   RepeatBlock,
   WorkoutPlan,
-} from "./services/workout-builder/index.js";
+} from "./services/workout-scheduling/index.js";
 export type {
   IAthleteApi,
   AthleteProfile,
@@ -331,10 +332,6 @@ export type {
   WorkoutSummary,
   AnchorBasis,
 } from "./services/workout-library/index.js";
-export type {
-  IEventUpdate,
-  EventChanges,
-} from "./services/event-update/index.js";
 export type { IActivityAnalysis } from "./services/analysis/index.js";
 export type { ICoachingContext } from "./services/coaching-context/index.js";
 export type { IPowerProfile } from "./services/power-profile/index.js";

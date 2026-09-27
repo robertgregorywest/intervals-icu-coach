@@ -5,6 +5,7 @@
  */
 import "dotenv/config";
 import { IntervalsClient } from "../src/index.js";
+import { buildEvent } from "../src/services/workout-scheduling/builder.js";
 import { updateEvent } from "../src/mcp/tools/events.js";
 
 function header(s: string) {
@@ -25,7 +26,7 @@ async function main() {
 
   try {
     header("0. seed: create multi-step structured workout");
-    const seed = client.workoutBuilder.buildEvent({
+    const seed = buildEvent({
       name: "SMOKE update_event multistep",
       date,
       sportType: "Ride",

@@ -137,7 +137,7 @@ export const updateEventTool = defineTool({
   annotations: MUTATING,
   outputSchema: null,
   handler: (client, { id, ...changes }) =>
-    client.eventUpdate.updateEvent(id, changes),
+    client.workoutScheduling.updateEvent(id, changes),
 });
 
 const deleteEventsSchema = z.object({

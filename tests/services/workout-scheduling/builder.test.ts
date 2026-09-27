@@ -1,39 +1,40 @@
 import { describe, it, expect } from "vitest";
-import { WorkoutBuilder } from "../../src/services/workout-builder/index.js";
+import {
+  buildEvent,
+  toDescription,
+} from "../../../src/services/workout-scheduling/builder.js";
 import type {
   WorkoutStep,
   RepeatBlock,
   WorkoutPlan,
-} from "../../src/services/workout-builder/index.js";
+} from "../../../src/services/workout-scheduling/plan.js";
 
-describe("WorkoutBuilder", () => {
-  const builder = new WorkoutBuilder();
-
+describe("workout builder", () => {
   describe("toDescription", () => {
     it("formats a simple step with duration and target", () => {
       const steps: WorkoutStep[] = [{ duration: "10m", target: "60%" }];
-      expect(builder.toDescription(steps)).toBe("- 10m 60%");
+      expect(toDescription(steps)).toBe("- 10m 60%");
     });
 
     it("formats a step with label", () => {
       const steps: WorkoutStep[] = [
         { label: "Warmup", duration: "10m", target: "60%" },
       ];
-      expect(builder.toDescription(steps)).toBe("- Warmup 10m 60%");
+      expect(toDescription(steps)).toBe("- Warmup 10m 60%");
     });
 
     it("formats a step with cadence", () => {
       const steps: WorkoutStep[] = [
         { duration: "5m", target: "95%", cadence: "90rpm" },
       ];
-      expect(builder.toDescription(steps)).toBe("- 5m 95% 90rpm");
+      expect(toDescription(steps)).toBe("- 5m 95% 90rpm");
     });
 
     it("formats a ramp step", () => {
       const steps: WorkoutStep[] = [
         { duration: "10m", target: "50%-75%", ramp: true },
       ];
-      expect(builder.toDescription(steps)).toBe("- 10m ramp 50%-75%");
+      expect(toDescription(steps)).toBe("- 10m ramp 50%-75%");
     });
 
     it("formats a ramp step with label and cadence", () => {
@@ -46,21 +47,19 @@ describe("WorkoutBuilder", () => {
           ramp: true,
         },
       ];
-      expect(builder.toDescription(steps)).toBe(
-        "- Warmup 15m ramp 40%-70% 85rpm"
-      );
+      expect(toDescription(steps)).toBe("- Warmup 15m ramp 40%-70% 85rpm");
     });
 
     it("formats a step with duration only (freeride)", () => {
       const steps: WorkoutStep[] = [{ duration: "20m" }];
-      expect(builder.toDescription(steps)).toBe("- 20m");
+      expect(toDescription(steps)).toBe("- 20m");
     });
 
     it("formats a step with distance", () => {
       const steps: WorkoutStep[] = [
         { duration: "2km", target: "5:00/km Pace" },
       ];
-      expect(builder.toDescription(steps)).toBe("- 2km 5:00/km Pace");
+      expect(toDescription(steps)).toBe("- 2km 5:00/km Pace");
     });
 
     it("formats a repeat block", () => {
@@ -73,7 +72,7 @@ describe("WorkoutBuilder", () => {
           ],
         },
       ];
-      expect(builder.toDescription(steps)).toBe("4x\n- 2m 95%\n- 2m 55%");
+      expect(toDescription(steps)).toBe("4x\n- 2m 95%\n- 2m 55%");
     });
 
     it("formats a repeat block with label", () => {
@@ -87,9 +86,7 @@ describe("WorkoutBuilder", () => {
           ],
         },
       ];
-      expect(builder.toDescription(steps)).toBe(
-        "Main Set 4x\n- 2m 95%\n- 2m 55%"
-      );
+      expect(toDescription(steps)).toBe("Main Set 4x\n- 2m 95%\n- 2m 55%");
     });
 
     it("formats a full workout with mixed steps and repeats", () => {
@@ -105,7 +102,7 @@ describe("WorkoutBuilder", () => {
         },
         { label: "Recovery", duration: "5m", target: "50%" },
       ];
-      expect(builder.toDescription(steps)).toBe(
+      expect(toDescription(steps)).toBe(
         "- Warmup 10m 60%\n\n" +
           "Main Set 4x\n- 2m 95%\n- 2m 55%\n\n" +
           "- Recovery 5m 50%"
@@ -114,17 +111,17 @@ describe("WorkoutBuilder", () => {
 
     it("formats HR target steps", () => {
       const steps: WorkoutStep[] = [{ duration: "30m", target: "70% HR" }];
-      expect(builder.toDescription(steps)).toBe("- 30m 70% HR");
+      expect(toDescription(steps)).toBe("- 30m 70% HR");
     });
 
     it("formats power zone steps", () => {
       const steps: WorkoutStep[] = [{ duration: "20m", target: "Z2" }];
-      expect(builder.toDescription(steps)).toBe("- 20m Z2");
+      expect(toDescription(steps)).toBe("- 20m Z2");
     });
 
     it("formats watt-based steps", () => {
       const steps: WorkoutStep[] = [{ duration: "5m", target: "220w" }];
-      expect(builder.toDescription(steps)).toBe("- 5m 220w");
+      expect(toDescription(steps)).toBe("- 5m 220w");
     });
   });
 
@@ -147,7 +144,7 @@ describe("WorkoutBuilder", () => {
         ],
       };
 
-      const event = builder.buildEvent(plan);
+      const event = buildEvent(plan);
 
       expect(event.category).toBe("WORKOUT");
       expect(event.type).toBe("Ride");
@@ -168,7 +165,7 @@ describe("WorkoutBuilder", () => {
         externalId: "my-custom-id",
       };
 
-      const event = builder.buildEvent(plan);
+      const event = buildEvent(plan);
       expect(event.external_id).toBe("my-custom-id");
     });
 
@@ -181,7 +178,7 @@ describe("WorkoutBuilder", () => {
         color: "green",
       };
 
-      const event = builder.buildEvent(plan);
+      const event = buildEvent(plan);
       expect(event.color).toBe("green");
     });
 
@@ -193,7 +190,7 @@ describe("WorkoutBuilder", () => {
         steps: [{ duration: "30m", target: "60%" }],
       };
 
-      const event = builder.buildEvent(plan);
+      const event = buildEvent(plan);
       expect(event.color).toBeUndefined();
     });
   });

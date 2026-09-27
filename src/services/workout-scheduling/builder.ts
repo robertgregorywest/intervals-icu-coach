@@ -1,14 +1,6 @@
 import type { IntervalsEvent, SportType } from "../../types.js";
-import type { WorkoutPlan, WorkoutStep, RepeatBlock } from "./types.js";
-import { isRepeatBlock } from "./types.js";
-
-export interface IWorkoutBuilder {
-  toDescription(
-    steps: Array<WorkoutStep | RepeatBlock>,
-    notes?: string
-  ): string;
-  buildEvent(plan: WorkoutPlan): IntervalsEvent;
-}
+import type { WorkoutPlan, WorkoutStep, RepeatBlock } from "./plan.js";
+import { isRepeatBlock } from "./plan.js";
 
 function formatStep(step: WorkoutStep): string {
   const parts: string[] = [];
@@ -42,36 +34,35 @@ function formatRepeatBlock(block: RepeatBlock): string {
   return `${header}\n${steps}`;
 }
 
-export class WorkoutBuilder implements IWorkoutBuilder {
-  toDescription(
-    steps: Array<WorkoutStep | RepeatBlock>,
-    notes?: string
-  ): string {
-    const sections: string[] = [];
-    const prose = notes?.trim();
-    if (prose) sections.push(prose);
+/** Workout-text for a set of steps, with any session prose above them. */
+export function toDescription(
+  steps: Array<WorkoutStep | RepeatBlock>,
+  notes?: string
+): string {
+  const sections: string[] = [];
+  const prose = notes?.trim();
+  if (prose) sections.push(prose);
 
-    for (const step of steps) {
-      if (isRepeatBlock(step)) {
-        sections.push(formatRepeatBlock(step));
-      } else {
-        sections.push(formatStep(step));
-      }
+  for (const step of steps) {
+    if (isRepeatBlock(step)) {
+      sections.push(formatRepeatBlock(step));
+    } else {
+      sections.push(formatStep(step));
     }
-
-    return sections.join("\n\n");
   }
 
-  buildEvent(plan: WorkoutPlan): IntervalsEvent {
-    return workoutEvent({
-      name: plan.name,
-      date: plan.date,
-      type: plan.sportType,
-      description: this.toDescription(plan.steps, plan.notes),
-      externalId: plan.externalId,
-      color: plan.color,
-    });
-  }
+  return sections.join("\n\n");
+}
+
+export function buildEvent(plan: WorkoutPlan): IntervalsEvent {
+  return workoutEvent({
+    name: plan.name,
+    date: plan.date,
+    type: plan.sportType,
+    description: toDescription(plan.steps, plan.notes),
+    externalId: plan.externalId,
+    color: plan.color,
+  });
 }
 
 /** How every calendar write addresses a day: local midnight. */
@@ -109,8 +100,4 @@ export function slugify(text: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
-}
-
-export function createWorkoutBuilder(): WorkoutBuilder {
-  return new WorkoutBuilder();
 }

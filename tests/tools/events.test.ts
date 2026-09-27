@@ -7,7 +7,9 @@ import {
 } from "../../src/tools/events.js";
 import type { IIntervalsClient } from "../../src/index.js";
 import type { IEventsApi } from "../../src/services/events/index.js";
-import { createEventUpdate } from "../../src/services/event-update/index.js";
+import { createWorkoutScheduling } from "../../src/services/workout-scheduling/index.js";
+import type { IWorkoutLibrary } from "../../src/services/workout-library/index.js";
+import type { IAthleteAnchors } from "../../src/services/athlete-anchors/index.js";
 
 const getEvents = getEventsTool.handler;
 const getEvent = getEventTool.handler;
@@ -36,16 +38,13 @@ function createMockClient(
     deleteEvents: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   } as unknown as IEventsApi;
-  const workoutBuilder = {
-    toDescription: vi
-      .fn()
-      .mockReturnValue("- Warmup 10m 150w\n\n- Main 5m 240w"),
-    buildEvent: vi.fn(),
-  };
   return {
     events,
-    workoutBuilder,
-    eventUpdate: createEventUpdate({ eventsApi: events, workoutBuilder }),
+    workoutScheduling: createWorkoutScheduling({
+      eventsApi: events,
+      workoutLibrary: {} as IWorkoutLibrary,
+      anchors: {} as IAthleteAnchors,
+    }),
   } as unknown as IIntervalsClient;
 }
 
@@ -115,13 +114,6 @@ describe("updateEvent tool handler", () => {
       ],
     });
 
-    expect(client.workoutBuilder.toDescription).toHaveBeenCalledWith(
-      [
-        { label: "Warmup", duration: "10m", target: "150w" },
-        { label: "Main", duration: "5m", target: "240w" },
-      ],
-      undefined
-    );
     expect(client.events.updateEvent).toHaveBeenCalledWith(1, {
       name: "Long Z2 2.5h",
       description: "- Warmup 10m 150w\n\n- Main 5m 240w",
@@ -184,10 +176,9 @@ describe("updateEvent tool handler", () => {
       steps: [{ duration: "10m", target: "150w" }],
       notes: "Easy day.",
     });
-    expect(client.workoutBuilder.toDescription).toHaveBeenCalledWith(
-      [{ duration: "10m", target: "150w" }],
-      "Easy day."
-    );
+    expect(client.events.updateEvent).toHaveBeenCalledWith(1, {
+      description: "Easy day.\n\n- 10m 150w",
+    });
   });
 
   it("rejects notes without steps", async () => {

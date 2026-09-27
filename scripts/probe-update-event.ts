@@ -8,6 +8,7 @@
  */
 import "dotenv/config";
 import { IntervalsClient } from "../src/index.js";
+import { buildEvent } from "../src/services/workout-scheduling/builder.js";
 
 function header(s: string) {
   console.log("\n" + "=".repeat(70) + "\n" + s + "\n" + "=".repeat(70));
@@ -41,7 +42,7 @@ async function main() {
 
   try {
     header("0. create a multi-step structured workout (with external_id)");
-    const event = client.workoutBuilder.buildEvent({
+    const event = buildEvent({
       name: "PROBE update_event multistep",
       date,
       sportType: "Ride",

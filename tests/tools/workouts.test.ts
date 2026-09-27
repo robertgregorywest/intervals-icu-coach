@@ -5,15 +5,26 @@ import {
   scheduleLibraryWorkoutTool,
 } from "../../src/tools/workouts.js";
 import type { IIntervalsClient } from "../../src/index.js";
-import { WorkoutBuilder } from "../../src/services/workout-builder/index.js";
+import { createWorkoutScheduling } from "../../src/services/workout-scheduling/index.js";
+import type { WorkoutSchedulingDeps } from "../../src/services/workout-scheduling/index.js";
 import type { IntervalsEvent } from "../../src/types.js";
 
+/** The real scheduling module over mocked APIs; no FTP unless a test sets one. */
 function createMockClient(
-  returnEvents: IntervalsEvent[] = []
-): IIntervalsClient {
+  returnEvents: IntervalsEvent[] = [],
+  deps: Partial<WorkoutSchedulingDeps> = {}
+) {
+  const scheduling = {
+    eventsApi: { createEvents: vi.fn().mockResolvedValue(returnEvents) },
+    workoutLibrary: { get: vi.fn() },
+    anchors: { getAthleteAnchors: vi.fn().mockResolvedValue({ ftp: null }) },
+    ...deps,
+  } as unknown as WorkoutSchedulingDeps;
   return {
-    workoutBuilder: new WorkoutBuilder(),
-    events: { createEvents: vi.fn().mockResolvedValue(returnEvents) },
+    events: scheduling.eventsApi,
+    workoutLibrary: scheduling.workoutLibrary,
+    anchors: scheduling.anchors,
+    workoutScheduling: createWorkoutScheduling(scheduling),
   } as unknown as IIntervalsClient;
 }
 
@@ -186,14 +197,13 @@ describe("scheduleLibraryWorkout", () => {
   it("copies the library description verbatim, prose and trailer included", async () => {
     const description =
       "Circulation, not stimulus.\n\n- Easy 40m 125w-165w 95rpm\n\n<!-- template: recovery-spin -->";
-    const client = {
+    const client = createMockClient([], {
       workoutLibrary: {
         get: vi.fn().mockResolvedValue({
           workout: { id: 15, name: "Recovery spin", type: "Ride", description },
         }),
       },
-      events: { createEvents: vi.fn().mockResolvedValue([]) },
-    } as unknown as IIntervalsClient;
+    } as unknown as Partial<WorkoutSchedulingDeps>);
 
     await scheduleLibraryWorkout(client, { id: 15, date: "2026-09-20" });
 
@@ -212,14 +222,13 @@ describe("scheduleLibraryWorkout", () => {
 
 describe("createWorkout — the unreviewable-step warning", () => {
   it("reads FTP from the athlete anchors, and warns on an unlabelled hard step", async () => {
-    const client = {
-      ...createMockClient(),
+    const client = createMockClient([], {
       anchors: {
         getAthleteAnchors: vi
           .fn()
           .mockResolvedValue({ ftp: 300, weight: 70, powerZones: null }),
       },
-    } as unknown as IIntervalsClient;
+    } as unknown as Partial<WorkoutSchedulingDeps>);
 
     const result = await createWorkout(client, {
       name: "Threshold",
@@ -235,5 +244,35 @@ describe("createWorkout — the unreviewable-step warning", () => {
     expect(result.unreviewableSteps).toEqual([
       { index: 1, label: "Hard bit", watts: 300 },
     ]);
+  });
+});
+
+describe("the warning is best-effort", () => {
+  it("writes the workout with no warning when the anchors lookup throws", async () => {
+    const client = createMockClient([], {
+      anchors: {
+        getAthleteAnchors: vi.fn().mockRejectedValue(new Error("down")),
+      },
+    } as unknown as Partial<WorkoutSchedulingDeps>);
+
+    const result = await createWorkout(client, {
+      name: "Threshold",
+      date: "2024-03-30",
+      sportType: "Ride",
+      steps: [{ label: "Hard bit", duration: "10m", target: "300w" }],
+    });
+
+    expect(client.events.createEvents).toHaveBeenCalledOnce();
+    expect(result).not.toHaveProperty("unreviewableSteps");
+  });
+
+  it("never looks up the anchors for a strength session", async () => {
+    const client = createMockClient();
+    await createStrengthWorkout(client, {
+      name: "Gym",
+      date: "2024-04-01",
+      description: "Squats 3×5",
+    });
+    expect(client.anchors.getAthleteAnchors).not.toHaveBeenCalled();
   });
 });

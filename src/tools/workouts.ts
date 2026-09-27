@@ -1,13 +1,6 @@
 import { z } from "zod";
-import type { IIntervalsClient } from "../index.js";
 import { defineTool, UPSERT } from "./define.js";
-import {
-  unreviewableWorkSteps,
-  type UnreviewableStep,
-} from "../services/prescription/index.js";
-import { KEY_SESSION_FLOOR_PCT_FTP } from "../services/execution-review/index.js";
-import { workoutEvent } from "../services/workout-builder/index.js";
-import type { SportType } from "../types.js";
+import type { ScheduledWorkouts } from "../index.js";
 import { dateString } from "./common.js";
 
 const sportTypeEnum = z.enum([
@@ -132,39 +125,9 @@ export const createWorkoutTool = defineTool({
   schema: createWorkoutSchema,
   annotations: UPSERT,
   outputSchema: createWorkoutOutputSchema,
-  async handler(client, args) {
-    const event = client.workoutBuilder.buildEvent(args);
-    const result = await client.events.createEvents([event]);
-
-    return {
-      ...formatResponse(result),
-      ...(await unreviewableWarning(client, event.description)),
-    };
-  },
+  handler: async (client, args) =>
+    formatResponse(await client.workoutScheduling.schedulePlan(args)),
 });
-
-/**
- * Best-effort: a warning is worth one athlete lookup, and worth nothing if it
- * can fail the write it is warning about. No FTP, or a lookup that throws, and
- * the workout is created with no warning rather than not created. The anchors
- * carry the power zones too, so a work step written as a zone is judged.
- */
-async function unreviewableWarning(
-  client: IIntervalsClient,
-  description: string
-): Promise<{ unreviewableSteps?: UnreviewableStep[] }> {
-  let anchors;
-  try {
-    anchors = await client.anchors.getAthleteAnchors();
-  } catch {
-    return {};
-  }
-
-  const { ftp } = anchors;
-  const floor = ftp ? (ftp * KEY_SESSION_FLOOR_PCT_FTP) / 100 : undefined;
-  const steps = unreviewableWorkSteps(description, floor, anchors);
-  return steps.length > 0 ? { unreviewableSteps: steps } : {};
-}
 
 const scheduleLibraryWorkoutSchema = z.object({
   id: z.number().describe("Library workout ID (from list_workout_library)"),
@@ -187,26 +150,8 @@ export const scheduleLibraryWorkoutTool = defineTool({
   schema: scheduleLibraryWorkoutSchema,
   annotations: UPSERT,
   outputSchema: createWorkoutOutputSchema,
-  async handler(client, args) {
-    const { workout } = await client.workoutLibrary.get(args.id);
-    const description = workout.description ?? "";
-
-    const event = workoutEvent({
-      name: workout.name,
-      date: args.date,
-      type: workout.type as SportType,
-      description,
-      externalId: args.externalId,
-      color: args.color,
-    });
-
-    const result = await client.events.createEvents([event]);
-
-    return {
-      ...formatResponse(result),
-      ...(await unreviewableWarning(client, description)),
-    };
-  },
+  handler: async (client, args) =>
+    formatResponse(await client.workoutScheduling.scheduleLibraryWorkout(args)),
 });
 
 const createStrengthWorkoutSchema = z.object({
@@ -237,21 +182,14 @@ export const createStrengthWorkoutTool = defineTool({
   schema: createStrengthWorkoutSchema,
   annotations: UPSERT,
   outputSchema: createWorkoutOutputSchema,
-  async handler(client, args) {
-    const event = workoutEvent({ ...args, type: "WeightTraining" });
-    const result = await client.events.createEvents([event]);
-    return formatResponse(result);
-  },
+  handler: async (client, args) =>
+    formatResponse(await client.workoutScheduling.scheduleStrength(args)),
 });
 
-function formatResponse(
-  events: Array<{
-    id?: number;
-    name: string;
-    start_date_local: string;
-    description: string;
-  }>
-): z.infer<typeof createWorkoutOutputSchema> {
+function formatResponse({
+  events,
+  unreviewableSteps,
+}: ScheduledWorkouts): z.infer<typeof createWorkoutOutputSchema> {
   return {
     success: true,
     created: events.length,
@@ -261,5 +199,6 @@ function formatResponse(
       start_date_local: e.start_date_local,
       description: e.description,
     })),
+    ...(unreviewableSteps ? { unreviewableSteps } : {}),
   };
 }

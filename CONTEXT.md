@@ -52,6 +52,10 @@ _Avoid_: "seed" / "refresh" — both named halves of this one operation and are 
 The distilled decision a coaching skill hands to its forked build skill: what to build, the context that shapes it (block, constraints, recent load) and when. One per discipline, each with a single caller — `plan-workout` → `compose-workout` (adds the library item or compose fresh, and the anchors) and `plan-strength-training` → `compose-strength-session` (the **strength brief**; adds the template tier). Each is defined once, in its build skill's "Your input"; the caller points there rather than restating it. The decision is made on the coaching thread; the brief carries it to the build.
 _Avoid_: "prompt" or "spec" — the brief is a fixed contract, not free-form instructions
 
+**Workout scheduling module**:
+`src/services/workout-scheduling/` — the one way a workout is written to the calendar, behind `IWorkoutScheduling`: a built plan (`create_workout`), a **Library workout** copied verbatim (`schedule_library_workout`) or a strength session (`create_strength_workout`), each returning the written events plus any `unreviewableSteps`; and `update_event`, with the guard that refuses a description change which would collapse a WORKOUT event's structure. Owns the workout-text builder, the single WORKOUT event shape (`mcp-<date>-<slug>` external id) and the unreviewable-step warning, judged at the key-session floor against the **Athlete anchors** — all internal. The warning is best-effort: no FTP, or a failed lookup, writes the workout without it.
+_Avoid_: building workout-text or a WORKOUT event in a Tool; calling `createEvents` for a workout outside this module.
+
 **Basis**:
 The anchor a template's percentages are read against — MAP or FTP — declared once per template. One basis per template; mixing is a parse error.
 

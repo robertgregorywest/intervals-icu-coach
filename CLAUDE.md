@@ -4,7 +4,7 @@ MCP server and CLI tool for the Intervals.icu API plus tools and skills to suppo
 
 ## Architecture
 
-- **Services** (`src/services/`) — business logic behind interfaces (`IWorkoutBuilder`, `IEventsApi`, `IWorkoutLibrary`). Each service has `types.ts`, implementation, and `index.ts` re-exporting the interface + factory. Larger services (`workout-library/`) split into multiple files (api/parser/template/render/loader/sync/library) — same pattern, more surface.
+- **Services** (`src/services/`) — business logic behind interfaces (`IWorkoutScheduling`, `IEventsApi`, `IWorkoutLibrary`). Each service has `types.ts`, implementation, and `index.ts` re-exporting the interface + factory. Larger services (`workout-library/`) split into multiple files (api/parser/template/render/loader/sync/library) — same pattern, more surface.
 - **Client** (`src/client.ts`) — `HttpClient` with Basic auth, rate limiting, injectable `fetchFn` for testing.
 - **Composition root** (`src/index.ts`) — `IntervalsClient` builds every service once and exposes them as `IIntervalsClient`. Handlers reach services through it; it forwards nothing.
 - **Tool registry** (`src/registry.ts`) — the list of all Tools (`ToolDef[]`), one line each. Both adapters iterate it — see `docs/adr/0001-cli-adapter-and-tool-registry.md`.

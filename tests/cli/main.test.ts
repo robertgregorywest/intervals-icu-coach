@@ -46,7 +46,9 @@ function makeClient(): IIntervalsClient {
       deleteEvents: vi.fn().mockResolvedValue(undefined),
       getEvent: vi.fn().mockResolvedValue({ id: 1, category: "NOTE" }),
     },
-    eventUpdate: { updateEvent: vi.fn().mockResolvedValue({ id: 1 }) },
+    workoutScheduling: {
+      updateEvent: vi.fn().mockResolvedValue({ id: 1 }),
+    },
     today: () => "2026-01-01",
   } as unknown as IIntervalsClient;
 }
