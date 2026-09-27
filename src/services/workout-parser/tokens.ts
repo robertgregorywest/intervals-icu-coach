@@ -1,14 +1,14 @@
 import type { PlannedCadence, PlannedPower } from "../../types.js";
 
 /**
- * The token vocabulary of a step line, as `src/mcp/syntax-doc.ts` documents it
- * and as the platform's own parse was measured to read it.
+ * The token vocabulary of a step line, as the compose-workout skill's syntax
+ * cheatsheet documents it and as the platform's own parse was measured to read it.
  *
  * A step line is a sequence of whitespace-separated tokens. Leading tokens that
  * match nothing become the step's label; the first token that matches anything
- * ends the label. That is the platform's behaviour, and it is why the syntax
- * doc warns against `number+unit` tokens inside a label — `Ramp — MAP = best
- * 60s` silently becomes a 60-second step.
+ * ends the label. That is the platform's behaviour, and it is why the workout
+ * builder refuses `number+unit` tokens inside a label — `Ramp — MAP = best
+ * 60s` would silently become a 60-second step.
  */
 export type Token =
   | { kind: "duration"; seconds: number }
@@ -49,8 +49,8 @@ const POWER_TARGET = /^power=(.+)$/i;
  * until the digit itself. `Easy spin — 40–55% MAP … 45m 160w-215w` keeps
  * `Easy spin —`, cutting inside the en-dashed range the grammar cannot read;
  * `Ramp 1 1m 200w` keeps `Ramp 1`, because a bare `1` followed by a space is
- * not a number-with-a-unit. This is the behaviour `src/mcp/syntax-doc.ts` warns
- * about when it tells authors to keep `number+unit` tokens out of a label.
+ * not a number-with-a-unit. The workout builder reads a label through this to
+ * refuse one the platform would cut short.
  *
  * `ramp` is deliberately not a label terminator: the platform reads `Ramp to
  * failure 1m 140w` as a step labelled `Ramp to failure`, so the keyword only

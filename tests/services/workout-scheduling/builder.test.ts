@@ -23,6 +23,27 @@ describe("workout builder", () => {
       expect(toDescription(steps)).toBe("- Warmup 10m 60%");
     });
 
+    it("refuses a step label carrying a number+unit token", () => {
+      const steps: WorkoutStep[] = [
+        { label: "MAP — best 60s", duration: "1m", target: "400w" },
+      ];
+      expect(() => toDescription(steps)).toThrow(/contains "60s"/);
+    });
+
+    it("refuses a step label carrying a zone", () => {
+      const steps: WorkoutStep[] = [
+        { label: "Easy Z2 spin", duration: "45m", target: "180w" },
+      ];
+      expect(() => toDescription(steps)).toThrow(/contains "Z2"/);
+    });
+
+    it("keeps a label whose numbers carry no unit", () => {
+      const steps: WorkoutStep[] = [
+        { label: "Rep 1", duration: "4m", target: "360w" },
+      ];
+      expect(toDescription(steps)).toBe("- Rep 1 4m 360w");
+    });
+
     it("formats a step with cadence", () => {
       const steps: WorkoutStep[] = [
         { duration: "5m", target: "95%", cadence: "90rpm" },

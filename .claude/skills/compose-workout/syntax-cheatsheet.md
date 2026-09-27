@@ -1,6 +1,6 @@
 # Workout-text syntax cheatsheet
 
-The format Intervals.icu expects in event `description` and saved-workout `description` fields. The MCP server's `instructions` field carries the canonical version — this doc mirrors it for skill self-containment.
+The format Intervals.icu expects in event `description` and saved-workout `description` fields. This is the canonical guide; `create_workout`'s own schema (`./bin/icu describe create_workout`) carries only the rules it enforces on its input.
 
 ## Shape
 
@@ -95,4 +95,4 @@ A cadence on a step is a **condition of the rep**, not a suggestion: `compare_pl
 - **Free-text workout notes** can sit above or between step blocks. They render as the workout's prose.
 - **Ranges** use `-` (hyphen): `220w-260w`, `95-102%`, `5:00/km Pace`. No spaces.
 - **`ramp` is only for genuine ramps — never for steady bands.** A watt range (`158w-217w`) is a held target band by default. When writing via `create_workout`, do **not** set `ramp: true` on an endurance/sweet-spot/recovery step — that forces a linear sweep across the whole step. In raw workout text the equivalent mistake is adding the word `ramp` before a steady band's range.
-- **Step labels must be plain words — no token-shaped tokens.** A `number+unit` word in a label (`60s`, `1m`, `2km`, `220w`, `90rpm`, `75%`) gets parsed as the step's duration/target on the text round-trip, silently corrupting the step. Real case: a label ending `…MAP = best 60s` swallowed the `60s` as a duration, turning a 1-min step into 2-min and truncating the label to `…MAP = best`. Keep numeric detail in the workout's prose notes, never in a step `label`. (Bug tracked upstream — labels aren't delimited from tokens on serialize.)
+- **Step labels must be plain words — no token-shaped tokens.** A `number+unit` word in a label (`60s`, `1m`, `2km`, `220w`, `90rpm`, `75%`) gets parsed as the step's duration/target on the text round-trip, silently corrupting the step. Real case: a label ending `…MAP = best 60s` swallowed the `60s` as a duration, turning a 1-min step into 2-min and truncating the label to `…MAP = best`. Keep numeric detail in the workout's prose notes, never in a step `label`. `create_workout` and `update_event` refuse such a label; raw text written elsewhere is not checked.

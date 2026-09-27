@@ -57,7 +57,7 @@ Cycling/coaching IG posts almost always map to one of these:
 - **`/.claude/skills/plan-workout/session-patterns.md`** — a new named session template (e.g. "preloaded short intermittents"). Most common landing spot.
 - **`/.claude/skills/compose-workout/power-conversion.md`** — only if the post changes how %MAP / %FTP / Z-zones get translated to watts.
 - **`src/services/workout-library/seed.ts`** — if the new pattern is canonical enough to ship as a seeded library workout. Carry a `<!-- rationale … -->` block so it stays refreshable when MAP/FTP change.
-- **`src/mcp/syntax-doc.ts`** — only if the post changes server-tool-binding rules (workout-text syntax, watts-at-API rule). Rare.
+- **`/.claude/skills/compose-workout/syntax-cheatsheet.md`** — only if the post changes how workout text is written (syntax, step labels, cadence). Rare.
 - **`docs/adr/`** — if the post nudges an architectural decision (e.g. a new computed athlete-state field). Rare.
 
 Default: prefer adding a named pattern to `session-patterns.md` over carving new code paths. The pattern can be invoked by the `plan-workout` skill without server changes.

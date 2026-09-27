@@ -2,6 +2,7 @@ import { z } from "zod";
 import { defineTool, UPSERT } from "./define.js";
 import type { ScheduledWorkouts } from "../index.js";
 import { dateString } from "./common.js";
+import { WORK_WORDS } from "../services/prescription/index.js";
 
 const sportTypeEnum = z.enum([
   "Ride",
@@ -18,7 +19,19 @@ const sportTypeEnum = z.enum([
 ]);
 
 export const workoutStepSchema = z.object({
-  label: z.string().optional().describe("Optional label/cue for this step"),
+  label: z
+    .string()
+    .optional()
+    .describe(
+      "The step's cue, and its role: the FIRST WORD declares the step as the " +
+        "session's work, and only work steps are judged by get_execution_digest. " +
+        `Work words: ${[...WORK_WORDS].join(", ")}. ` +
+        'Support steps take any other word ("Warm-up", "Recovery", "Easy", "Cool down"); ' +
+        '"Endurance" and "Steady" are deliberately not work words. ' +
+        'Plain words only — a number+unit or zone token ("60s", "220w", "90rpm", "75%", "Z2") ' +
+        "is refused, because Intervals.icu would read it as the step's duration or target. " +
+        "Put numeric detail in notes."
+    ),
   duration: z
     .string()
     .describe(
@@ -119,7 +132,7 @@ export const createWorkoutTool = defineTool({
     'Percentage targets like "75%" are relative to FTP which may not match the user\'s intent. ' +
     "Supports simple steps, ramps, and repeat blocks. " +
     "Optional 'notes' carries session-level prose above the steps. " +
-    "To schedule a saved library workout use schedule_library_workout instead. " +
+    "Check list_workout_library before composing — a saved library workout goes through schedule_library_workout instead. " +
     "Idempotent on externalId — same externalId upserts the existing event. " +
     "Returns: { success: true, created: N, events: [...] }.",
   schema: createWorkoutSchema,

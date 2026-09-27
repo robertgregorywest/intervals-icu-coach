@@ -2,7 +2,6 @@ import { parseArgs } from "node:util";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import type { IServices } from "../index.js";
 import { TOOLS } from "../registry.js";
-import { STATIC_INSTRUCTIONS } from "../mcp/syntax-doc.js";
 import { formatToolError } from "../errors.js";
 
 export interface CliIO {
@@ -79,9 +78,7 @@ export async function runCli(
       inputSchema: zodToJsonSchema(t.schema),
     }));
 
-    io.stdout(
-      serialize({ instructions: STATIC_INSTRUCTIONS, tools }, io.isTTY)
-    );
+    io.stdout(serialize({ tools }, io.isTTY));
     return;
   }
 

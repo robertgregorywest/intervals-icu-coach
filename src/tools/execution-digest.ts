@@ -164,7 +164,7 @@ export const getExecutionDigestTool = defineTool({
     "that was abandoned or never started is reported rather than silently missed; " +
     "a window holding none returns status 'skipped' and the watermark stays put. " +
     "Work steps are read from the step label's first word against a closed " +
-    "vocabulary (see the workout syntax instructions) — not inferred from " +
+    "vocabulary (see create_workout's step label) — not inferred from " +
     "intensity. A step whose label declares no work role is never judged, and " +
     "unclassifiedSteps counts them so a work step with an unrecognised label is " +
     "visible rather than silently dropped. " +

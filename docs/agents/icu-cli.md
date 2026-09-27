@@ -27,7 +27,7 @@ cd <repo root> && \
 - **Request only the streams you need.** Fewer streams means full resolution rather than a stride.
 - **Save the payload to the scratchpad first** when a second pass is likely, then re-pipe from the
   file rather than re-fetching.
-- **`./bin/icu describe` is ~44 KB — grep it for the command you need.**
+- **`./bin/icu describe` is ~56 KB — grep it for the command you need.**
 
 ## Permission tiers
 

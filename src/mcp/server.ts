@@ -5,10 +5,21 @@ import { logResponse, logError } from "./logger.js";
 import { formatToolError } from "../errors.js";
 import { TOOLS } from "../registry.js";
 import type { ToolDef } from "../registry.js";
-import { STATIC_INSTRUCTIONS } from "./syntax-doc.js";
 
 const require = createRequire(import.meta.url);
 const { version } = require("../../package.json") as { version: string };
+
+/**
+ * An orientation for clients that load no skills. Each tool's own contract
+ * lives in its schema and coaching practice lives in the skills, so this stays
+ * a few lines — see `docs/adr/0013-knowledge-in-schemas-and-skills.md`.
+ */
+const INSTRUCTIONS =
+  "You manage planned workouts and training analysis on Intervals.icu for the connected athlete. " +
+  "Call get_coaching_context at the start of a session, and check list_workout_library before composing a workout — " +
+  "the athlete's curated workouts carry intent and calibration. " +
+  "Emit absolute watts (e.g. 220w, 160w-256w) in anything written to Intervals.icu: it cannot parse %MAP, " +
+  "and %FTP couples the workout to whatever FTP is on file.";
 
 export function createMcpServer(services: IServices): McpServer {
   const server = new McpServer(
@@ -16,7 +27,7 @@ export function createMcpServer(services: IServices): McpServer {
       name: "intervals-icu-mcp",
       version,
     },
-    { instructions: STATIC_INSTRUCTIONS }
+    { instructions: INSTRUCTIONS }
   );
 
   function registerTool(t: ToolDef): void {

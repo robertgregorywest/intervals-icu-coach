@@ -4,4 +4,4 @@ Intervals.icu operations were registered by hand inside the MCP server (`src/mcp
 
 ## Consequences
 
-The CLI must rebuild the discovery that MCP gives for free (tool list + input schemas + workout-syntax/watts instructions) via an `icu describe` command. Accepted as the cost of a daemon-free, always-fresh agent surface.
+The CLI must rebuild the discovery that MCP gives for free (tool list + input schemas) via an `icu describe` command. Accepted as the cost of a daemon-free, always-fresh agent surface. (It also carried the workout-syntax/watts instructions until ADR 0013 moved them into tool schemas and skills.)

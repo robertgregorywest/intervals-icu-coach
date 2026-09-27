@@ -1,11 +1,30 @@
 import type { IntervalsEvent, SportType } from "../../types.js";
 import type { WorkoutPlan, WorkoutStep, RepeatBlock } from "./plan.js";
 import { isRepeatBlock } from "./plan.js";
+import { labelEnd } from "../workout-parser/index.js";
+
+/**
+ * Refuses a label the platform would not read back as a label. Intervals.icu
+ * ends a step's label at its first number-with-a-unit or zone token, so
+ * `MAP — best 60s` silently becomes a longer step with a truncated label.
+ */
+function assertPlainLabel(label: string): void {
+  const text = label.trimEnd();
+  const { end, clearLabel } = labelEnd(text);
+  if (!clearLabel && end >= text.length) return;
+  const token = text.slice(end).split(/\s+/)[0];
+  throw new Error(
+    `Step label "${label}" contains "${token}", which Intervals.icu reads as ` +
+      `the step's duration or target, corrupting the step. Keep step labels to ` +
+      `plain words and put numeric detail in the workout's notes.`
+  );
+}
 
 function formatStep(step: WorkoutStep): string {
   const parts: string[] = [];
 
   if (step.label) {
+    assertPlainLabel(step.label);
     parts.push(step.label);
   }
 
