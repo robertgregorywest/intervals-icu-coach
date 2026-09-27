@@ -25,7 +25,7 @@ Run before bumping versions:
 npm run check:manifest
 ```
 
-This compares the tool registry (`src/registry.ts`) against `manifest.json` and exits non-zero on drift (`scripts/check-manifest.mjs`). The logic lives in a committed script rather than inline shell so it's a single stable command — allowlist `Bash(npm run check:manifest)` to skip the permission prompt.
+This compares the tool registry (`src/registry.ts`) against `manifest.json` and exits non-zero on drift (`scripts/check-manifest.ts`). The logic lives in a committed script rather than inline shell so it's a single stable command — allowlist `Bash(npm run check:manifest)` to skip the permission prompt.
 
 If something's missing from the manifest, add it before tagging. Each `tools[]` entry is `{ "name": "..." }` (validated by `npx mcpb validate manifest.json`).
 
