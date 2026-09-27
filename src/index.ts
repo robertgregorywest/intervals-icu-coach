@@ -23,12 +23,8 @@ import { createActivityAnalysis } from "./services/analysis/index.js";
 import type { IActivityAnalysis } from "./services/analysis/index.js";
 import { createExecutionReview } from "./services/execution-review/index.js";
 import type { IExecutionReview } from "./services/execution-review/index.js";
-import { createTrackLapAlignment } from "./services/track-lap-alignment/index.js";
-import type { ITrackLapAlignment } from "./services/track-lap-alignment/index.js";
-import { createTrackLapWriteback } from "./services/track-lap-writeback/index.js";
-import type { ITrackLapWriteback } from "./services/track-lap-writeback/index.js";
-import { createTrackSessions } from "./services/track-sessions/index.js";
-import type { ITrackSessions } from "./services/track-sessions/index.js";
+import { createTrack } from "./services/track/index.js";
+import type { ITrack } from "./services/track/index.js";
 import { createTrainingWeek } from "./services/training-week/index.js";
 import type { ITrainingWeek } from "./services/training-week/index.js";
 import { createTrainingLoadForecast } from "./services/training-load-forecast/index.js";
@@ -58,9 +54,8 @@ export interface IIntervalsClient {
   readonly analysis: IActivityAnalysis;
   /** The step lens, the band lens and the execution digest, over paired sessions. */
   readonly executionReview: IExecutionReview;
-  readonly trackLapAlignment: ITrackLapAlignment;
-  readonly trackLapWriteback: ITrackLapWriteback;
-  readonly trackSessions: ITrackSessions;
+  /** Track session records, and the alignment of their splits to a ride. */
+  readonly track: ITrack;
   readonly trainingWeek: ITrainingWeek;
   readonly trainingLoadForecast: ITrainingLoadForecast;
   readonly coachingContext: ICoachingContext;
@@ -91,9 +86,7 @@ export class IntervalsClient implements IIntervalsClient {
   readonly workoutLibrary: IWorkoutLibrary;
   readonly analysis: IActivityAnalysis;
   readonly executionReview: IExecutionReview;
-  readonly trackLapAlignment: ITrackLapAlignment;
-  readonly trackLapWriteback: ITrackLapWriteback;
-  readonly trackSessions: ITrackSessions;
+  readonly track: ITrack;
   readonly trainingWeek: ITrainingWeek;
   readonly trainingLoadForecast: ITrainingLoadForecast;
   readonly coachingContext: ICoachingContext;
@@ -137,16 +130,9 @@ export class IntervalsClient implements IIntervalsClient {
       eventsApi: this.events,
       anchors: this.anchors,
     });
-    this.trackLapAlignment = createTrackLapAlignment({
-      activitiesApi: this.activities,
-    });
-    this.trackLapWriteback = createTrackLapWriteback({
-      activitiesApi: this.activities,
-      alignment: this.trackLapAlignment,
-    });
-    // Reads tracked record files, not Intervals.icu — the only service here
-    // that takes no HTTP client and needs no API key.
-    this.trackSessions = createTrackSessions();
+    // The records are tracked files, not Intervals.icu; only aligning a
+    // record's splits to a ride reaches the activities API.
+    this.track = createTrack({ activitiesApi: this.activities });
     this.trainingLoadForecast = createTrainingLoadForecast({
       eventsApi: this.events,
       wellnessApi: this.wellness,
@@ -254,8 +240,9 @@ export type {
   ExcludedSession,
 } from "./services/execution-review/index.js";
 export type {
-  ITrackLapAlignment,
-  TrackLapPowerOptions,
+  ITrack,
+  TrackInput,
+  TrackWriteInput,
   TrackLapAlignmentResult,
   AlignedRun,
   AlignedLap,
@@ -264,17 +251,10 @@ export type {
   AlignmentVerdict,
   RolloutAgreement,
   Reading,
-  RunSplits,
-  LapSplit,
-  CandidateWindow,
-} from "./services/track-lap-alignment/index.js";
-export type {
-  ITrackLapWriteback,
-  TrackRunWriteOptions,
   TrackRunWriteResult,
   WrittenRun,
   WriteMode,
-} from "./services/track-lap-writeback/index.js";
+} from "./services/track/index.js";
 export type {
   ITrainingLoadForecast,
   ForecastOptions,
@@ -335,9 +315,5 @@ export type {
 export type { IActivityAnalysis } from "./services/analysis/index.js";
 export type { ICoachingContext } from "./services/coaching-context/index.js";
 export type { IPowerProfile } from "./services/power-profile/index.js";
-export type {
-  ITrackSessions,
-  TrackSplitsSource,
-} from "./services/track-sessions/index.js";
 export type { ITrainingWeek } from "./services/training-week/index.js";
 export type { Tool, ToolDef } from "./tools/define.js";

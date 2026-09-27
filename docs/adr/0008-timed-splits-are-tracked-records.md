@@ -76,7 +76,7 @@ in. `INTERVALS_TRACK_SESSIONS_DIR` overrides the location.
 ## Known development, not fitted development
 
 The record's `gear` and `rolloutMm` give `(chainring / cog) × rollout` — metres per crank revolution,
-a **known** drivetrain quantity. `track-lap-alignment` recovers a **fitted** development, which is
+a **known** drivetrain quantity. The alignment recovers a **fitted** development, which is
 distance actually ridden per revolution and equals the known one only if the rider covered exactly
 the lap distance. `track-context.md` §1 records them differing by ~0.4% across two sessions.
 
@@ -101,8 +101,9 @@ numbers the reconciliation passed, and any extra trailing columns the timing app
 dropped, which costs nothing because the parser ignores them anyway.
 
 `splits` and `sessionId` are mutually exclusive rather than one overriding the other — they could
-disagree, and there is no principled way to pick a winner. That check lives in the tool handler, not
-as a Zod refinement, because the MCP adapter registers `schema.shape` and `.refine()` erases it.
+disagree, and there is no principled way to pick a winner. That check lives in the Track module,
+which resolves the input for both tools, not as a Zod refinement, because the MCP adapter registers
+`schema.shape` and `.refine()` erases it.
 
 `activityId` stays overridable, and stays required when there is no record to take it from. A record
 need not carry one: 2025 Nationals is a timing export with no ride behind it, and asking to align it

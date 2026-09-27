@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { defineTool, READ_ONLY } from "./define.js";
-import { resolveTrackInputs, trackInputFields } from "./track-inputs.js";
+import { trackInputFields } from "./track-inputs.js";
+import type { TrackInput } from "../services/track/index.js";
 
 const computeTrackLapPowerSchema = z.object({ ...trackInputFields });
 
@@ -87,8 +88,6 @@ export const computeTrackLapPowerTool = defineTool({
   schema: computeTrackLapPowerSchema,
   annotations: READ_ONLY,
   outputSchema: computeTrackLapPowerOutputSchema,
-  handler: async (client, args) =>
-    client.trackLapAlignment.computeTrackLapPower(
-      resolveTrackInputs(client, args)
-    ),
+  // The schema cannot say "exactly one of"; `align` checks it.
+  handler: async (client, args) => client.track.align(args as TrackInput),
 });

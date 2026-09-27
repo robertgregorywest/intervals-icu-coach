@@ -5,10 +5,9 @@ import {
   getTrackSessionTool,
   compareTrackSessionsTool,
 } from "../../src/tools/track-sessions.js";
-import {
-  createTrackSessions,
-  loadTrackSessionRecords,
-} from "../../src/services/track-sessions/index.js";
+import { createTrack } from "../../src/services/track/index.js";
+import { loadTrackSessionRecords } from "../../src/services/track/records/loader.js";
+import type { IActivitiesApi } from "../../src/services/activities/index.js";
 import type { IIntervalsClient } from "../../src/index.js";
 
 const FIXTURES = fileURLToPath(
@@ -17,15 +16,15 @@ const FIXTURES = fileURLToPath(
 
 /** The real service behind the client interface, reading the fixtures. */
 function fixtureClient(): IIntervalsClient {
-  const service = createTrackSessions({
+  const service = createTrack({
+    activitiesApi: {} as IActivitiesApi,
     load: () => loadTrackSessionRecords(FIXTURES),
   });
   return {
-    trackSessions: {
-      listTrackSessions: vi.fn(() => service.listTrackSessions()),
-      getTrackSession: vi.fn((o) => service.getTrackSession(o)),
-      compareTrackSessions: vi.fn((o) => service.compareTrackSessions(o)),
-      resolveTrackSplits: (id: string) => service.resolveTrackSplits(id),
+    track: {
+      listSessions: vi.fn(() => service.listSessions()),
+      getSession: vi.fn((o) => service.getSession(o)),
+      compareSessions: vi.fn((o) => service.compareSessions(o)),
     },
   } as unknown as IIntervalsClient;
 }
@@ -76,7 +75,7 @@ describe("track session tool handlers", () => {
     const result = await listTrackSessions(client, {});
     expect(listTrackSessionsOutputSchema.parse(result)).toBeTruthy();
     expect(result.sessions).toHaveLength(4);
-    expect(client.trackSessions.listTrackSessions).toHaveBeenCalled();
+    expect(client.track.listSessions).toHaveBeenCalled();
   });
 
   it("passes id and segmentLaps through, and matches the output schema", async () => {
@@ -86,7 +85,7 @@ describe("track session tool handlers", () => {
       segmentLaps: 2,
     });
     expect(getTrackSessionOutputSchema.parse(result)).toBeTruthy();
-    expect(client.trackSessions.getTrackSession).toHaveBeenCalledWith({
+    expect(client.track.getSession).toHaveBeenCalledWith({
       id: "2026-nationals-ip",
       segmentLaps: 2,
     });

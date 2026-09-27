@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { defineTool, DESTRUCTIVE_IDEMPOTENT } from "./define.js";
-import { resolveTrackInputs, trackInputFields } from "./track-inputs.js";
+import { trackInputFields } from "./track-inputs.js";
+import type { TrackWriteInput } from "../services/track/index.js";
 
 const writeTrackRunsSchema = z.object({
   ...trackInputFields,
@@ -69,9 +70,6 @@ export const writeTrackRunsTool = defineTool({
   schema: writeTrackRunsSchema,
   annotations: DESTRUCTIVE_IDEMPOTENT,
   outputSchema: writeTrackRunsOutputSchema,
-  handler: async (client, args) =>
-    client.trackLapWriteback.writeTrackRuns({
-      ...resolveTrackInputs(client, args),
-      preview: args.preview,
-    }),
+  // The schema cannot say "exactly one of"; `write` checks it.
+  handler: async (client, args) => client.track.write(args as TrackWriteInput),
 });

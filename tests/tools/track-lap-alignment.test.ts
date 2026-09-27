@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { computeTrackLapPowerTool } from "../../src/tools/track-lap-alignment.js";
-import { createTrackLapAlignment } from "../../src/services/track-lap-alignment/index.js";
+import { createTrack } from "../../src/services/track/index.js";
 import type { IIntervalsClient } from "../../src/index.js";
 import type { IActivitiesApi } from "../../src/services/activities/index.js";
 import type { ActivityStreams } from "../../src/services/activities/types.js";
@@ -41,7 +41,7 @@ function clientWithStreams(): {
     },
   };
   const client = {
-    trackLapAlignment: createTrackLapAlignment({ activitiesApi }),
+    track: createTrack({ activitiesApi }),
   } as unknown as IIntervalsClient;
   return { client, requested };
 }

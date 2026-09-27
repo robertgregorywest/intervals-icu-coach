@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { HttpClient } from "../../src/client.js";
 import { ActivitiesApi } from "../../src/services/activities/activities.js";
+import { normalizeActivityId } from "../../src/services/activities/index.js";
 
 function createMockFetch(status: number, body: unknown) {
   return vi.fn().mockResolvedValue({
@@ -252,5 +253,13 @@ describe("ActivitiesApi intervals", () => {
     ]);
     // Metrics come back computed by the platform, none of them sent.
     expect(doc.icu_intervals[1].average_watts).toBe(359);
+  });
+});
+
+describe("normalizeActivityId", () => {
+  it("prefixes a bare id and leaves a prefixed one alone", () => {
+    expect(normalizeActivityId(173732945)).toBe("i173732945");
+    expect(normalizeActivityId("173732945")).toBe("i173732945");
+    expect(normalizeActivityId("i173732945")).toBe("i173732945");
   });
 });

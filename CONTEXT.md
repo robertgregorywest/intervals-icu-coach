@@ -140,6 +140,14 @@ _Avoid_: trusting the export's own "Average Speed" and "Average Cadence" columns
 A tracked file holding one **Session**: the measurement basis in frontmatter (date, gear, rollout, crank length, lap distance, start type, provenance) and the **Lap-split record** verbatim in a fenced `splits` block, with prose between them. Stores **nothing derived** — every speed, cadence, segment, **Decline** and comparison is recomputed on read, so nothing goes stale when MAP, air density or the aero model moves. Parsed by the same reconciliation the export gets, so a transcription slip surfaces on every read rather than once. See `docs/adr/0008-timed-splits-are-tracked-records.md`.
 _Avoid_: storing a speed, a cadence or a decline in the file; writing a table of splits into a prose document instead of a record; putting modelled watts in one — the aero model over-reads (`track-context.md` §6) and stays in prose, labelled.
 
+**Track module**:
+`src/services/track/` — the one service behind the five track Tools, exposed as `ITrack`: the **Track session record** operations (`listSessions`, `getSession`, `compareSessions`; `records/`), the alignment of a **Lap-split record** to the ride's streams (`align`; `alignment/`) and its write-back as intervals (`write`; `writeback/`). Both `align` and `write` take a **Track input** and resolve it inside the module, so an alignment previewed with `compute_track_lap_power` is the one `write_track_runs` puts on the activity. The fit, the window search and the snap are internal. The records read tracked files only; just `align` and `write` reach Intervals.icu.
+_Avoid_: resolving a session id to splits in a Tool; calling the alignment's or the writeback's functions from outside the module.
+
+**Track input**:
+What an alignment is fitted from: `{ sessionId }` — a **Track session record**, whose splits come back re-serialised from the reconciled parse and whose `activityId` and lap length come from its basis — or `{ splits, activityId }`, the export pasted with the ride it was timed on. Exactly one of `sessionId` or `splits`; `activityId` and `lapDistanceMeters` override the record's, and `activityId` is required when there is no record to take it from, or the record has none.
+_Avoid_: pasting an export that is already filed as a record — a second transcription is a second chance to mistype it.
+
 **Session vs Run**:
 A **Session** is one visit to the track, one record file, addressed by its `id`. A **Run** is one timed effort within it — a race has exactly one; a training session has several. A run is addressed as `<sessionId>#<run>`, and the run label is verbatim from the **Lap-split record**, so it is the same identity a **Run label** carries onto the activity.
 _Avoid_: comparing sessions when you mean runs; a bare session id is refused for a multi-run session rather than resolved to its first run.
