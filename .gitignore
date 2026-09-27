@@ -5,3 +5,4 @@ dist/
 .mcp.json
 docs/personal/
 .DS_Store
+docs/architecture/*.html

@@ -1,0 +1,268 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "intervals-icu-mcp \u2014 Deep Modules",
+    "quality_profile": "showcase",
+    "viewBox": [1360, 810]
+  },
+  "components": [
+    {
+      "id": "registry",
+      "type": "frontend",
+      "label": "Tool registry",
+      "sublabel": "MCP + CLI adapters project Tools",
+      "pos": [380, 30],
+      "size": [250, 64]
+    },
+    {
+      "id": "root",
+      "type": "frontend",
+      "label": "IntervalsClient",
+      "sublabel": "composition root: builds each service once",
+      "pos": [700, 30],
+      "size": [290, 64]
+    },
+    {
+      "id": "scheduling",
+      "type": "backend",
+      "label": "Workout scheduling",
+      "sublabel": "the one way a workout reaches the calendar",
+      "pos": [30, 450],
+      "size": [300, 70]
+    },
+    {
+      "id": "execreview",
+      "type": "backend",
+      "label": "Execution review",
+      "sublabel": "pairs plan to ride; step + band lenses, digest",
+      "pos": [30, 350],
+      "size": [300, 70]
+    },
+    {
+      "id": "week",
+      "type": "backend",
+      "label": "Training week",
+      "sublabel": "weekly load, middle-band dose, execution",
+      "pos": [30, 250],
+      "size": [300, 70]
+    },
+    {
+      "id": "forecast",
+      "type": "backend",
+      "label": "Training-load forecast",
+      "sublabel": "projects CTL/ATL from proposed sessions",
+      "pos": [30, 150],
+      "size": [300, 70]
+    },
+    {
+      "id": "anchors",
+      "type": "backend",
+      "label": "Athlete anchors",
+      "tag": "deep core",
+      "sublabel": "single source of FTP, MAP and MAP zones",
+      "pos": [530, 190],
+      "size": [300, 80]
+    },
+    {
+      "id": "prescription",
+      "type": "backend",
+      "label": "Prescription",
+      "tag": "deep core",
+      "sublabel": "workout text \u2192 resolved Planned steps",
+      "pos": [530, 345],
+      "size": [300, 80]
+    },
+    {
+      "id": "library",
+      "type": "backend",
+      "label": "Workout library",
+      "sublabel": "renders templates, syncs Library workouts",
+      "pos": [530, 450],
+      "size": [300, 70]
+    },
+    {
+      "id": "coaching",
+      "type": "backend",
+      "label": "Coaching context",
+      "sublabel": "athlete + fitness snapshot for coaching",
+      "pos": [1030, 150],
+      "size": [300, 70]
+    },
+    {
+      "id": "powerprofile",
+      "type": "backend",
+      "label": "Power profile",
+      "sublabel": "power-duration profile against anchors",
+      "pos": [1030, 250],
+      "size": [300, 70]
+    },
+    {
+      "id": "track",
+      "type": "backend",
+      "label": "Track",
+      "sublabel": "track records, lap alignment, writeback",
+      "pos": [1030, 350],
+      "size": [300, 70]
+    },
+    {
+      "id": "analysis",
+      "type": "backend",
+      "label": "Activity analysis",
+      "sublabel": "decoupling and interval comparison",
+      "pos": [1030, 450],
+      "size": [300, 70]
+    },
+    {
+      "id": "events",
+      "type": "database",
+      "label": "Events",
+      "sublabel": "calendar CRUD",
+      "pos": [40, 600],
+      "size": [240, 60]
+    },
+    {
+      "id": "activities",
+      "type": "database",
+      "label": "Activities",
+      "sublabel": "rides, streams, FIT laps",
+      "pos": [300, 600],
+      "size": [240, 60]
+    },
+    {
+      "id": "athlete",
+      "type": "database",
+      "label": "Athlete",
+      "sublabel": "athlete record + sport settings",
+      "pos": [560, 600],
+      "size": [240, 60]
+    },
+    {
+      "id": "wellness",
+      "type": "database",
+      "label": "Wellness",
+      "sublabel": "daily CTL/ATL, HRV, sleep",
+      "pos": [820, 600],
+      "size": [240, 60]
+    },
+    {
+      "id": "curves",
+      "type": "database",
+      "label": "Power curves",
+      "sublabel": "best-effort curves",
+      "pos": [1080, 600],
+      "size": [240, 60]
+    },
+    {
+      "id": "http",
+      "type": "security",
+      "label": "HttpClient",
+      "sublabel": "Basic auth, rate limit, injectable fetch",
+      "pos": [360, 720],
+      "size": [300, 64]
+    },
+    {
+      "id": "icu",
+      "type": "external",
+      "label": "Intervals.icu API",
+      "sublabel": "REST",
+      "pos": [800, 720],
+      "size": [220, 64]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Deep service modules \u2014 src/services/",
+      "wraps": [
+        "scheduling",
+        "execreview",
+        "week",
+        "forecast",
+        "anchors",
+        "prescription",
+        "library",
+        "coaching",
+        "powerprofile",
+        "track",
+        "analysis"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "Thin Intervals.icu API wrappers",
+      "wraps": ["events", "activities", "athlete", "wellness", "curves"]
+    }
+  ],
+  "connections": [
+    {
+      "id": "registry-root",
+      "from": "registry",
+      "to": "root",
+      "label": "handlers call"
+    },
+    {
+      "id": "forecast-anchors",
+      "from": "forecast",
+      "to": "anchors"
+    },
+    {
+      "id": "coaching-anchors",
+      "from": "coaching",
+      "to": "anchors"
+    },
+    {
+      "id": "profile-anchors",
+      "from": "powerprofile",
+      "to": "anchors"
+    },
+    {
+      "id": "exec-prescription",
+      "from": "execreview",
+      "to": "prescription"
+    },
+    {
+      "id": "sched-library",
+      "from": "scheduling",
+      "to": "library"
+    },
+    {
+      "id": "library-prescription",
+      "from": "library",
+      "to": "prescription"
+    },
+    {
+      "id": "http-icu",
+      "from": "http",
+      "to": "icu",
+      "label": "HTTPS"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Deep core",
+      "items": [
+        "Athlete anchors: every FTP/MAP read goes through one snapshot()",
+        "Prescription: the only parse \u2192 Planned steps pipeline",
+        "Scheduling, execution review, week, forecast, coaching context and power profile all read anchors"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Edges",
+      "items": [
+        "Tool registry \u2192 both adapters; handlers only shape responses",
+        "IntervalsClient wires services; forwards nothing"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Shallow by design",
+      "items": [
+        "Five API wrappers are thin CRUD over HttpClient",
+        "Services depend on their interfaces, never on HTTP"
+      ]
+    }
+  ]
+}
