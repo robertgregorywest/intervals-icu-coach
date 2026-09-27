@@ -64,16 +64,8 @@ describe("reviewWindow — the one guard", () => {
    */
   it("rejects a 29-day window identically in every lens that takes one", async () => {
     const apis = intervalsApis(routedFetch([]));
-    const getCoachingZones = async () => ({ zones: null, ftp: 300 });
-    const digest = createExecutionDigest({
-      ...apis,
-      getFtp: async () => 300,
-      getCoachingZones,
-    });
-    const distribution = createIntensityDistribution({
-      ...apis,
-      getCoachingZones,
-    });
+    const digest = createExecutionDigest(apis);
+    const distribution = createIntensityDistribution(apis);
     const window = { oldest: "2026-09-01", newest: "2026-09-29" };
     const refusal = /spans 29 days, over the 28-day maximum/;
 

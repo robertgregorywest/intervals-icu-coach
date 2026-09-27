@@ -1,8 +1,8 @@
 import type { IEventsApi } from "../events/index.js";
 import type { IWellnessApi } from "../wellness/index.js";
-import type { IAthleteApi, SportSetting } from "../athlete/index.js";
+import type { SportSetting } from "../athlete/index.js";
 import { readPrescription } from "../prescription/index.js";
-import { readAthlete } from "../athlete-anchors/index.js";
+import type { IAthleteAnchors } from "../athlete-anchors/index.js";
 import type { IntervalsEvent, WorkoutDoc } from "../../types.js";
 import { deriveLoad } from "./load.js";
 import {
@@ -40,7 +40,7 @@ const STRENGTH_NOTE =
 export interface ForecastDeps {
   eventsApi: IEventsApi;
   wellnessApi: IWellnessApi;
-  athleteApi: IAthleteApi;
+  anchors: IAthleteAnchors;
 }
 
 export class TrainingLoadForecast implements ITrainingLoadForecast {
@@ -66,12 +66,12 @@ export class TrainingLoadForecast implements ITrainingLoadForecast {
     const historyStart = shiftDate(seedDate, -RAMP_LOOKBACK_DAYS);
 
     const [athlete, events, wellness] = await Promise.all([
-      this.deps.athleteApi.getAthlete(),
+      this.deps.anchors.getAthleteAnchors(),
       this.deps.eventsApi.getEvents(oldest, newest),
       this.deps.wellnessApi.getWellness(historyStart, seedDate),
     ]);
 
-    const { cycling, ftp: athleteFtp, powerZones } = readAthlete(athlete);
+    const { cycling, ftp: athleteFtp, powerZones } = athlete;
     const ftp = options.ftp ?? athleteFtp;
     if (!ftp || ftp <= 0) {
       throw new Error(

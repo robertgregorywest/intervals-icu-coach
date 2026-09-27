@@ -3,7 +3,7 @@ import type { IEventsApi } from "../events/index.js";
 import type { Activity } from "../activities/types.js";
 import type { IntervalsEvent } from "../../types.js";
 import { readPrescription } from "../prescription/index.js";
-import { planFtp } from "../athlete-anchors/index.js";
+import type { IAthleteAnchors } from "../athlete-anchors/index.js";
 import {
   createPairedSessionLoader,
   MAX_WINDOW_DAYS,
@@ -40,20 +40,15 @@ import type {
 /** Longest range the aggregate will span — the **Review window**'s cap. */
 export const MAX_RANGE_DAYS = MAX_WINDOW_DAYS;
 
-export interface CoachingZones {
-  zones: ZoneRow[] | null;
-  ftp: number | null;
-}
-
 export interface IntensityDistributionDeps {
   activitiesApi: IActivitiesApi;
   eventsApi: IEventsApi;
   /**
-   * The athlete's coaching frame. Injected rather than composed so the service
-   * can be tested against a pinned frame — the athlete's MAP moves, and a test
-   * whose expected seconds move with it is testing nothing.
+   * The athlete's MAP zones and FTP — the bucketing frame. A test pins them
+   * with `createAthleteAnchorsFrom`: the athlete's MAP moves, and a test whose
+   * expected seconds move with it is testing nothing.
    */
-  getCoachingZones(): Promise<CoachingZones>;
+  anchors: IAthleteAnchors;
 }
 
 export class IntensityDistribution implements IIntensityDistribution {
@@ -73,7 +68,7 @@ export class IntensityDistribution implements IIntensityDistribution {
       return refuse(found.activity, found.event, found.reason, found.message);
     }
 
-    const frame = await distributionFrame(this.deps.getCoachingZones);
+    const frame = await distributionFrame(this.deps.anchors.snapshot());
     return distributeSession(found.session, frame);
   }
 
@@ -82,20 +77,26 @@ export class IntensityDistribution implements IIntensityDistribution {
   ): Promise<IntensityDistributionRangeResult> {
     // Throws on a window over the cap, before any HTTP.
     const loaded = await this.loader.loadWindow(options);
-    const frame = await distributionFrame(this.deps.getCoachingZones);
+    const frame = await distributionFrame(this.deps.anchors.snapshot());
     return distributeWindow(loaded, frame);
   }
 }
 
-/** The bucketing frame, resolved once per call rather than per session. */
+/**
+ * The bucketing frame, resolved once per call rather than per session. Pass a
+ * snapshot, so each session's plan FTP falls back on the athlete read here.
+ */
 export async function distributionFrame(
-  getCoachingZones: () => Promise<CoachingZones>
+  anchors: IAthleteAnchors
 ): Promise<DistributionFrame> {
-  const { zones, ftp } = await getCoachingZones();
+  const [{ mapZones }, { ftp }] = await Promise.all([
+    anchors.getMapAnchors(),
+    anchors.getAthleteAnchors(),
+  ]);
   return {
-    partition: zones ? derivePartition(zones) : [],
+    partition: mapZones ? derivePartition(mapZones) : [],
     middle: ftp && ftp > 0 ? middleBandBounds(ftp) : undefined,
-    athleteFtp: ftp,
+    anchors,
   };
 }
 
@@ -200,7 +201,7 @@ export async function distributeSession(
   frame: DistributionFrame
 ): Promise<IntensityDistributionResult> {
   const { activity, event } = session;
-  const ftp = await planFtp(event, activity, async () => frame.athleteFtp);
+  const ftp = await frame.anchors.planFtp(event, activity);
   const planned = readPrescription(event.workout_doc, { ftp }).steps;
 
   if (planned.length === 0) {
@@ -283,8 +284,8 @@ export async function distributeSession(
 export interface DistributionFrame {
   partition: PartitionBand[];
   middle?: MiddleBandBounds;
-  /** The last resort for a session whose event and ride both lack an FTP. */
-  athleteFtp: number | null;
+  /** Resolves each session's plan FTP, the athlete's as the last resort. */
+  anchors: IAthleteAnchors;
 }
 
 function toRows(

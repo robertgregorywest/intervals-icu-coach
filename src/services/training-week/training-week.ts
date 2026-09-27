@@ -57,7 +57,7 @@ export class TrainingWeek implements ITrainingWeek {
     perActivity: (number | null)[];
     middleBand: WeekMiddleBand | null;
   }> {
-    const ftp = await this.deps.getFtp?.();
+    const ftp = (await this.deps.anchors?.getAthleteAnchors())?.ftp;
     if (!ftp || ftp <= 0) {
       return { perActivity: activities.map(() => null), middleBand: null };
     }

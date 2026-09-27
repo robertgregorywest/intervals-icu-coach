@@ -13,14 +13,13 @@ import type {
 import {
   distributeWindow,
   distributionFrame,
-  type CoachingZones,
 } from "../intensity-distribution/index.js";
 import type {
   IntensityDistributionRangeResult,
   RangeSessionRow,
 } from "../intensity-distribution/types.js";
 import { readPrescription, type PlannedStep } from "../prescription/index.js";
-import { planFtp } from "../athlete-anchors/index.js";
+import type { IAthleteAnchors } from "../athlete-anchors/index.js";
 import {
   createPairedSessionLoader,
   type LoadedWindow,
@@ -58,10 +57,11 @@ const COASTING_WORTH_REPORTING = 0.05;
 export interface ExecutionDigestDeps {
   eventsApi: IEventsApi;
   activitiesApi: IActivitiesApi;
-  /** The athlete's FTP, for events whose own and paired ride carry none. */
-  getFtp(): Promise<number | null>;
-  /** The distribution's bucketing frame, read only when a session is key. */
-  getCoachingZones(): Promise<CoachingZones>;
+  /**
+   * The athlete's FTP, for events whose own and paired ride carry none, and
+   * the MAP zones of the distribution's frame, read only when a session is key.
+   */
+  anchors: IAthleteAnchors;
 }
 
 /**
@@ -91,8 +91,9 @@ export class ExecutionDigest implements IExecutionDigest {
     // Throws on a window failing its guard, before any fetch.
     const loaded = await this.loader.loadWindow({ oldest, newest });
 
-    let athleteFtp: Promise<number | null> | undefined;
-    const lazyAthleteFtp = () => (athleteFtp ??= this.deps.getFtp());
+    // One snapshot for the call: the athlete is read at most once however
+    // many plans fall back on its FTP.
+    const anchors = this.deps.anchors.snapshot();
 
     // Selection runs on the planned side, so a key session that was abandoned
     // or never started is selected and reported rather than silently missed.
@@ -104,7 +105,7 @@ export class ExecutionDigest implements IExecutionDigest {
         .map(async (event) =>
           plannedSummary(
             event,
-            await planFtp(event, rideFor(loaded, event), lazyAthleteFtp)
+            await anchors.planFtp(event, rideFor(loaded, event))
           )
         )
     );
@@ -126,7 +127,7 @@ export class ExecutionDigest implements IExecutionDigest {
     }
 
     const [distribution, reviews] = await Promise.all([
-      distributionFrame(this.deps.getCoachingZones).then((frame) =>
+      distributionFrame(anchors).then((frame) =>
         distributeWindow(loaded, frame)
       ),
       Promise.all(
@@ -135,7 +136,7 @@ export class ExecutionDigest implements IExecutionDigest {
           return found.session
             ? reviewPairedSession(found.session, {
                 tolerance: DEFAULT_TOLERANCE,
-                athleteFtp: lazyAthleteFtp,
+                anchors,
               })
             : unpairedReview(found, DEFAULT_TOLERANCE);
         })

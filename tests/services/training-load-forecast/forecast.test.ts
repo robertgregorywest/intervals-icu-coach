@@ -7,6 +7,9 @@ import { WellnessApi } from "../../../src/services/wellness/wellness.js";
 import { AthleteApi } from "../../../src/services/athlete/athlete.js";
 import { TrainingLoadForecast } from "../../../src/services/training-load-forecast/forecast.js";
 import type { ForecastOptions } from "../../../src/services/training-load-forecast/index.js";
+import { createAthleteAnchors } from "../../../src/services/athlete-anchors/index.js";
+import type { IActivitiesApi } from "../../../src/services/activities/index.js";
+import type { IPowerCurvesApi } from "../../../src/services/power-curves/index.js";
 
 const FIXTURE = JSON.parse(
   readFileSync(
@@ -92,7 +95,11 @@ function build(stub: StubOptions = {}) {
   const service = new TrainingLoadForecast({
     eventsApi: new EventsApi(httpClient, config.athleteId),
     wellnessApi: new WellnessApi(httpClient, config.athleteId),
-    athleteApi: new AthleteApi(httpClient, config.athleteId),
+    anchors: createAthleteAnchors({
+      athleteApi: new AthleteApi(httpClient, config.athleteId),
+      activitiesApi: {} as IActivitiesApi,
+      powerCurvesApi: {} as IPowerCurvesApi,
+    }),
   });
   return { service, fetchFn };
 }

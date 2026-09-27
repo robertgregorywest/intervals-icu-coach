@@ -1,10 +1,5 @@
 export type { AthleteAnchors, IAthleteAnchors, MapAnchors } from "./types.js";
-export {
-  AthleteAnchorsService,
-  createAthleteAnchors,
-  deriveMapAnchors,
-  planFtp,
-} from "./anchors.js";
-export type { AthleteAnchorsDeps } from "./anchors.js";
-export { readAthlete, positiveNumber } from "./fields.js";
-export type { AthleteFields } from "./fields.js";
+export { createAthleteAnchors, createAthleteAnchorsFrom } from "./anchors.js";
+export type { AthleteAnchorsDeps, AnchorSources } from "./anchors.js";
+export { computeMapZones } from "./zones.js";
+export type { ZoneRow } from "./zones.js";

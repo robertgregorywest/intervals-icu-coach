@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import {
-  computeZones,
   computeFtpCheck,
   computePstsSection,
   computeCompound,
@@ -41,33 +40,6 @@ function inputs(over: Partial<Record<string, unknown>> = {}): ResolvedInputs {
     ...over,
   } as ResolvedInputs;
 }
-
-describe("computeZones", () => {
-  it("returns 9 zones with watts derived from MAP", () => {
-    const zones = computeZones(360, null);
-    expect(zones).toHaveLength(9);
-    expect(zones[0]).toMatchObject({
-      name: "REC",
-      lowW: 0,
-      highW: 144,
-      pctText: "0–40%",
-    });
-    expect(zones[7]).toMatchObject({
-      name: "L7",
-      lowW: 396,
-      highW: 540,
-    });
-    expect(zones[8].name).toBe("NMP");
-    expect(zones[8].pctText).toBe("150%+");
-    expect(zones[8].wattText).toBe("540 W and above");
-  });
-
-  it("caps NMP high end to p5s when provided", () => {
-    const zones = computeZones(360, 1100);
-    expect(zones[8].highW).toBe(1100);
-    expect(zones[8].wattText).toBe("540–1100 W");
-  });
-});
 
 describe("computeFtpCheck", () => {
   it("flags FTP > 77% of MAP as high", () => {

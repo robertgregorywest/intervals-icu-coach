@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
+  computeMapZones,
   createAthleteAnchors,
-  planFtp,
-  readAthlete,
+  createAthleteAnchorsFrom,
 } from "../../../src/services/athlete-anchors/index.js";
 import type { IAthleteApi } from "../../../src/services/athlete/index.js";
 import type {
@@ -45,9 +45,18 @@ const ATHLETE = {
   ],
 };
 
-describe("readAthlete — the one athlete-field reader", () => {
-  it("reads the live payload's cycling settings and icu_weight", () => {
-    const f = readAthlete(ATHLETE);
+/** The anchors over one athlete record, read the way production reads it. */
+function read(record: unknown) {
+  return createAthleteAnchors({
+    athleteApi: { getAthlete: async () => record as never },
+    activitiesApi: {} as IActivitiesApi,
+    powerCurvesApi: {} as IPowerCurvesApi,
+  }).getAthleteAnchors();
+}
+
+describe("getAthleteAnchors — the one athlete-record reader", () => {
+  it("reads the live payload's cycling settings and icu_weight", async () => {
+    const f = await read(ATHLETE);
     expect(f.ftp).toBe(286);
     expect(f.weight).toBe(68.2);
     expect(f.lthr).toBe(159);
@@ -59,24 +68,24 @@ describe("readAthlete — the one athlete-field reader", () => {
     expect(f.sportSettings).toHaveLength(2);
   });
 
-  it("reads the typed profile's snake_case sport settings the same way", () => {
+  it("reads the typed profile's snake_case sport settings the same way", async () => {
     const { sportSettings, ...rest } = ATHLETE;
-    expect(readAthlete({ ...rest, sport_settings: sportSettings }).ftp).toBe(
+    expect((await read({ ...rest, sport_settings: sportSettings })).ftp).toBe(
       286
     );
   });
 
-  it("prefers the sport settings' FTP over a top-level one", () => {
-    expect(readAthlete({ ...ATHLETE, icu_ftp: 250, ftp: 240 }).ftp).toBe(286);
+  it("prefers the sport settings' FTP over a top-level one", async () => {
+    expect((await read({ ...ATHLETE, icu_ftp: 250, ftp: 240 })).ftp).toBe(286);
   });
 
-  it("falls back to the top-level FTP, icu_ftp first, when the settings carry none", () => {
-    expect(readAthlete({ icu_ftp: 250, ftp: 240 }).ftp).toBe(250);
-    expect(readAthlete({ ftp: 240 }).ftp).toBe(240);
+  it("falls back to the top-level FTP, icu_ftp first, when the settings carry none", async () => {
+    expect((await read({ icu_ftp: 250, ftp: 240 })).ftp).toBe(250);
+    expect((await read({ ftp: 240 })).ftp).toBe(240);
   });
 
-  it("reads a zero or negative number as unset, not as an anchor", () => {
-    const f = readAthlete({
+  it("reads a zero or negative number as unset, not as an anchor", async () => {
+    const f = await read({
       icu_weight: 0,
       weight: 70,
       sportSettings: [{ types: ["Ride"], ftp: 0 }],
@@ -86,8 +95,24 @@ describe("readAthlete — the one athlete-field reader", () => {
     expect(f.ftp).toBeNull();
   });
 
-  it("answers null for an empty or missing record", () => {
-    expect(readAthlete(null)).toMatchObject({
+  it("reads sex, date of birth and height as the record stores them", async () => {
+    const f = await read({
+      sex: "M",
+      icu_date_of_birth: "1985-04-01",
+      height: 1.8,
+    });
+    expect(f).toMatchObject({
+      sex: "M",
+      dateOfBirth: "1985-04-01",
+      height: 1.8,
+    });
+    expect((await read({ birthday: "1990-01-01" })).dateOfBirth).toBe(
+      "1990-01-01"
+    );
+  });
+
+  it("answers null for an empty or missing record", async () => {
+    expect(await read(null)).toMatchObject({
       ftp: null,
       weight: null,
       powerZones: null,
@@ -138,7 +163,7 @@ function harness() {
 describe("AthleteAnchorsService", () => {
   it("answers FTP, weight and power zones from one athlete request", async () => {
     const { anchors, calls } = harness();
-    expect(await anchors.getAthleteAnchors()).toEqual({
+    expect(await anchors.getAthleteAnchors()).toMatchObject({
       ftp: 286,
       weight: 68.2,
       powerZones: [55, 75, 90, 105, 120, 150, 999],
@@ -155,27 +180,88 @@ describe("AthleteAnchorsService", () => {
   });
 });
 
+describe("snapshot — each anchor read at most once per call", () => {
+  it("fetches the athlete once however many readers ask", async () => {
+    const { anchors, calls } = harness();
+    const snap = anchors.snapshot();
+    await Promise.all([
+      snap.getAthleteAnchors(),
+      snap.planFtp({}, null),
+      snap.getMapAnchors(),
+      snap.getMapAnchors(),
+    ]);
+    expect(calls.filter((c) => c === "athlete")).toHaveLength(1);
+    expect(calls.filter((c) => c === "curve")).toHaveLength(1);
+  });
+
+  it("leaves the anchors themselves unmemoised, so a later call sees a new FTP", async () => {
+    const { anchors, calls } = harness();
+    await anchors.getAthleteAnchors();
+    await anchors.getAthleteAnchors();
+    expect(calls.filter((c) => c === "athlete")).toHaveLength(2);
+  });
+});
+
 describe("planFtp — the one event → ride → athlete order", () => {
-  const never = async () => {
-    throw new Error("the athlete is read only as a last resort");
-  };
+  function anchorsAt(ftp: number | null) {
+    let reads = 0;
+    const anchors = createAthleteAnchorsFrom({
+      athlete: async () => {
+        reads++;
+        return { ftp };
+      },
+    });
+    return { anchors, reads: () => reads };
+  }
 
   it("takes the event's own FTP first", async () => {
-    expect(await planFtp({ icu_ftp: 300 }, { icu_ftp: 320 }, never)).toBe(300);
+    const { anchors, reads } = anchorsAt(286);
+    expect(await anchors.planFtp({ icu_ftp: 300 }, { icu_ftp: 320 })).toBe(300);
+    expect(reads()).toBe(0);
   });
 
   it("takes the ride's FTP when the event carries none", async () => {
-    expect(await planFtp({ icu_ftp: null }, { icu_ftp: 320 }, never)).toBe(320);
+    const { anchors, reads } = anchorsAt(286);
+    expect(await anchors.planFtp({ icu_ftp: null }, { icu_ftp: 320 })).toBe(
+      320
+    );
+    expect(reads()).toBe(0);
   });
 
   it("reads the athlete only when neither half carries one", async () => {
-    expect(await planFtp({}, undefined, async () => 286)).toBe(286);
-    expect(await planFtp({ icu_ftp: 0 }, { icu_ftp: 0 }, async () => 286)).toBe(
-      286
-    );
+    const { anchors } = anchorsAt(286);
+    expect(await anchors.planFtp({}, undefined)).toBe(286);
+    expect(await anchors.planFtp({ icu_ftp: 0 }, { icu_ftp: 0 })).toBe(286);
   });
 
   it("answers null rather than guessing", async () => {
-    expect(await planFtp({}, null, async () => null)).toBeNull();
+    expect(await anchorsAt(null).anchors.planFtp({}, null)).toBeNull();
+  });
+});
+
+describe("computeMapZones", () => {
+  it("returns 9 zones with watts derived from MAP", () => {
+    const zones = computeMapZones(360, null);
+    expect(zones).toHaveLength(9);
+    expect(zones[0]).toMatchObject({
+      name: "REC",
+      lowW: 0,
+      highW: 144,
+      pctText: "0–40%",
+    });
+    expect(zones[7]).toMatchObject({
+      name: "L7",
+      lowW: 396,
+      highW: 540,
+    });
+    expect(zones[8].name).toBe("NMP");
+    expect(zones[8].pctText).toBe("150%+");
+    expect(zones[8].wattText).toBe("540 W and above");
+  });
+
+  it("caps NMP high end to p5s when provided", () => {
+    const zones = computeMapZones(360, 1100);
+    expect(zones[8].highW).toBe(1100);
+    expect(zones[8].wattText).toBe("540–1100 W");
   });
 });

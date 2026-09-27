@@ -1,4 +1,4 @@
-import type { ZoneRow } from "../power-profile/index.js";
+import type { ZoneRow } from "../athlete-anchors/index.js";
 
 /**
  * Why a comparison produced no per-zone breakdown. Machine-readable so callers

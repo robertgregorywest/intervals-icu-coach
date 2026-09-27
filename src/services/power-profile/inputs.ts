@@ -1,9 +1,7 @@
-import type { IActivitiesApi } from "../activities/index.js";
-import type { IAthleteApi } from "../athlete/index.js";
 import type { IPowerCurvesApi } from "../power-curves/index.js";
+import { extractPeaks } from "../power-curves/index.js";
+import type { IAthleteAnchors } from "../athlete-anchors/index.js";
 import { isoToday } from "../../clock.js";
-import { deriveLatestMap } from "../map/index.js";
-import { positiveNumber, readAthlete } from "../athlete-anchors/fields.js";
 import type {
   InputField,
   InputSource,
@@ -13,8 +11,9 @@ import type {
 } from "./types.js";
 
 export interface PowerProfileDeps {
-  athleteApi: IAthleteApi;
-  activitiesApi: IActivitiesApi;
+  /** Weight, FTP, sex, age, height and MAP — the athlete's side of the inputs. */
+  anchors: IAthleteAnchors;
+  /** The peaks, at whatever range the caller asks for. */
   powerCurvesApi: IPowerCurvesApi;
 }
 
@@ -38,22 +37,19 @@ export async function resolveInputs(
   const today = opts.today ?? isoToday();
   const warnings: string[] = [];
 
-  const [athleteRaw, mapDerivation] = await Promise.all([
-    deps.athleteApi.getAthlete().catch(() => null),
+  const [fields, mapDerivation] = await Promise.all([
+    deps.anchors.getAthleteAnchors().catch(() => null),
     overrides.mapWatts != null
       ? Promise.resolve(null)
-      : deriveLatestMap(deps.activitiesApi, today),
+      : deps.anchors.getMapAnchors({ today }),
   ]);
-
-  const athlete = athleteRaw as Record<string, unknown> | null;
-  const fields = readAthlete(athlete);
 
   // weight
   let weightKg: InputField<number>;
   if (overrides.weightKg != null) {
     weightKg = field(overrides.weightKg, "override");
   } else {
-    const w = fields.weight;
+    const w = fields?.weight ?? null;
     weightKg = w != null ? field(w, "athlete") : missing<number>();
   }
 
@@ -61,7 +57,7 @@ export async function resolveInputs(
   if (overrides.ftpWatts != null) {
     ftpWatts = field(overrides.ftpWatts, "override");
   } else {
-    const v = fields.ftp;
+    const v = fields?.ftp ?? null;
     ftpWatts = v != null ? field(v, "athlete") : missing<number>();
   }
 
@@ -70,7 +66,7 @@ export async function resolveInputs(
   if (overrides.sex) {
     sex = field(overrides.sex, "override");
   } else {
-    const raw = pickString(athlete, "sex");
+    const raw = fields?.sex;
     const mapped =
       raw === "M" || raw === "male"
         ? "male"
@@ -85,10 +81,7 @@ export async function resolveInputs(
   if (overrides.age != null) {
     age = field(overrides.age, "override");
   } else {
-    const dob =
-      pickString(athlete, "icu_date_of_birth") ??
-      pickString(athlete, "date_of_birth") ??
-      pickString(athlete, "birthday");
+    const dob = fields?.dateOfBirth;
     const computed = dob ? computeAgeFromDob(dob, today) : null;
     age = computed != null ? field(computed, "derived") : missing<number>();
   }
@@ -98,7 +91,7 @@ export async function resolveInputs(
   if (overrides.heightCm != null) {
     heightCm = field(overrides.heightCm, "override");
   } else {
-    const h = positiveNumber(athlete, ["height"]);
+    const h = fields?.height ?? null;
     if (h != null) {
       const cm = h <= 3 ? h * 100 : h; // metres → cm if value looks like metres
       heightCm = field(cm, "athlete");
@@ -204,15 +197,6 @@ export async function resolveInputs(
   };
 }
 
-function pickString(
-  obj: Record<string, unknown> | null,
-  key: string
-): string | null {
-  if (!obj) return null;
-  const v = obj[key];
-  return typeof v === "string" && v.length > 0 ? v : null;
-}
-
 function computeAgeFromDob(dob: string, today: string): number | null {
   const d = Date.parse(dob);
   const t = Date.parse(today);
@@ -225,51 +209,4 @@ function computeAgeFromDob(dob: string, today: string): number | null {
     years--;
   }
   return years >= 0 && years < 130 ? years : null;
-}
-
-interface PeakSet {
-  p5s: number | null;
-  p60: number | null;
-  p5min: number | null;
-}
-
-// Intervals.icu power-curves-ext response is either an array of points
-// `[{ secs, value, activity_id }, ...]` or an envelope `{ list: [{ secs:[],
-// watts:[], values:[], ... }] }`. Handle both shapes defensively.
-export function extractPeaks(raw: unknown): PeakSet {
-  const out: PeakSet = { p5s: null, p60: null, p5min: null };
-  if (!raw) return out;
-
-  if (Array.isArray(raw)) {
-    for (const p of raw as Array<Record<string, unknown>>) {
-      const secs = typeof p.secs === "number" ? p.secs : null;
-      const value =
-        typeof p.value === "number"
-          ? p.value
-          : typeof p.watts === "number"
-            ? (p.watts as number)
-            : null;
-      if (secs == null || value == null) continue;
-      if (secs === 5) out.p5s = value;
-      else if (secs === 60) out.p60 = value;
-      else if (secs === 300) out.p5min = value;
-    }
-    return out;
-  }
-
-  const obj = raw as Record<string, unknown>;
-  const list = obj.list ?? obj.points;
-  if (Array.isArray(list) && list.length) {
-    const first = list[0] as Record<string, unknown>;
-    const secs = first.secs as number[] | undefined;
-    const watts = (first.watts ?? first.values) as number[] | undefined;
-    if (Array.isArray(secs) && Array.isArray(watts)) {
-      for (let i = 0; i < secs.length; i++) {
-        if (secs[i] === 5) out.p5s = watts[i] ?? out.p5s;
-        else if (secs[i] === 60) out.p60 = watts[i] ?? out.p60;
-        else if (secs[i] === 300) out.p5min = watts[i] ?? out.p5min;
-      }
-    }
-  }
-  return out;
 }

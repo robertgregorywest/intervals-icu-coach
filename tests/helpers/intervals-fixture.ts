@@ -2,6 +2,7 @@ import { vi } from "vitest";
 import { HttpClient } from "../../src/client.js";
 import { ActivitiesApi } from "../../src/services/activities/activities.js";
 import { EventsApi } from "../../src/services/events/events.js";
+import { createAthleteAnchorsFrom } from "../../src/services/athlete-anchors/index.js";
 
 /**
  * The one fixture harness for the execution-review lenses: a fetch routed by
@@ -75,12 +76,16 @@ export function routedFetch(routes: Route[]) {
 
 export type RoutedFetch = ReturnType<typeof routedFetch>;
 
-/** The real API wrappers over a routed fetch. */
+/**
+ * The real API wrappers over a routed fetch, and anchors carrying no FTP and no
+ * MAP — a test that needs either pins its own.
+ */
 export function intervalsApis(fetchFn: RoutedFetch) {
   const httpClient = new HttpClient(config, fetchFn as never);
   return {
     activitiesApi: new ActivitiesApi(httpClient, config.athleteId),
     eventsApi: new EventsApi(httpClient, config.athleteId),
+    anchors: createAthleteAnchorsFrom({}),
   };
 }
 

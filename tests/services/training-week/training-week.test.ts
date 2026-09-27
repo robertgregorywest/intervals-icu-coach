@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
+import { createAthleteAnchorsFrom } from "../../../src/services/athlete-anchors/index.js";
 import { createTrainingWeek } from "../../../src/services/training-week/index.js";
 import type { TrainingWeekDeps } from "../../../src/services/training-week/index.js";
 
@@ -139,7 +140,9 @@ describe("TrainingWeek.getTrainingWeekSummary", () => {
 
     it("sums delivered seconds in 76-106% FTP from the power stream", async () => {
       const deps = createDeps();
-      deps.getFtp = vi.fn().mockResolvedValue(200);
+      deps.anchors = createAthleteAnchorsFrom({
+        athlete: async () => ({ ftp: 200 }),
+      });
       deps.activitiesApi.getActivityStreams = vi
         .fn()
         .mockResolvedValue({ watts });
@@ -163,7 +166,9 @@ describe("TrainingWeek.getTrainingWeekSummary", () => {
 
     it("reports no middle band when FTP is unavailable", async () => {
       const deps = createDeps();
-      deps.getFtp = vi.fn().mockResolvedValue(null);
+      deps.anchors = createAthleteAnchorsFrom({
+        athlete: async () => ({ ftp: null }),
+      });
       deps.activitiesApi.getActivityStreams = vi.fn();
 
       const result =

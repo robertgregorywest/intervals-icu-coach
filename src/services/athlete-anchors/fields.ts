@@ -1,31 +1,11 @@
 import type { SportSetting } from "../athlete/index.js";
+import type { AthleteAnchors } from "./types.js";
 
 /**
- * What the athlete record says, read once and one way.
- *
- * Intervals.icu keeps the sport-scoped values — FTP, LTHR, max HR, zones — on
- * the cycling sport settings, not on the athlete record, and the live payload
- * names that list `sportSettings` although the typed profile says
- * `sport_settings`. A top-level field is honoured only where the sport settings
- * carry none. A zero or negative number is an unset field, never an anchor.
+ * The one athlete-record reader. See `AthleteAnchors` for how the record is
+ * read.
  */
-export interface AthleteFields {
-  id: string | null;
-  name: string | null;
-  ftp: number | null;
-  weight: number | null;
-  lthr: number | null;
-  maxHr: number | null;
-  restingHr: number | null;
-  powerZones: number[] | null;
-  hrZones: number[] | null;
-  paceZones: number[] | null;
-  sportSettings: SportSetting[];
-  /** The cycling sport settings, or the first entry when none is cycling. */
-  cycling: SportSetting | undefined;
-}
-
-export function readAthlete(raw: unknown): AthleteFields {
+export function readAthlete(raw: unknown): AthleteAnchors {
   const athlete = (raw ?? {}) as Record<string, unknown>;
   const sportSettings = sportSettingsOf(athlete);
   const cycling = pickCycling(sportSettings);
@@ -34,6 +14,12 @@ export function readAthlete(raw: unknown): AthleteFields {
   return {
     id: pickString(athlete, "id"),
     name: pickString(athlete, "name"),
+    sex: pickString(athlete, "sex"),
+    dateOfBirth:
+      pickString(athlete, "icu_date_of_birth") ??
+      pickString(athlete, "date_of_birth") ??
+      pickString(athlete, "birthday"),
+    height: positiveNumber(athlete, ["height"]),
     ftp:
       positiveNumber(sport, ["ftp"]) ??
       positiveNumber(athlete, ["icu_ftp", "ftp"]),

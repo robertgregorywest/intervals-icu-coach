@@ -26,7 +26,6 @@ export type {
 
 export {
   computePowerProfile,
-  computeZones,
   computeFtpCheck,
   computePstsSection,
   computeCompound,
@@ -39,7 +38,7 @@ export {
   computeRaceEstimates,
 } from "./compute.js";
 
-export { resolveInputs, extractPeaks } from "./inputs.js";
+export { resolveInputs } from "./inputs.js";
 export type { PowerProfileDeps, ResolveOptions } from "./inputs.js";
 
 import { computePowerProfile } from "./compute.js";

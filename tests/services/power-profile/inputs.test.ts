@@ -1,8 +1,6 @@
 import { describe, it, expect } from "vitest";
-import {
-  resolveInputs,
-  extractPeaks,
-} from "../../../src/services/power-profile/index.js";
+import { resolveInputs } from "../../../src/services/power-profile/index.js";
+import { createAthleteAnchors } from "../../../src/services/athlete-anchors/index.js";
 import type {
   Activity,
   ActivityStreams,
@@ -84,8 +82,11 @@ describe("resolveInputs", () => {
   it("auto-resolves from API + derives masters from age", async () => {
     const inputs = await resolveInputs(
       {
-        athleteApi: fakeAthlete(),
-        activitiesApi: fakeActivities(),
+        anchors: createAthleteAnchors({
+          athleteApi: fakeAthlete(),
+          activitiesApi: fakeActivities(),
+          powerCurvesApi: fakePowerCurves(CURVE_ENVELOPE),
+        }),
         powerCurvesApi: fakePowerCurves(CURVE_ENVELOPE),
       },
       {},
@@ -112,8 +113,11 @@ describe("resolveInputs", () => {
   it("overrides take precedence over API values", async () => {
     const inputs = await resolveInputs(
       {
-        athleteApi: fakeAthlete(),
-        activitiesApi: fakeActivities(),
+        anchors: createAthleteAnchors({
+          athleteApi: fakeAthlete(),
+          activitiesApi: fakeActivities(),
+          powerCurvesApi: fakePowerCurves(CURVE_ENVELOPE),
+        }),
         powerCurvesApi: fakePowerCurves(CURVE_ENVELOPE),
       },
       {
@@ -148,8 +152,11 @@ describe("resolveInputs", () => {
 
     const inputs = await resolveInputs(
       {
-        athleteApi: fakeAthlete(),
-        activitiesApi: noActivities,
+        anchors: createAthleteAnchors({
+          athleteApi: fakeAthlete(),
+          activitiesApi: noActivities,
+          powerCurvesApi: fakePowerCurves(CURVE_ENVELOPE),
+        }),
         powerCurvesApi: fakePowerCurves(CURVE_ENVELOPE),
       },
       {},
@@ -171,8 +178,11 @@ describe("resolveInputs", () => {
 
     const inputs = await resolveInputs(
       {
-        athleteApi: fakeAthlete(),
-        activitiesApi: fakeActivities(),
+        anchors: createAthleteAnchors({
+          athleteApi: fakeAthlete(),
+          activitiesApi: fakeActivities(),
+          powerCurvesApi: failingCurves,
+        }),
         powerCurvesApi: failingCurves,
       },
       {},
@@ -186,11 +196,14 @@ describe("resolveInputs", () => {
   it("handles missing date_of_birth without crashing", async () => {
     const inputs = await resolveInputs(
       {
-        athleteApi: fakeAthlete({
-          ...ATHLETE,
-          icu_date_of_birth: null,
-        } as Partial<AthleteProfile>),
-        activitiesApi: fakeActivities(),
+        anchors: createAthleteAnchors({
+          athleteApi: fakeAthlete({
+            ...ATHLETE,
+            icu_date_of_birth: null,
+          } as Partial<AthleteProfile>),
+          activitiesApi: fakeActivities(),
+          powerCurvesApi: fakePowerCurves(CURVE_ENVELOPE),
+        }),
         powerCurvesApi: fakePowerCurves(CURVE_ENVELOPE),
       },
       {},
@@ -200,42 +213,5 @@ describe("resolveInputs", () => {
     expect(inputs.age.value).toBeNull();
     expect(inputs.age.source).toBe("missing");
     expect(inputs.masters.value).toBeNull();
-  });
-});
-
-describe("extractPeaks", () => {
-  it("reads parallel-array envelope shape", () => {
-    expect(extractPeaks(CURVE_ENVELOPE)).toEqual({
-      p5s: 1050,
-      p60: 540,
-      p5min: 370,
-    });
-  });
-
-  it("reads flat array of points shape", () => {
-    const points = [
-      { secs: 5, value: 1000 },
-      { secs: 60, value: 500 },
-      { secs: 300, value: 360 },
-      { secs: 1200, value: 270 },
-    ];
-    expect(extractPeaks(points)).toEqual({
-      p5s: 1000,
-      p60: 500,
-      p5min: 360,
-    });
-  });
-
-  it("returns nulls for unrecognised shape", () => {
-    expect(extractPeaks(null)).toEqual({
-      p5s: null,
-      p60: null,
-      p5min: null,
-    });
-    expect(extractPeaks({ foo: "bar" })).toEqual({
-      p5s: null,
-      p60: null,
-      p5min: null,
-    });
   });
 });

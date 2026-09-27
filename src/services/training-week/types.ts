@@ -1,6 +1,7 @@
 import type { IActivitiesApi } from "../activities/index.js";
 import type { IEventsApi } from "../events/index.js";
 import type { IWellnessApi } from "../wellness/index.js";
+import type { IAthleteAnchors } from "../athlete-anchors/index.js";
 
 export interface TrainingWeekDeps {
   activitiesApi: IActivitiesApi;
@@ -10,7 +11,7 @@ export interface TrainingWeekDeps {
    * The athlete's FTP, which anchors the middle band. Optional: without it the
    * week summary reports no middle-band figures rather than guessing a frame.
    */
-  getFtp?: () => Promise<number | null | undefined>;
+  anchors?: IAthleteAnchors;
   /** "Today" as YYYY-MM-DD; defaults to the system clock (UTC). */
   today?: () => string;
 }

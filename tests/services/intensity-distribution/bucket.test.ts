@@ -7,7 +7,7 @@ import {
 } from "../../../src/services/intensity-distribution/bucket.js";
 import { derivePartition } from "../../../src/services/intensity-distribution/zones.js";
 import type { FlatPlannedStep } from "../../../src/services/session-review/index.js";
-import type { ZoneRow } from "../../../src/services/power-profile/index.js";
+import type { ZoneRow } from "../../../src/services/athlete-anchors/index.js";
 
 const FRAME = JSON.parse(
   readFileSync(

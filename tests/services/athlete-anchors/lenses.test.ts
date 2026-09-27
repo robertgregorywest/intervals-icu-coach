@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { createSessionReview } from "../../../src/services/session-review/index.js";
 import { createIntensityDistribution } from "../../../src/services/intensity-distribution/index.js";
 import { createExecutionDigest } from "../../../src/services/execution-digest/index.js";
+import { createAthleteAnchorsFrom } from "../../../src/services/athlete-anchors/index.js";
 import type {
   Activity,
   FitLap,
@@ -56,10 +57,13 @@ const LAPS: FitLap[] = [
 
 function lenses(ride: Activity | null) {
   const athleteFtpReads: string[] = [];
-  const getFtp = async () => {
-    athleteFtpReads.push("athlete");
-    return ATHLETE_FTP;
-  };
+  // No MAP zones: only the FTP-anchored middle band is under test.
+  const anchors = createAthleteAnchorsFrom({
+    athlete: async () => {
+      athleteFtpReads.push("athlete");
+      return { ftp: ATHLETE_FTP };
+    },
+  });
   const activitiesApi = {
     getActivities: async () => (ride ? [ride] : []),
     getActivity: async () => ride,
@@ -71,24 +75,13 @@ function lenses(ride: Activity | null) {
     getEvent: async () => EVENT,
   } as unknown as IEventsApi;
 
-  const sessionReview = createSessionReview({
-    activitiesApi,
-    eventsApi,
-    getFtp,
-  });
-  const intensityDistribution = createIntensityDistribution({
-    activitiesApi,
-    eventsApi,
-    // No MAP zones: only the FTP-anchored middle band is under test.
-    getCoachingZones: async () => ({ zones: null, ftp: await getFtp() }),
-  });
-  const digest = createExecutionDigest({
-    eventsApi,
-    activitiesApi,
-    getFtp,
-    getCoachingZones: async () => ({ zones: null, ftp: await getFtp() }),
-  });
-  return { sessionReview, intensityDistribution, digest, athleteFtpReads };
+  const deps = { activitiesApi, eventsApi, anchors };
+  return {
+    sessionReview: createSessionReview(deps),
+    intensityDistribution: createIntensityDistribution(deps),
+    digest: createExecutionDigest(deps),
+    athleteFtpReads,
+  };
 }
 
 const WINDOW = { oldest: "2026-09-01", newest: "2026-09-14" };

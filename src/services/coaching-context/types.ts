@@ -1,7 +1,7 @@
 import type { AthleteProfile } from "../athlete/index.js";
 import type { WellnessRecord } from "../wellness/index.js";
 import type { MapInfo } from "../map/index.js";
-import type { ZoneRow } from "../power-profile/index.js";
+import type { ZoneRow } from "../athlete-anchors/index.js";
 
 export interface AthleteSnapshot {
   id: string | null;

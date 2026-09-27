@@ -55,7 +55,7 @@ export interface IIntervalsClient {
   readonly eventUpdate: IEventUpdate;
   readonly workoutBuilder: IWorkoutBuilder;
   readonly athlete: IAthleteApi;
-  /** FTP, weight and power zones — one athlete request, no coaching context. */
+  /** FTP, weight, power zones, MAP and MAP zones — the one place they are read. */
   readonly anchors: IAthleteAnchors;
   readonly activities: IActivitiesApi;
   readonly wellness: IWellnessApi;
@@ -143,29 +143,20 @@ export class IntervalsClient implements IIntervalsClient {
       powerCurvesApi: this.powerCurves,
       today: this.today,
     });
-    const getFtp = async () => (await this.anchors.getAthleteAnchors()).ftp;
     this.sessionReview = createSessionReview({
       activitiesApi: this.activities,
       eventsApi: this.events,
-      getFtp,
+      anchors: this.anchors,
     });
-    const getCoachingZones = async () => {
-      const [{ mapZones }, ftp] = await Promise.all([
-        this.anchors.getMapAnchors(),
-        getFtp(),
-      ]);
-      return { zones: mapZones, ftp };
-    };
     this.intensityDistribution = createIntensityDistribution({
       activitiesApi: this.activities,
       eventsApi: this.events,
-      getCoachingZones,
+      anchors: this.anchors,
     });
     this.executionDigest = createExecutionDigest({
       eventsApi: this.events,
       activitiesApi: this.activities,
-      getFtp,
-      getCoachingZones,
+      anchors: this.anchors,
     });
     this.trackLapAlignment = createTrackLapAlignment({
       activitiesApi: this.activities,
@@ -180,26 +171,23 @@ export class IntervalsClient implements IIntervalsClient {
     this.trainingLoadForecast = createTrainingLoadForecast({
       eventsApi: this.events,
       wellnessApi: this.wellness,
-      athleteApi: this.athlete,
+      anchors: this.anchors,
     });
     this.trainingWeek = createTrainingWeek({
       activitiesApi: this.activities,
       wellnessApi: this.wellness,
       eventsApi: this.events,
       // Same FTP source as the distribution frame, so the band means the same thing.
-      getFtp,
+      anchors: this.anchors,
       today: this.today,
     });
     this.coachingContext = createCoachingContext({
-      athleteApi: this.athlete,
+      anchors: this.anchors,
       wellnessApi: this.wellness,
-      activitiesApi: this.activities,
-      powerCurvesApi: this.powerCurves,
       today: this.today,
     });
     this.powerProfile = createPowerProfile({
-      athleteApi: this.athlete,
-      activitiesApi: this.activities,
+      anchors: this.anchors,
       powerCurvesApi: this.powerCurves,
       today: this.today,
     });

@@ -72,10 +72,7 @@ function clientWith() {
 function realClient() {
   const fetchFn = routedFetch([]);
   const client = {
-    intensityDistribution: createIntensityDistribution({
-      ...intervalsApis(fetchFn),
-      getCoachingZones: vi.fn(),
-    }),
+    intensityDistribution: createIntensityDistribution(intervalsApis(fetchFn)),
   } as unknown as IIntervalsClient;
   return { client, fetchFn };
 }

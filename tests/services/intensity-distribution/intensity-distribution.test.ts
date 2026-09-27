@@ -10,7 +10,8 @@ import {
   IntensityDistribution,
   MAX_RANGE_DAYS,
 } from "../../../src/services/intensity-distribution/intensity-distribution.js";
-import type { ZoneRow } from "../../../src/services/power-profile/index.js";
+import type { ZoneRow } from "../../../src/services/athlete-anchors/index.js";
+import { createAthleteAnchorsFrom } from "../../../src/services/athlete-anchors/index.js";
 
 function fixture(name: string) {
   const path = fileURLToPath(
@@ -34,9 +35,14 @@ function build(
 ) {
   return new IntensityDistribution({
     ...intervalsApis(fetchFn),
-    getCoachingZones: async () => ({
-      zones: zones.zones !== undefined ? zones.zones : FRAME.mapZones,
-      ftp: zones.ftp !== undefined ? zones.ftp : FRAME.ftp,
+    anchors: createAthleteAnchorsFrom({
+      athlete: async () => ({
+        ftp: zones.ftp !== undefined ? zones.ftp : FRAME.ftp,
+      }),
+      map: async () => ({
+        map: null,
+        mapZones: zones.zones !== undefined ? zones.zones : FRAME.mapZones,
+      }),
     }),
   });
 }

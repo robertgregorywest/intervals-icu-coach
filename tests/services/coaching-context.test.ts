@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { buildCoachingContext } from "../../src/services/coaching-context/coaching-context.js";
+import { createAthleteAnchors } from "../../src/services/athlete-anchors/index.js";
 import type {
   AthleteProfile,
   IAthleteApi,
@@ -86,10 +87,12 @@ describe("buildCoachingContext", () => {
     ]);
     const ctx = await buildCoachingContext(
       {
-        athleteApi,
+        anchors: createAthleteAnchors({
+          athleteApi,
+          activitiesApi: emptyActivitiesApi,
+          powerCurvesApi: emptyPowerCurvesApi,
+        }),
         wellnessApi,
-        activitiesApi: emptyActivitiesApi,
-        powerCurvesApi: emptyPowerCurvesApi,
       },
       { days: 3, today: "2026-04-30" }
     );
@@ -117,10 +120,12 @@ describe("buildCoachingContext", () => {
     const wellnessApi = fakeWellnessApi([]);
     const ctx = await buildCoachingContext(
       {
-        athleteApi,
+        anchors: createAthleteAnchors({
+          athleteApi,
+          activitiesApi: emptyActivitiesApi,
+          powerCurvesApi: emptyPowerCurvesApi,
+        }),
         wellnessApi,
-        activitiesApi: emptyActivitiesApi,
-        powerCurvesApi: emptyPowerCurvesApi,
       },
       { today: "2026-05-01" }
     );
@@ -165,10 +170,12 @@ describe("buildCoachingContext", () => {
     ]);
     const ctx = await buildCoachingContext(
       {
-        athleteApi,
+        anchors: createAthleteAnchors({
+          athleteApi,
+          activitiesApi: emptyActivitiesApi,
+          powerCurvesApi: emptyPowerCurvesApi,
+        }),
         wellnessApi,
-        activitiesApi: emptyActivitiesApi,
-        powerCurvesApi: emptyPowerCurvesApi,
       },
       { today: "2026-05-01", days: 1 }
     );
@@ -199,7 +206,14 @@ describe("buildCoachingContext", () => {
     ]);
 
     const ctx = await buildCoachingContext(
-      { athleteApi, wellnessApi, activitiesApi, powerCurvesApi },
+      {
+        anchors: createAthleteAnchors({
+          athleteApi,
+          activitiesApi,
+          powerCurvesApi,
+        }),
+        wellnessApi,
+      },
       { today: "2026-05-01", days: 1 }
     );
 
@@ -220,10 +234,12 @@ describe("buildCoachingContext", () => {
     await expect(
       buildCoachingContext(
         {
-          athleteApi,
+          anchors: createAthleteAnchors({
+            athleteApi,
+            activitiesApi: emptyActivitiesApi,
+            powerCurvesApi: emptyPowerCurvesApi,
+          }),
           wellnessApi,
-          activitiesApi: emptyActivitiesApi,
-          powerCurvesApi: emptyPowerCurvesApi,
         },
         { days: 0 }
       )
@@ -231,10 +247,12 @@ describe("buildCoachingContext", () => {
     await expect(
       buildCoachingContext(
         {
-          athleteApi,
+          anchors: createAthleteAnchors({
+            athleteApi,
+            activitiesApi: emptyActivitiesApi,
+            powerCurvesApi: emptyPowerCurvesApi,
+          }),
           wellnessApi,
-          activitiesApi: emptyActivitiesApi,
-          powerCurvesApi: emptyPowerCurvesApi,
         },
         { days: 31 }
       )

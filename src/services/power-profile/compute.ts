@@ -14,10 +14,10 @@ import type {
   Sex,
   TpProfileRow,
   Vo2Result,
-  ZoneRow,
   TtEstimateRow,
   RaceEstimateRow,
 } from "./types.js";
+import { computeMapZones } from "../athlete-anchors/index.js";
 
 const CD_FACTOR_BY_POSITION: Record<string, number> = {
   road_hoods: 0.7,
@@ -25,69 +25,6 @@ const CD_FACTOR_BY_POSITION: Record<string, number> = {
   tt: 0.55,
   upright: 0.75,
 };
-
-const ZONE_DEFS: Array<{
-  name: ZoneRow["name"];
-  label: string;
-  low: number;
-  high: number;
-}> = [
-  {
-    name: "REC",
-    label: 'Recovery rides, "walk on the pedals" (~30–90 min)',
-    low: 0.0,
-    high: 0.4,
-  },
-  {
-    name: "L1",
-    label: "Long and/or steady rides, easier group rides (~1–6 h)",
-    low: 0.4,
-    high: 0.55,
-  },
-  {
-    name: "L2",
-    label: "Core endurance, quality group rides, paceline (~1–4 h)",
-    low: 0.5,
-    high: 0.65,
-  },
-  {
-    name: "L3",
-    label: "Moderate endurance / hard tempo / harder group rides (~30–120 min)",
-    low: 0.6,
-    high: 0.7,
-  },
-  {
-    name: "L4",
-    label:
-      "Intensive endurance / long climbs / shorter road races (~10–60 min)",
-    low: 0.65,
-    high: 0.75,
-  },
-  {
-    name: "L5",
-    label: "Threshold tolerance / TTs / climbs / crits / track (~4–20 min)",
-    low: 0.7,
-    high: 0.85,
-  },
-  {
-    name: "L6",
-    label: "Maximal aerobic / short climbs / pursuit (~1–5 min)",
-    low: 0.8,
-    high: 1.1,
-  },
-  {
-    name: "L7",
-    label: "High-intensity anaerobic / sprint endurance (~20–60 s)",
-    low: 1.1,
-    high: 1.5,
-  },
-  {
-    name: "NMP",
-    label: "Neuromuscular power / max sprints (~5–20 s)",
-    low: 1.5,
-    high: 2.0,
-  },
-];
 
 const TP_PROFILE: Record<
   Sex,
@@ -220,39 +157,6 @@ const TT_EVENTS = [
   { name: "80.5 km TT", low: 0.64, high: 0.72 },
   { name: "161 km TT", low: 0.6, high: 0.68 },
 ];
-
-export function computeZones(mapWatts: number, p5s: number | null): ZoneRow[] {
-  return ZONE_DEFS.map((z) => {
-    const lowW = Math.round(z.low * mapWatts);
-    let highW = Math.round(z.high * mapWatts);
-    const lowPct = Math.round(z.low * 100);
-    const highPct = Math.round(z.high * 100);
-    let pctText: string;
-    let wattText: string;
-    if (z.name === "NMP") {
-      pctText = "150%+";
-      if (p5s != null && p5s > lowW) {
-        highW = Math.round(p5s);
-        wattText = `${lowW}–${highW} W`;
-      } else {
-        wattText = `${lowW} W and above`;
-      }
-    } else {
-      pctText = `${lowPct}–${highPct}%`;
-      wattText = `${lowW}–${highW} W`;
-    }
-    return {
-      name: z.name,
-      label: z.label,
-      lowPct,
-      highPct,
-      lowW,
-      highW,
-      pctText,
-      wattText,
-    };
-  });
-}
 
 export function computeFtpCheck(
   mapWatts: number,
@@ -712,7 +616,7 @@ export function computePowerProfile(
 
   return {
     inputs,
-    zones: computeZones(mapWatts, p5s),
+    zones: computeMapZones(mapWatts, p5s),
     ftpCheck: computeFtpCheck(mapWatts, ftp),
     psts: computePstsSection(mapWatts, ftp, weight, {
       heightCm,

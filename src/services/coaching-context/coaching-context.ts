@@ -1,10 +1,10 @@
-import type { IAthleteApi } from "../athlete/index.js";
 import type { IWellnessApi, WellnessRecord } from "../wellness/index.js";
-import type { IActivitiesApi } from "../activities/index.js";
-import type { IPowerCurvesApi } from "../power-curves/index.js";
 import { isoToday } from "../../clock.js";
 import { shiftDate } from "../../dates.js";
-import { deriveMapAnchors, readAthlete } from "../athlete-anchors/index.js";
+import type {
+  AthleteAnchors,
+  IAthleteAnchors,
+} from "../athlete-anchors/index.js";
 import type {
   AthleteSnapshot,
   CoachingContext,
@@ -13,10 +13,8 @@ import type {
 } from "./types.js";
 
 export interface CoachingContextDeps {
-  athleteApi: IAthleteApi;
+  anchors: IAthleteAnchors;
   wellnessApi: IWellnessApi;
-  activitiesApi: IActivitiesApi;
-  powerCurvesApi: IPowerCurvesApi;
 }
 
 export interface CoachingContextOptions {
@@ -52,16 +50,16 @@ export async function buildCoachingContext(
   const today = opts.today ?? isoToday();
   const oldest = shiftDate(today, -(days - 1));
 
-  // MAP zones come from the Athlete anchors module, the one place they are
-  // derived; the athlete record is read through its field reader.
-  const [athleteRaw, wellnessRaw, { map, mapZones, mapWarning }] =
+  // The athlete record and the MAP zones both come from the Athlete anchors
+  // module, the one place they are read.
+  const [anchors, wellnessRaw, { map, mapZones, mapWarning }] =
     await Promise.all([
-      deps.athleteApi.getAthlete(),
+      deps.anchors.getAthleteAnchors(),
       deps.wellnessApi.getWellness(oldest, today),
-      deriveMapAnchors(deps, today),
+      deps.anchors.getMapAnchors({ today }),
     ]);
 
-  const athlete = summarizeAthlete(athleteRaw);
+  const athlete = summarizeAthlete(anchors);
   const trend = summarizeTrend(wellnessRaw);
   const fitness = pickFitnessSnapshot(trend);
 
@@ -88,8 +86,7 @@ function clampDays(input?: number): number {
   return Math.floor(input);
 }
 
-function summarizeAthlete(raw: unknown): AthleteSnapshot {
-  const f = readAthlete(raw);
+function summarizeAthlete(f: AthleteAnchors): AthleteSnapshot {
   return {
     id: f.id,
     name: f.name,

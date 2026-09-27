@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { HttpClient } from "../../src/client.js";
-import { PowerCurvesApi } from "../../src/services/power-curves/power-curves.js";
+import { HttpClient } from "../../../src/client.js";
+import { PowerCurvesApi } from "../../../src/services/power-curves/power-curves.js";
 
 function createMockFetch(status: number, body: unknown) {
   return vi.fn().mockResolvedValue({

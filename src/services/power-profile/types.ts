@@ -1,3 +1,7 @@
+import type { ZoneRow } from "../athlete-anchors/index.js";
+
+export type { ZoneRow };
+
 export type Sex = "male" | "female";
 
 export type AeroPosition = "road_hoods" | "road_drops" | "tt" | "upright";
@@ -68,17 +72,6 @@ export interface ResolvedInputs {
   weeklyHours: InputField<number>;
   masters: InputField<boolean>;
   warnings: string[];
-}
-
-export interface ZoneRow {
-  name: "REC" | "L1" | "L2" | "L3" | "L4" | "L5" | "L6" | "L7" | "NMP";
-  label: string;
-  lowPct: number;
-  highPct: number;
-  lowW: number;
-  highW: number;
-  pctText: string;
-  wattText: string;
 }
 
 export type FtpStatus = "low" | "typical" | "high" | "missing";

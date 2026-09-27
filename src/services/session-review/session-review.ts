@@ -3,7 +3,7 @@ import type { IEventsApi } from "../events/index.js";
 import type { Activity } from "../activities/types.js";
 import type { IntervalsEvent } from "../../types.js";
 import { plannedDuration, readPrescription } from "../prescription/index.js";
-import { planFtp } from "../athlete-anchors/index.js";
+import type { IAthleteAnchors } from "../athlete-anchors/index.js";
 import {
   createPairedSessionLoader,
   type PairedSession,
@@ -27,8 +27,8 @@ import type {
 export interface SessionReviewDeps {
   activitiesApi: IActivitiesApi;
   eventsApi: IEventsApi;
-  /** The athlete's FTP, read only when neither the event nor the ride carries one. */
-  getFtp?: () => Promise<number | null>;
+  /** Resolves the FTP each plan is read at. */
+  anchors: IAthleteAnchors;
 }
 
 export class SessionReview implements ISessionReview {
@@ -47,7 +47,7 @@ export class SessionReview implements ISessionReview {
     return found.session
       ? reviewPairedSession(found.session, {
           tolerance,
-          athleteFtp: async () => (await this.deps.getFtp?.()) ?? null,
+          anchors: this.deps.anchors,
         })
       : unpairedReview(found, tolerance);
   }
@@ -55,8 +55,8 @@ export class SessionReview implements ISessionReview {
 
 export interface ReviewOptions {
   tolerance: number;
-  /** The athlete's FTP, for a session whose event and ride both carry none. */
-  athleteFtp: () => Promise<number | null>;
+  /** Resolves the FTP the plan is read at. */
+  anchors: IAthleteAnchors;
 }
 
 /**
@@ -71,7 +71,7 @@ export async function reviewPairedSession(
   const { event, activity } = session;
   const { tolerance } = options;
 
-  const ftp = await planFtp(event, activity, options.athleteFtp);
+  const ftp = await options.anchors.planFtp(event, activity);
   const planned = readPrescription(event.workout_doc, { ftp }).steps;
 
   if (planned.length === 0) {

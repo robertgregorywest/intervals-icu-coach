@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { createExecutionDigest } from "../../../src/services/execution-digest/index.js";
+import { createAthleteAnchorsFrom } from "../../../src/services/athlete-anchors/index.js";
 import { digestSession } from "../../../src/services/execution-digest/digest.js";
 import { readPrescription } from "../../../src/services/prescription/index.js";
 import type {
@@ -152,11 +153,13 @@ function digest(world: World) {
   const athleteFtp = world.ftp === undefined ? FTP : world.ftp;
   const service = createExecutionDigest({
     ...intervalsApis(fetchFn),
-    getFtp: async () => {
-      athleteFtpReads++;
-      return athleteFtp;
-    },
-    getCoachingZones: async () => ({ zones: MAP_ZONES, ftp: athleteFtp }),
+    anchors: createAthleteAnchorsFrom({
+      athlete: async () => {
+        athleteFtpReads++;
+        return { ftp: athleteFtp };
+      },
+      map: async () => ({ map: null, mapZones: MAP_ZONES }),
+    }),
   });
 
   return {
