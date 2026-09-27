@@ -205,13 +205,13 @@ export const compareIntensityDistributionTool = defineTool({
           "The range form needs both oldest and newest (YYYY-MM-DD)."
         );
       }
-      return client.intensityDistribution.compareIntensityDistributionRange({
+      return client.executionReview.compareIntensityDistributionRange({
         oldest: args.oldest,
         newest: args.newest,
       });
     }
 
-    return client.intensityDistribution.compareIntensityDistribution({
+    return client.executionReview.compareIntensityDistribution({
       activityId:
         args.activityId === undefined
           ? undefined

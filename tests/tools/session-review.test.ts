@@ -2,9 +2,9 @@ import { describe, it, expect, vi } from "vitest";
 import { comparePlannedVsActualTool } from "../../src/tools/session-review.js";
 import type { IIntervalsClient } from "../../src/index.js";
 import {
-  createSessionReview,
+  createExecutionReview,
   type PlannedVsActualResult,
-} from "../../src/services/session-review/index.js";
+} from "../../src/services/execution-review/index.js";
 import {
   intervalsApis,
   requested,
@@ -29,7 +29,7 @@ const result: PlannedVsActualResult = {
 function clientWith(spy = vi.fn().mockResolvedValue(result)) {
   return {
     client: {
-      sessionReview: { comparePlannedVsActual: spy },
+      executionReview: { comparePlannedVsActual: spy },
     } as unknown as IIntervalsClient,
     spy,
   };
@@ -39,7 +39,7 @@ function clientWith(spy = vi.fn().mockResolvedValue(result)) {
 function realClient() {
   const fetchFn = routedFetch([]);
   const client = {
-    sessionReview: createSessionReview(intervalsApis(fetchFn)),
+    executionReview: createExecutionReview(intervalsApis(fetchFn)),
   } as unknown as IIntervalsClient;
   return { client, fetchFn };
 }

@@ -23,12 +23,8 @@ import {
 import type { IWorkoutLibrary } from "./services/workout-library/index.js";
 import { createActivityAnalysis } from "./services/analysis/index.js";
 import type { IActivityAnalysis } from "./services/analysis/index.js";
-import { createSessionReview } from "./services/session-review/index.js";
-import type { ISessionReview } from "./services/session-review/index.js";
-import { createExecutionDigest } from "./services/execution-digest/index.js";
-import type { IExecutionDigest } from "./services/execution-digest/index.js";
-import { createIntensityDistribution } from "./services/intensity-distribution/index.js";
-import type { IIntensityDistribution } from "./services/intensity-distribution/index.js";
+import { createExecutionReview } from "./services/execution-review/index.js";
+import type { IExecutionReview } from "./services/execution-review/index.js";
 import { createTrackLapAlignment } from "./services/track-lap-alignment/index.js";
 import type { ITrackLapAlignment } from "./services/track-lap-alignment/index.js";
 import { createTrackLapWriteback } from "./services/track-lap-writeback/index.js";
@@ -62,9 +58,8 @@ export interface IIntervalsClient {
   readonly powerCurves: IPowerCurvesApi;
   readonly workoutLibrary: IWorkoutLibrary;
   readonly analysis: IActivityAnalysis;
-  readonly sessionReview: ISessionReview;
-  readonly intensityDistribution: IIntensityDistribution;
-  readonly executionDigest: IExecutionDigest;
+  /** The step lens, the band lens and the execution digest, over paired sessions. */
+  readonly executionReview: IExecutionReview;
   readonly trackLapAlignment: ITrackLapAlignment;
   readonly trackLapWriteback: ITrackLapWriteback;
   readonly trackSessions: ITrackSessions;
@@ -98,9 +93,7 @@ export class IntervalsClient implements IIntervalsClient {
   readonly powerCurves: IPowerCurvesApi;
   readonly workoutLibrary: IWorkoutLibrary;
   readonly analysis: IActivityAnalysis;
-  readonly sessionReview: ISessionReview;
-  readonly intensityDistribution: IIntensityDistribution;
-  readonly executionDigest: IExecutionDigest;
+  readonly executionReview: IExecutionReview;
   readonly trackLapAlignment: ITrackLapAlignment;
   readonly trackLapWriteback: ITrackLapWriteback;
   readonly trackSessions: ITrackSessions;
@@ -134,28 +127,17 @@ export class IntervalsClient implements IIntervalsClient {
       createWorkoutLibraryApi(httpClient, athleteId)
     );
     this.analysis = createActivityAnalysis({ activitiesApi: this.activities });
-    // One source for every FTP and MAP-zone reader, so the lenses and the week
-    // summary judge against the same anchors without building the coaching
-    // context to get them.
+    // One source for every FTP and MAP-zone reader, so nothing builds the
+    // coaching context to get them.
     this.anchors = createAthleteAnchors({
       athleteApi: this.athlete,
       activitiesApi: this.activities,
       powerCurvesApi: this.powerCurves,
       today: this.today,
     });
-    this.sessionReview = createSessionReview({
+    this.executionReview = createExecutionReview({
       activitiesApi: this.activities,
       eventsApi: this.events,
-      anchors: this.anchors,
-    });
-    this.intensityDistribution = createIntensityDistribution({
-      activitiesApi: this.activities,
-      eventsApi: this.events,
-      anchors: this.anchors,
-    });
-    this.executionDigest = createExecutionDigest({
-      eventsApi: this.events,
-      activitiesApi: this.activities,
       anchors: this.anchors,
     });
     this.trackLapAlignment = createTrackLapAlignment({
@@ -177,7 +159,6 @@ export class IntervalsClient implements IIntervalsClient {
       activitiesApi: this.activities,
       wellnessApi: this.wellness,
       eventsApi: this.events,
-      // Same FTP source as the distribution frame, so the band means the same thing.
       anchors: this.anchors,
       today: this.today,
     });
@@ -243,7 +224,9 @@ export type {
   IntervalFilterOptions,
 } from "./services/analysis/index.js";
 export type {
-  ISessionReview,
+  IExecutionReview,
+  SessionRef,
+  WindowRef,
   ComparePlannedVsActualOptions,
   PlannedVsActualResult,
   AlignedStep,
@@ -255,18 +238,9 @@ export type {
   FlatPlannedStep,
   DeliveredInterval,
   PowerTarget,
-} from "./services/session-review/index.js";
-export type {
-  IExecutionDigest,
   ExecutionDigestResult,
-  GetExecutionDigestOptions,
   DigestSession,
   FlaggedStep,
-} from "./services/execution-digest/index.js";
-export type {
-  IIntensityDistribution,
-  CompareIntensityDistributionOptions,
-  CompareIntensityDistributionRangeOptions,
   IntensityDistributionResult,
   IntensityDistributionRangeResult,
   DistributionReason,
@@ -277,7 +251,7 @@ export type {
   BoundarySpanningStep,
   RangeSessionRow,
   ExcludedSession,
-} from "./services/intensity-distribution/index.js";
+} from "./services/execution-review/index.js";
 export type {
   ITrackLapAlignment,
   TrackLapPowerOptions,

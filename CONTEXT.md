@@ -108,8 +108,12 @@ _Avoid_: treating it as a roll-up of the zone breakdown (the two are anchored on
 The span an execution review sweeps, running from the `reviewed-through` date in the coaching log's live-state header to today. Advanced to today only as part of a confirmed log write, so an unconfirmed session leaves the window intact. Capped at 28 days counting both ends (the block cadence), checked once by the **Paired session loader**; skipped when the window holds no key session.
 _Avoid_: "since last time" or any window derived from conversation history rather than the watermark — the watermark is what makes the review neither re-review nor silently skip.
 
+**Execution review module**:
+`src/services/execution-review/` — the one service behind `compare_planned_vs_actual`, `compare_intensity_distribution` and `get_execution_digest`, exposed as `IExecutionReview`. Owns the **Paired session loader** (`paired/`), the step lens (`steps/`), the band lens (`bands/`) and the **Execution digest** (`digest/`); the lenses are internal and are reached only through it. Each call takes one `snapshot()` of the **Athlete anchors**, so every lens in the call reads a plan at the same FTP and buckets into the same MAP-zone frame — an invariant held here, not wired in the composition root.
+_Avoid_: constructing a loader or a lens outside the module; importing a lens's functions from another service.
+
 **Paired session loader**:
-`src/services/paired-sessions/` — the one place a planned event is paired to the ride that executed it, for one session or a whole **Review window**. Each paired session carries its event, its ride, and the ride's **Execution record** candidates and null-safe power stream, each fetched on first ask and never again, so the step lens, the band lens and the **Execution digest** share one set of fetches. The window's day count and cap are checked here and nowhere else.
+`src/services/execution-review/paired/` — the one place a planned event is paired to the ride that executed it, for one session or a whole **Review window**. Each paired session carries its event, its ride, and the ride's **Execution record** candidates and null-safe power stream, each fetched on first ask and never again, so the step lens, the band lens and the **Execution digest** share one set of fetches. The window's day count and cap are checked here and nowhere else. Internal to the **Execution review module**.
 _Avoid_: pairing an event to its ride, or counting a window's days, inside a lens.
 
 **Work step**:
@@ -121,7 +125,7 @@ The closed list of first words that declare a **Work step**, held in the **Presc
 _Avoid_: matching anywhere but the label's first word; treating an unlisted word as a failure, rather than as a step nothing will judge.
 
 **Execution digest**:
-The deterministic half of an execution review over one **Review window**, computed by `get_execution_digest`: the key sessions (selected on the planned side, a **Work step** prescribed at or above the sweet-spot floor), the window's **Middle-band dose**, and the work steps whose **Verdict** or cadence missed by more than noise. Returns no step labels and no raw comparison. Interpretation — recurrence, whether a test's overshoot is the test working, what to change — stays with the coaching layer, which holds the athlete's context.
+The deterministic half of an execution review over one **Review window**, computed by `get_execution_digest` in the **Execution review module** (`digest/`): the key sessions (selected on the planned side, a **Work step** prescribed at or above the sweet-spot floor), the window's **Middle-band dose**, and the work steps whose **Verdict** or cadence missed by more than noise. Both lenses read the one loaded window, so each event and ride is fetched at most once; the band lens runs only when a key session exists. Returns no step labels and no raw comparison. Interpretation — recurrence, whether a test's overshoot is the test working, what to change — stays with the coaching layer, which holds the athlete's context.
 _Avoid_: reading its `flagged` list as findings; reading an empty one as a clean session without checking `workSteps` and `unclassifiedSteps`.
 
 **Lap-split record**:

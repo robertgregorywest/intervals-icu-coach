@@ -120,7 +120,7 @@ describe("IntervalsClient pinned today", () => {
 
   it("builds no coaching context for the execution digest", async () => {
     const { client, urls } = pinnedClient();
-    await client.executionDigest.getExecutionDigest({
+    await client.executionReview.getExecutionDigest({
       oldest: "2026-09-01",
       newest: "2026-09-06",
     });

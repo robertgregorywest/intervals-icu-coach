@@ -2,10 +2,10 @@ import { describe, it, expect, vi } from "vitest";
 import { compareIntensityDistributionTool } from "../../src/tools/intensity-distribution.js";
 import type { IIntervalsClient } from "../../src/index.js";
 import {
-  createIntensityDistribution,
+  createExecutionReview,
   type IntensityDistributionRangeResult,
   type IntensityDistributionResult,
-} from "../../src/services/intensity-distribution/index.js";
+} from "../../src/services/execution-review/index.js";
 import {
   intervalsApis,
   requested,
@@ -58,7 +58,7 @@ function clientWith() {
   const many = vi.fn().mockResolvedValue(range);
   return {
     client: {
-      intensityDistribution: {
+      executionReview: {
         compareIntensityDistribution: one,
         compareIntensityDistributionRange: many,
       },
@@ -72,7 +72,7 @@ function clientWith() {
 function realClient() {
   const fetchFn = routedFetch([]);
   const client = {
-    intensityDistribution: createIntensityDistribution(intervalsApis(fetchFn)),
+    executionReview: createExecutionReview(intervalsApis(fetchFn)),
   } as unknown as IIntervalsClient;
   return { client, fetchFn };
 }

@@ -5,7 +5,7 @@ import {
   unreviewableWorkSteps,
   type UnreviewableStep,
 } from "../services/prescription/index.js";
-import { KEY_SESSION_FLOOR_PCT_FTP } from "../services/execution-digest/index.js";
+import { KEY_SESSION_FLOOR_PCT_FTP } from "../services/execution-review/index.js";
 import { workoutEvent } from "../services/workout-builder/index.js";
 import type { SportType } from "../types.js";
 import { dateString } from "./common.js";

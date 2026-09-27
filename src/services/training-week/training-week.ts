@@ -8,7 +8,7 @@ import {
   MIDDLE_BAND_LOW_PCT_FTP,
   bucketDelivered,
   middleBandBounds,
-} from "../intensity-distribution/index.js";
+} from "../execution-review/index.js";
 import type {
   ActivitySummary,
   EventSummary,

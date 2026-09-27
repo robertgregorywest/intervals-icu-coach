@@ -181,7 +181,7 @@ export const getExecutionDigestTool = defineTool({
   annotations: READ_ONLY,
   outputSchema: getExecutionDigestOutputSchema,
   handler: (client, args) =>
-    client.executionDigest.getExecutionDigest({
+    client.executionReview.getExecutionDigest({
       oldest: args.oldest,
       newest: args.newest,
     }),
