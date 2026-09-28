@@ -1,5 +1,5 @@
 import { HttpError, type IHttpClient } from "../../client.js";
-import { decodeFitLaps, type FitLap } from "../fit/index.js";
+import type { FitLap, IFitCodec } from "../fit/index.js";
 import type {
   Activity,
   ActivityIntervalsDoc,
@@ -43,13 +43,24 @@ export interface IActivitiesApi {
   ): Promise<ActivityIntervalsDoc>;
 }
 
+export interface ActivitiesDeps {
+  /** Decodes the original upload's laps. */
+  fit: IFitCodec;
+}
+
 export class ActivitiesApi implements IActivitiesApi {
   private httpClient: IHttpClient;
   private athleteId: string;
+  private fit: IFitCodec;
 
-  constructor(httpClient: IHttpClient, athleteId: string) {
+  constructor(
+    httpClient: IHttpClient,
+    athleteId: string,
+    deps: ActivitiesDeps
+  ) {
     this.httpClient = httpClient;
     this.athleteId = athleteId;
+    this.fit = deps.fit;
   }
 
   async getActivities(oldest: string, newest: string): Promise<Activity[]> {
@@ -72,7 +83,7 @@ export class ActivitiesApi implements IActivitiesApi {
    */
   async getActivityLaps(id: string): Promise<FitLap[] | null> {
     const bytes = await this.getActivityFile(id);
-    return bytes ? decodeFitLaps(bytes) : null;
+    return bytes ? this.fit.decodeLaps(bytes) : null;
   }
 
   async getActivityFile(id: string): Promise<Uint8Array | null> {
@@ -144,7 +155,8 @@ function normalizeStreams(raw: unknown): ActivityStreams {
 
 export function createActivitiesApi(
   httpClient: IHttpClient,
-  athleteId: string
+  athleteId: string,
+  deps: ActivitiesDeps
 ): ActivitiesApi {
-  return new ActivitiesApi(httpClient, athleteId);
+  return new ActivitiesApi(httpClient, athleteId, deps);
 }

@@ -1,7 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { decodeFitLaps } from "../../../src/services/fit/index.js";
+import { createFitCodec } from "../../../src/services/fit/index.js";
+
+const fit = createFitCodec();
 
 /**
  * Real bytes from the Wahoo ELEMNT BOLT that recorded the 2026-08-06 pursuit
@@ -41,9 +43,9 @@ const EXPECTED: Array<[number, number]> = [
   [1127, 117], // ride home
 ];
 
-describe("decodeFitLaps", () => {
+describe("decodeLaps", () => {
   it("reads every lap the device recorded", () => {
-    const laps = decodeFitLaps(realFitFile());
+    const laps = fit.decodeLaps(realFitFile());
 
     expect(laps).not.toBeNull();
     expect(laps!.map((l) => [l.durationSeconds, l.averageWatts])).toEqual(
@@ -52,7 +54,7 @@ describe("decodeFitLaps", () => {
   });
 
   it("anchors start times at the first lap and keeps them contiguous", () => {
-    const laps = decodeFitLaps(realFitFile())!;
+    const laps = fit.decodeLaps(realFitFile())!;
 
     expect(laps[0].startTimeSeconds).toBe(0);
     // Laps abut: each starts where the previous one's elapsed time ended.
@@ -64,7 +66,7 @@ describe("decodeFitLaps", () => {
   });
 
   it("carries cadence and heart rate through", () => {
-    const laps = decodeFitLaps(realFitFile())!;
+    const laps = fit.decodeLaps(realFitFile())!;
 
     expect(laps[8].averageHeartrate).toBe(142);
     expect(laps[8].averageCadence).toBe(88);
@@ -72,14 +74,14 @@ describe("decodeFitLaps", () => {
   });
 
   it("carries normalized power and distance, scaling distance to metres", () => {
-    const laps = decodeFitLaps(realFitFile())!;
+    const laps = fit.decodeLaps(realFitFile())!;
 
     expect(laps[0].normalizedWatts).toBe(177);
     expect(laps[0].distanceMeters).toBe(7451.27);
   });
 
   it("distinguishes elapsed from timer time on a paused lap", () => {
-    const laps = decodeFitLaps(realFitFile())!;
+    const laps = fit.decodeLaps(realFitFile())!;
 
     // Lap 15 was paused mid-recovery: 325s of wall clock, 301s of timer.
     expect(laps[15].durationSeconds).toBe(325);
@@ -87,17 +89,17 @@ describe("decodeFitLaps", () => {
   });
 
   it("returns null rather than throwing on bytes that are not a FIT file", () => {
-    expect(decodeFitLaps(new Uint8Array(0))).toBeNull();
-    expect(decodeFitLaps(new Uint8Array(64))).toBeNull();
+    expect(fit.decodeLaps(new Uint8Array(0))).toBeNull();
+    expect(fit.decodeLaps(new Uint8Array(64))).toBeNull();
     expect(
-      decodeFitLaps(new TextEncoder().encode("<html>not a fit file</html>"))
+      fit.decodeLaps(new TextEncoder().encode("<html>not a fit file</html>"))
     ).toBeNull();
   });
 
   it("returns null on a FIT file whose record stream is truncated mid-header", () => {
     const truncated = realFitFile().slice(0, 20);
 
-    expect(decodeFitLaps(truncated)).toBeNull();
+    expect(fit.decodeLaps(truncated)).toBeNull();
   });
 
   it("returns an empty list for a valid FIT file carrying no laps", () => {
@@ -106,6 +108,6 @@ describe("decodeFitLaps", () => {
     const empty = bytes.slice(0, 14);
     new DataView(empty.buffer, empty.byteOffset).setUint32(4, 0, true);
 
-    expect(decodeFitLaps(empty)).toEqual([]);
+    expect(fit.decodeLaps(empty)).toEqual([]);
   });
 });

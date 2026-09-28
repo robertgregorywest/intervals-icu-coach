@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 import type { IActivitiesApi } from "../../../src/services/activities/index.js";
 import {
-  readFitRecords,
+  createFitCodec,
   type FitRecord,
 } from "../../../src/services/fit/index.js";
 import {
@@ -23,6 +23,8 @@ import {
   type TrackLapAlignmentResult,
 } from "../../../src/services/track/index.js";
 import { loadTrackSessionRecords } from "../../../src/services/track/records/loader.js";
+
+const fit = createFitCodec();
 
 const RECORDS = fileURLToPath(
   new URL("../../fixtures/track-sessions", import.meta.url)
@@ -194,6 +196,7 @@ function setUp(
   } as unknown as IActivitiesApi;
   const deps = {
     activitiesApi,
+    fit,
     align:
       options.align ??
       (async () => {
@@ -230,7 +233,7 @@ describe("Track.drivetrainSpeed", () => {
     });
     expect(result.development.meters).toBeCloseTo(DEV_110, 3);
 
-    const out = readFitRecords(written[0].bytes);
+    const out = fit.readRecords(written[0].bytes);
     for (const r of out) {
       if (r.cadence === null) continue;
       expect(r.speed).toBeCloseTo((DEV_110 * r.cadence) / 60, 2);
@@ -242,6 +245,7 @@ describe("Track.drivetrainSpeed", () => {
     const { deps } = setUp();
     const track = createTrack({
       activitiesApi: deps.activitiesApi,
+      fit,
       load: () => loadTrackSessionRecords(RECORDS),
       writeFile: deps.writeFile,
     });

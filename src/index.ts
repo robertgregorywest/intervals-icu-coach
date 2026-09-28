@@ -24,6 +24,7 @@ import type { IActivityAnalysis } from "./services/analysis/index.js";
 import { createExecutionReview } from "./services/execution-review/index.js";
 import type { IExecutionReview } from "./services/execution-review/index.js";
 import { createTrack } from "./services/track/index.js";
+import { createFitCodec } from "./services/fit/index.js";
 import type { ITrack } from "./services/track/index.js";
 import { createTrainingWeek } from "./services/training-week/index.js";
 import type { ITrainingWeek } from "./services/training-week/index.js";
@@ -88,7 +89,8 @@ export function createServices(options: ServicesOptions = {}): IServices {
   const httpClient = createHttpClient(config, options.fetchFn);
   const events = createEventsApi(httpClient, athleteId);
   const athlete = createAthleteApi(httpClient, athleteId);
-  const activities = createActivitiesApi(httpClient, athleteId);
+  const fit = createFitCodec();
+  const activities = createActivitiesApi(httpClient, athleteId, { fit });
   const wellness = createWellnessApi(httpClient, athleteId);
   const powerCurves = createPowerCurvesApi(httpClient, athleteId);
   const workoutLibrary = createWorkoutLibrary(
@@ -115,7 +117,7 @@ export function createServices(options: ServicesOptions = {}): IServices {
   });
   // The records are tracked files, not Intervals.icu; only aligning a
   // record's splits to a ride reaches the activities API.
-  const track = createTrack({ activitiesApi: activities });
+  const track = createTrack({ activitiesApi: activities, fit });
   const trainingLoadForecast = createTrainingLoadForecast({
     eventsApi: events,
     wellnessApi: wellness,

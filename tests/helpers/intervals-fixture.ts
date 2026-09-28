@@ -3,6 +3,7 @@ import { HttpClient } from "../../src/client.js";
 import { createActivitiesApi } from "../../src/services/activities/index.js";
 import { createEventsApi } from "../../src/services/events/index.js";
 import { pinnedAnchors } from "./anchors.js";
+import { createFitCodec } from "../../src/services/fit/index.js";
 
 /**
  * The one fixture harness for the execution-review lenses: a fetch routed by
@@ -83,7 +84,9 @@ export type RoutedFetch = ReturnType<typeof routedFetch>;
 export function intervalsApis(fetchFn: RoutedFetch) {
   const httpClient = new HttpClient(config, fetchFn as never);
   return {
-    activitiesApi: createActivitiesApi(httpClient, config.athleteId),
+    activitiesApi: createActivitiesApi(httpClient, config.athleteId, {
+      fit: createFitCodec(),
+    }),
     eventsApi: createEventsApi(httpClient, config.athleteId),
     anchors: pinnedAnchors({}),
   };

@@ -16,25 +16,7 @@
  */
 
 import { readFields, walkFit } from "./format.js";
-
-/** One lap as the recording device wrote it. */
-export interface FitLap {
-  /** Position in the file, 0-based. */
-  index: number;
-  /** Seconds from the first lap's start. */
-  startTimeSeconds: number;
-  /** `total_elapsed_time` — wall-clock, matching how Intervals.icu reports laps. */
-  durationSeconds: number;
-  /** `total_timer_time` — excludes paused time. */
-  timerSeconds?: number;
-  /** `total_distance`, metres. */
-  distanceMeters?: number;
-  averageWatts?: number;
-  normalizedWatts?: number;
-  maxWatts?: number;
-  averageHeartrate?: number;
-  averageCadence?: number;
-}
+import type { FitLap } from "./types.js";
 
 const LAP_GLOBAL_MESSAGE = 19;
 

@@ -10,6 +10,7 @@ import type {
   IActivitiesApi,
   IntervalWrite,
 } from "../../../../src/services/activities/index.js";
+import { createFitCodec } from "../../../../src/services/fit/index.js";
 
 function read(name: string) {
   return readFileSync(
@@ -89,7 +90,7 @@ function fakeApi(
 }
 
 function track(api: IActivitiesApi) {
-  return createTrack({ activitiesApi: api });
+  return createTrack({ activitiesApi: api, fit: createFitCodec() });
 }
 
 async function write(

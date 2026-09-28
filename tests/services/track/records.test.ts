@@ -18,6 +18,7 @@ import { loadTrackSessionRecords } from "../../../src/services/track/records/loa
 import { parseTrackSessionRecord } from "../../../src/services/track/records/record.js";
 import { TrackComparisonError } from "../../../src/services/track/records/compare.js";
 import type { ComparisonSummaryRow } from "../../../src/services/track/records/types.js";
+import { createFitCodec } from "../../../src/services/fit/index.js";
 
 /** The record operations read files only; nothing here reaches the API. */
 const NO_API = {} as IActivitiesApi;
@@ -28,6 +29,7 @@ const FIXTURES = fileURLToPath(
 
 const service = createTrack({
   activitiesApi: NO_API,
+  fit: createFitCodec(),
   load: () => loadTrackSessionRecords(FIXTURES),
 });
 
@@ -145,6 +147,7 @@ describe("compareSessions — the season.md benchmark table", () => {
 
     const mixed = createTrack({
       activitiesApi: NO_API,
+      fit: createFitCodec(),
       load: () => {
         const loaded = loadTrackSessionRecords(FIXTURES);
         return {
@@ -246,6 +249,7 @@ describe("listSessions", () => {
   it("passes the loader's notes through when there are no records", async () => {
     const empty = createTrack({
       activitiesApi: NO_API,
+      fit: createFitCodec(),
       load: () => loadTrackSessionRecords("/no/such/directory"),
     });
     const result = await empty.listSessions();
@@ -272,6 +276,7 @@ describe("getSession", () => {
       .replace("id: 2026-nationals-ip", "id: no-gear");
     const nogear = createTrack({
       activitiesApi: NO_API,
+      fit: createFitCodec(),
       load: () => ({
         directory: FIXTURES,
         // Reuse the real parser so the record is exactly what a file gives.

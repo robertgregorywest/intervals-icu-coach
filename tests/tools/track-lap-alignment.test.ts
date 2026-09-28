@@ -6,6 +6,7 @@ import { createTrack } from "../../src/services/track/index.js";
 import type { IServices } from "../../src/index.js";
 import type { IActivitiesApi } from "../../src/services/activities/index.js";
 import type { ActivityStreams } from "../../src/services/activities/index.js";
+import { createFitCodec } from "../../src/services/fit/index.js";
 
 function read(name: string) {
   return readFileSync(
@@ -41,7 +42,7 @@ function servicesWithStreams(): {
     },
   };
   const services = {
-    track: createTrack({ activitiesApi }),
+    track: createTrack({ activitiesApi, fit: createFitCodec() }),
   } as unknown as IServices;
   return { services, requested };
 }

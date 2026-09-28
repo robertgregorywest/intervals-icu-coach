@@ -19,6 +19,7 @@ import { createTrack } from "../../../../src/services/track/index.js";
 import type { IActivitiesApi } from "../../../../src/services/activities/index.js";
 import type { ActivityStreams } from "../../../../src/services/activities/index.js";
 import type { TrackLapAlignmentResult } from "../../../../src/services/track/index.js";
+import { createFitCodec } from "../../../../src/services/fit/index.js";
 
 function read(name: string) {
   return readFileSync(
@@ -60,7 +61,7 @@ async function align() {
         heartrate: SESSION.heartrate,
       }) as ActivityStreams,
   };
-  result = await createTrack({ activitiesApi }).align({
+  result = await createTrack({ activitiesApi, fit: createFitCodec() }).align({
     activityId: "i164949895",
     splits: SPLITS,
   });

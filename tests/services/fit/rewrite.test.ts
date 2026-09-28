@@ -2,9 +2,8 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import {
+  createFitCodec,
   FitFormatError,
-  readFitRecords,
-  rewriteFitSpeed,
 } from "../../../src/services/fit/index.js";
 import { fitCrc } from "../../../src/services/fit/crc.js";
 import {
@@ -29,6 +28,8 @@ function fixture(): Uint8Array {
   );
   return new Uint8Array(readFileSync(path));
 }
+
+const fit = createFitCodec();
 
 const RECORD = 20;
 const LAP = 19;
@@ -98,12 +99,12 @@ function ramp(count: number) {
   });
 }
 
-describe("rewriteFitSpeed", () => {
+describe("rewriteSpeed", () => {
   it("writes each record's speed and distance, and reads back what it wrote", () => {
     const bytes = fixture();
-    const values = ramp(readFitRecords(bytes).length);
+    const values = ramp(fit.readRecords(bytes).length);
 
-    const records = readFitRecords(rewriteFitSpeed(bytes, values));
+    const records = fit.readRecords(fit.rewriteSpeed(bytes, values));
 
     expect(records).toHaveLength(158);
     records.forEach((r, i) => {
@@ -114,7 +115,7 @@ describe("rewriteFitSpeed", () => {
 
   it("copies every message other than record, lap and session byte for byte", () => {
     const bytes = fixture();
-    const out = rewriteFitSpeed(bytes, ramp(158));
+    const out = fit.rewriteSpeed(bytes, ramp(158));
 
     const before = walkFit(bytes).messages;
     const after = walkFit(out).messages;
@@ -130,7 +131,7 @@ describe("rewriteFitSpeed", () => {
   it("leaves every other record field untouched", () => {
     const bytes = fixture();
     const before = dataOf(bytes, RECORD);
-    const after = dataOf(rewriteFitSpeed(bytes, ramp(158)), RECORD);
+    const after = dataOf(fit.rewriteSpeed(bytes, ramp(158)), RECORD);
 
     before.forEach((fields, i) => {
       for (const [field, value] of fields) {
@@ -141,7 +142,7 @@ describe("rewriteFitSpeed", () => {
   });
 
   it("writes valid header and file CRCs", () => {
-    const out = rewriteFitSpeed(fixture(), ramp(158));
+    const out = fit.rewriteSpeed(fixture(), ramp(158));
     const view = new DataView(out.buffer);
     expect(view.getUint16(12, true)).toBe(fitCrc(out, 0, 12));
     expect(view.getUint16(out.length - 2, true)).toBe(
@@ -152,7 +153,7 @@ describe("rewriteFitSpeed", () => {
 
   it("recomputes lap and session totals from the samples it wrote", () => {
     const values = ramp(158);
-    const out = rewriteFitSpeed(fixture(), values);
+    const out = fit.rewriteSpeed(fixture(), values);
 
     for (const totals of [...dataOf(out, LAP), ...dataOf(out, SESSION)]) {
       // The single lap spans the whole ride, so it covers every kept record.
@@ -171,13 +172,13 @@ describe("rewriteFitSpeed", () => {
   it("writes the same stream whether or not the input had a speed sensor", () => {
     const bytes = fixture();
     const stripped = stripSpeed(bytes);
-    expect(readFitRecords(stripped).every((r) => r.speed === null)).toBe(true);
+    expect(fit.readRecords(stripped).every((r) => r.speed === null)).toBe(true);
 
     const values = ramp(158);
-    const fromSensor = rewriteFitSpeed(bytes, values);
-    const fromBare = rewriteFitSpeed(stripped, values);
+    const fromSensor = fit.rewriteSpeed(bytes, values);
+    const fromBare = fit.rewriteSpeed(stripped, values);
 
-    expect(readFitRecords(fromBare)).toEqual(readFitRecords(fromSensor));
+    expect(fit.readRecords(fromBare)).toEqual(fit.readRecords(fromSensor));
     expect(dataOf(fromBare, SESSION)).toEqual(dataOf(fromSensor, SESSION));
     expect(dataOf(fromBare, LAP)).toEqual(dataOf(fromSensor, LAP));
   });
@@ -186,13 +187,13 @@ describe("rewriteFitSpeed", () => {
     const values = ramp(158).map((v, i) =>
       i === 3 ? { ...v, speed: null } : v
     );
-    const records = readFitRecords(rewriteFitSpeed(fixture(), values));
+    const records = fit.readRecords(fit.rewriteSpeed(fixture(), values));
     expect(records[3].speed).toBeNull();
     expect(records[3].distance).toBeCloseTo(values[3].distance, 2);
   });
 
   it("refuses a value count that does not match the records", () => {
-    expect(() => rewriteFitSpeed(fixture(), ramp(3))).toThrow(FitFormatError);
+    expect(() => fit.rewriteSpeed(fixture(), ramp(3))).toThrow(FitFormatError);
   });
 
   it("refuses a chained file", () => {
@@ -200,12 +201,12 @@ describe("rewriteFitSpeed", () => {
     const chained = new Uint8Array(bytes.length * 2);
     chained.set(bytes);
     chained.set(bytes, bytes.length);
-    expect(() => rewriteFitSpeed(chained, ramp(158))).toThrow(/Chained/);
+    expect(() => fit.rewriteSpeed(chained, ramp(158))).toThrow(/Chained/);
   });
 
   it("refuses bytes that are not a FIT file", () => {
     expect(() =>
-      rewriteFitSpeed(
+      fit.rewriteSpeed(
         new TextEncoder().encode("<html>not a fit file</html>"),
         []
       )
@@ -213,9 +214,9 @@ describe("rewriteFitSpeed", () => {
   });
 });
 
-describe("readFitRecords", () => {
+describe("readRecords", () => {
   it("reads the sensor speed, distance and whole-rpm cadence the device wrote", () => {
-    const records = readFitRecords(fixture());
+    const records = fit.readRecords(fixture());
     expect(records).toHaveLength(158);
     const pedalling = records.filter((r) => (r.cadence ?? 0) > 90);
     expect(pedalling.length).toBeGreaterThan(90);

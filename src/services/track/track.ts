@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import type { IActivitiesApi } from "../activities/index.js";
+import type { IFitCodec } from "../fit/index.js";
 import { computeTrackLapPower } from "./alignment/align.js";
 import type { TrackLapAlignmentResult } from "./alignment/types.js";
 import { writeTrackRuns } from "./writeback/writeback.js";
@@ -32,6 +33,8 @@ import type { ITrack, TrackInput, TrackWriteInput } from "./types.js";
 export interface TrackDeps {
   /** Streams to align against, and the intervals a write replaces. */
   activitiesApi: IActivitiesApi;
+  /** Reads and rewrites the upload `drivetrainSpeed` works on. */
+  fit: IFitCodec;
   /** Overridden in tests; production reads the records directory. */
   load?: () => LoadedRecords;
   /** Where `load` reads the records by default; overridden in tests. */
@@ -47,11 +50,13 @@ export interface TrackDeps {
  */
 export class Track implements ITrack {
   private activitiesApi: IActivitiesApi;
+  private fit: IFitCodec;
   private load: () => LoadedRecords;
   private writeFile: (path: string, bytes: Uint8Array) => Promise<void>;
 
   constructor(deps: TrackDeps) {
     this.activitiesApi = deps.activitiesApi;
+    this.fit = deps.fit;
     this.load = deps.load ?? (() => loadTrackSessionRecords(deps.recordsDir));
     this.writeFile =
       deps.writeFile ??
@@ -85,6 +90,7 @@ export class Track implements ITrack {
     return createDrivetrainSpeedFit(
       {
         activitiesApi: this.activitiesApi,
+        fit: this.fit,
         align: (options) =>
           computeTrackLapPower({ activitiesApi: this.activitiesApi }, options),
         records: () => this.load().records,

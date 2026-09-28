@@ -3,7 +3,7 @@
  * sensor, and reporting how far to trust it.
  *
  * The original upload is fetched, its records get speed and distance through
- * `rewriteFitSpeed` (which knows nothing about gears), and the file is written
+ * the FIT codec's `rewriteSpeed` (which knows nothing about gears), and the file is written
  * locally for the athlete to upload. Any speed the file already carried is
  * replaced and becomes the sensor side of the comparison — which is also how
  * the method is tested: a file that had a sensor is its own control.
@@ -15,7 +15,7 @@ import {
   normalizeActivityId,
   type IActivitiesApi,
 } from "../../activities/index.js";
-import { readFitRecords, rewriteFitSpeed } from "../../fit/index.js";
+import type { IFitCodec } from "../../fit/index.js";
 import { TrackAlignmentError } from "../alignment/align.js";
 import type {
   TrackLapAlignmentResult,
@@ -43,6 +43,7 @@ export const DEFAULT_OUTPUT_DIR = resolve(
 
 export interface DrivetrainSpeedDeps {
   activitiesApi: IActivitiesApi;
+  fit: IFitCodec;
   align: (options: TrackLapPowerOptions) => Promise<TrackLapAlignmentResult>;
   records: () => TrackSessionRecord[];
   writeFile: (path: string, bytes: Uint8Array) => Promise<void>;
@@ -74,13 +75,13 @@ export async function createDrivetrainSpeedFit(
     );
   }
 
-  const records = readFitRecords(bytes);
+  const records = deps.fit.readRecords(bytes);
   const stream = computeDrivetrainSpeed(
     records,
     development.meters,
     input.onTrack
   );
-  const rewritten = rewriteFitSpeed(bytes, stream.values);
+  const rewritten = deps.fit.rewriteSpeed(bytes, stream.values);
 
   const outputPath = resolve(
     input.outputPath ??

@@ -26,14 +26,7 @@ import {
   type FitMessage,
 } from "./format.js";
 import { RECORD_GLOBAL_MESSAGE } from "./records.js";
-
-/** What one `record` message is given. */
-export interface RecordSpeed {
-  /** m/s; `null` writes the invalid sentinel — no claim for this sample. */
-  speed: number | null;
-  /** Cumulative metres at this sample. */
-  distance: number | null;
-}
+import type { RecordSpeed } from "./types.js";
 
 const LAP_GLOBAL_MESSAGE = 19;
 const SESSION_GLOBAL_MESSAGE = 18;

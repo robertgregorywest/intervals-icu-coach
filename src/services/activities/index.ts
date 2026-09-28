@@ -1,4 +1,4 @@
-export type { IActivitiesApi } from "./activities.js";
+export type { IActivitiesApi, ActivitiesDeps } from "./activities.js";
 export { ActivitiesApi, createActivitiesApi } from "./activities.js";
 export type {
   Activity,

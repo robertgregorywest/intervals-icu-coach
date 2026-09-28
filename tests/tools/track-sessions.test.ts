@@ -8,6 +8,7 @@ import {
 import { createTrack } from "../../src/services/track/index.js";
 import type { IActivitiesApi } from "../../src/services/activities/index.js";
 import type { IServices } from "../../src/index.js";
+import { createFitCodec } from "../../src/services/fit/index.js";
 
 const FIXTURES = fileURLToPath(
   new URL("../fixtures/track-sessions", import.meta.url)
@@ -17,6 +18,7 @@ const FIXTURES = fileURLToPath(
 function fixtureServices(): IServices {
   const service = createTrack({
     activitiesApi: {} as IActivitiesApi,
+    fit: createFitCodec(),
     recordsDir: FIXTURES,
   });
   return {

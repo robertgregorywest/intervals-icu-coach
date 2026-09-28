@@ -18,6 +18,7 @@ import {
 } from "../../../src/services/track/index.js";
 import { loadTrackSessionRecords } from "../../../src/services/track/records/loader.js";
 import type { IActivitiesApi } from "../../../src/services/activities/index.js";
+import { createFitCodec } from "../../../src/services/fit/index.js";
 
 const FIXTURES = fileURLToPath(
   new URL("../../fixtures/track-sessions", import.meta.url)
@@ -35,6 +36,7 @@ function trackOver(dir = FIXTURES) {
   } as unknown as IActivitiesApi;
   const track = createTrack({
     activitiesApi,
+    fit: createFitCodec(),
     load: () => loadTrackSessionRecords(dir),
   });
   return { track, requested };

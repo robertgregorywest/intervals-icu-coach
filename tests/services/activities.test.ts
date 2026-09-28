@@ -3,6 +3,9 @@ import { readFileSync } from "node:fs";
 import { HttpClient } from "../../src/client.js";
 import { ActivitiesApi } from "../../src/services/activities/activities.js";
 import { normalizeActivityId } from "../../src/services/activities/index.js";
+import { createFitCodec } from "../../src/services/fit/index.js";
+
+const fit = createFitCodec();
 
 function createMockFetch(status: number, body: unknown) {
   return vi.fn().mockResolvedValue({
@@ -26,7 +29,7 @@ describe("ActivitiesApi", () => {
     const activities = [{ id: "i1", name: "Morning Ride" }];
     const mockFetch = createMockFetch(200, activities);
     const httpClient = new HttpClient(config, mockFetch);
-    const api = new ActivitiesApi(httpClient, config.athleteId);
+    const api = new ActivitiesApi(httpClient, config.athleteId, { fit });
 
     const result = await api.getActivities("2024-01-01", "2024-01-31");
 
@@ -41,7 +44,7 @@ describe("ActivitiesApi", () => {
     const activity = { id: "i42", name: "Ride" };
     const mockFetch = createMockFetch(200, activity);
     const httpClient = new HttpClient(config, mockFetch);
-    const api = new ActivitiesApi(httpClient, config.athleteId);
+    const api = new ActivitiesApi(httpClient, config.athleteId, { fit });
 
     await api.getActivity("i42");
 
@@ -52,7 +55,7 @@ describe("ActivitiesApi", () => {
   it("GETs single activity with intervals", async () => {
     const mockFetch = createMockFetch(200, { id: "i42" });
     const httpClient = new HttpClient(config, mockFetch);
-    const api = new ActivitiesApi(httpClient, config.athleteId);
+    const api = new ActivitiesApi(httpClient, config.athleteId, { fit });
 
     await api.getActivity("i42", true);
 
@@ -66,7 +69,7 @@ describe("ActivitiesApi", () => {
     const streams = { watts: [200, 210], heartrate: [130, 135] };
     const mockFetch = createMockFetch(200, streams);
     const httpClient = new HttpClient(config, mockFetch);
-    const api = new ActivitiesApi(httpClient, config.athleteId);
+    const api = new ActivitiesApi(httpClient, config.athleteId, { fit });
 
     const result = await api.getActivityStreams("i42", ["watts", "heartrate"]);
 
@@ -80,7 +83,7 @@ describe("ActivitiesApi", () => {
   it("GETs activity streams without type filter", async () => {
     const mockFetch = createMockFetch(200, {});
     const httpClient = new HttpClient(config, mockFetch);
-    const api = new ActivitiesApi(httpClient, config.athleteId);
+    const api = new ActivitiesApi(httpClient, config.athleteId, { fit });
 
     await api.getActivityStreams("i42");
 
@@ -95,7 +98,7 @@ describe("ActivitiesApi", () => {
     ];
     const mockFetch = createMockFetch(200, arrayResponse);
     const httpClient = new HttpClient(config, mockFetch);
-    const api = new ActivitiesApi(httpClient, config.athleteId);
+    const api = new ActivitiesApi(httpClient, config.athleteId, { fit });
 
     const result = await api.getActivityStreams("i42", ["watts", "heartrate"]);
 
@@ -107,7 +110,7 @@ describe("ActivitiesApi", () => {
     const keyed = { watts: [200, 210], heartrate: [130, 135] };
     const mockFetch = createMockFetch(200, keyed);
     const httpClient = new HttpClient(config, mockFetch);
-    const api = new ActivitiesApi(httpClient, config.athleteId);
+    const api = new ActivitiesApi(httpClient, config.athleteId, { fit });
 
     const result = await api.getActivityStreams("i42", ["watts", "heartrate"]);
 
@@ -135,7 +138,8 @@ describe("ActivitiesApi.getActivityLaps", () => {
     const mockFetch = binaryFetch(new Uint8Array([1, 2, 3]));
     const api = new ActivitiesApi(
       new HttpClient(config, mockFetch),
-      config.athleteId
+      config.athleteId,
+      { fit }
     );
 
     await api.getActivityLaps("i42");
@@ -149,7 +153,8 @@ describe("ActivitiesApi.getActivityLaps", () => {
     const mockFetch = createMockFetch(404, { message: "not found" });
     const api = new ActivitiesApi(
       new HttpClient(config, mockFetch),
-      config.athleteId
+      config.athleteId,
+      { fit }
     );
 
     await expect(api.getActivityLaps("i42")).resolves.toBeNull();
@@ -159,7 +164,8 @@ describe("ActivitiesApi.getActivityLaps", () => {
     const mockFetch = binaryFetch(new TextEncoder().encode("<gpx/>"));
     const api = new ActivitiesApi(
       new HttpClient(config, mockFetch),
-      config.athleteId
+      config.athleteId,
+      { fit }
     );
 
     await expect(api.getActivityLaps("i42")).resolves.toBeNull();
@@ -169,7 +175,8 @@ describe("ActivitiesApi.getActivityLaps", () => {
     const mockFetch = binaryFetch(new Uint8Array(0));
     const api = new ActivitiesApi(
       new HttpClient(config, mockFetch),
-      config.athleteId
+      config.athleteId,
+      { fit }
     );
 
     await expect(api.getActivityLaps("i42")).resolves.toBeNull();
@@ -191,7 +198,8 @@ describe("ActivitiesApi intervals", () => {
     const mockFetch = createMockFetch(200, writeResponse);
     const api = new ActivitiesApi(
       new HttpClient(config, mockFetch),
-      config.athleteId
+      config.athleteId,
+      { fit }
     );
 
     const doc = await api.getActivityIntervals("i42");
@@ -206,7 +214,8 @@ describe("ActivitiesApi intervals", () => {
     const mockFetch = createMockFetch(200, writeResponse);
     const api = new ActivitiesApi(
       new HttpClient(config, mockFetch),
-      config.athleteId
+      config.athleteId,
+      { fit }
     );
 
     await api.replaceActivityIntervals("i42", [
@@ -236,7 +245,8 @@ describe("ActivitiesApi intervals", () => {
     const mockFetch = createMockFetch(200, writeResponse);
     const api = new ActivitiesApi(
       new HttpClient(config, mockFetch),
-      config.athleteId
+      config.athleteId,
+      { fit }
     );
 
     const doc = await api.replaceActivityIntervals("i42", [

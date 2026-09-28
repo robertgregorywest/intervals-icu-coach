@@ -7,6 +7,7 @@ import {
 } from "../../../../src/services/track/index.js";
 import type { IActivitiesApi } from "../../../../src/services/activities/index.js";
 import type { ActivityStreams } from "../../../../src/services/activities/index.js";
+import { createFitCodec } from "../../../../src/services/fit/index.js";
 
 function read(name: string) {
   return readFileSync(
@@ -43,7 +44,10 @@ async function align(
   splits = SPLITS,
   lapDistanceMeters?: number
 ) {
-  return createTrack({ activitiesApi: apiReturning(streams) }).align({
+  return createTrack({
+    activitiesApi: apiReturning(streams),
+    fit: createFitCodec(),
+  }).align({
     activityId: "i173732945",
     splits,
     lapDistanceMeters,
@@ -230,7 +234,7 @@ describe("align failure modes", () => {
       },
     };
     await expect(
-      createTrack({ activitiesApi: spy }).align({
+      createTrack({ activitiesApi: spy, fit: createFitCodec() }).align({
         activityId: "i1",
         splits: "1,250,16.26,16.26\n1,500,32.69,17.43\n",
       })
