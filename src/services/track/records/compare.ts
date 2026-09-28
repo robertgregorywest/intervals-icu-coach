@@ -119,6 +119,17 @@ export function compareRuns(
     );
   }
 
+  // With no flying laps there is nothing held-speed to compare; the standing
+  // laps alone are a different measurement.
+  const noFlying = resolved.filter((r) => r.run.summary.flyingLaps === 0);
+  if (noFlying.length) {
+    throw new TrackComparisonError(
+      "Runs with no flying laps are not comparable: " +
+        noFlying.map((r) => r.ref).join(", ") +
+        ". Read them separately with get_track_session."
+    );
+  }
+
   // A 1500 m run and a 2 km run have no lap-to-lap correspondence. Producing
   // six matched rows and two blank ones would invite exactly the reading the
   // refusal prevents, so this refuses rather than aligning what it can.

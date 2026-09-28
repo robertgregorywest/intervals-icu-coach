@@ -113,19 +113,22 @@ const getTrackSessionOutputSchema = z.object({
         flyingLaps: z.number(),
         flyingTimeSeconds: z.number(),
         flyingDistanceMeters: z.number(),
-        meanLapTimeSeconds: z.number(),
-        meanSpeedMetersPerSecond: z.number(),
-        lapTimeSdSeconds: z.number(),
+        meanLapTimeSeconds: z.number().optional(),
+        meanSpeedMetersPerSecond: z.number().optional(),
+        lapTimeSdSeconds: z.number().optional(),
         opening: segment.optional(),
         closing: segment.optional(),
         declineRatio: z.number().optional(),
         segmentsWithheld: z.string().optional(),
-        pacing: z.object({
-          sumSquaredSpeed: z.number(),
-          rmsSpeedMetersPerSecond: z.number(),
-          flatEquivalentTimeSeconds: z.number(),
-          gainSeconds: z.number(),
-        }),
+        flyingWithheld: z.string().optional(),
+        pacing: z
+          .object({
+            sumSquaredSpeed: z.number(),
+            rmsSpeedMetersPerSecond: z.number(),
+            flatEquivalentTimeSeconds: z.number(),
+            gainSeconds: z.number(),
+          })
+          .optional(),
       }),
     })
   ),

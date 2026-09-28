@@ -16,6 +16,7 @@ import {
   startFor,
   MAX_SEGMENT_LAPS,
 } from "../../../../src/services/track/records/derive.js";
+import { compareRuns } from "../../../../src/services/track/records/compare.js";
 import { parseTrackSessionRecord } from "../../../../src/services/track/records/record.js";
 import {
   type DerivedRun,
@@ -234,16 +235,77 @@ describe("deriveRun — no gear, no cadence", () => {
   });
 });
 
-describe("deriveRun — a run too short to segment", () => {
-  it("withholds the decline and says why", () => {
-    const r = record("2026-nationals-ip");
-    const short = { ...r.runs[0], laps: r.runs[0].laps.slice(0, 3) };
-    const run = deriveRun({ ...r.basis, start: "gate" }, short, undefined);
+describe("deriveRun — flying-lap boundaries", () => {
+  const r = record("2026-nationals-ip");
+  const withLaps = (n: number) =>
+    deriveRun(
+      { ...r.basis, start: "gate" },
+      { ...r.runs[0], laps: r.runs[0].laps.slice(0, n) },
+      undefined
+    );
+
+  function noNaN(value: unknown, path = "run"): void {
+    if (typeof value === "number") {
+      expect(Number.isNaN(value), path).toBe(false);
+    } else if (value && typeof value === "object") {
+      for (const [k, v] of Object.entries(value)) noNaN(v, `${path}.${k}`);
+    }
+  }
+
+  it("three flying laps give single-lap segments and a decline", () => {
+    const run = withLaps(4);
+    expect(run.summary.flyingLaps).toBe(3);
+    expect(run.summary.opening).toMatchObject({ fromLap: 2, toLap: 2 });
+    expect(run.summary.closing).toMatchObject({ fromLap: 4, toLap: 4 });
+    expect(run.summary.declineRatio).toBeDefined();
+    expect(run.summary.segmentsWithheld).toBeUndefined();
+  });
+
+  it("two flying laps withhold segments and decline, keeping the rest", () => {
+    const run = withLaps(3);
     expect(run.summary.flyingLaps).toBe(2);
-    expect(run.summary.declineRatio).toBeUndefined();
     expect(run.summary.opening).toBeUndefined();
-    expect(run.summary.segmentsWithheld).toMatch(
-      /cannot be split into two segments/
+    expect(run.summary.declineRatio).toBeUndefined();
+    expect(run.summary.segmentsWithheld).toBeDefined();
+    expect(run.summary.meanSpeedMetersPerSecond).toBeGreaterThan(0);
+    expect(run.summary.pacing).toBeDefined();
+  });
+
+  it("no flying laps withholds every flying aggregate, with no NaN", () => {
+    const run = withLaps(1);
+    expect(run.summary.flyingLaps).toBe(0);
+    expect(run.summary.meanLapTimeSeconds).toBeUndefined();
+    expect(run.summary.meanSpeedMetersPerSecond).toBeUndefined();
+    expect(run.summary.lapTimeSdSeconds).toBeUndefined();
+    expect(run.summary.opening).toBeUndefined();
+    expect(run.summary.declineRatio).toBeUndefined();
+    expect(run.summary.pacing).toBeUndefined();
+    expect(run.summary.flyingWithheld).toMatch(/no flying laps/);
+    expect(run.summary.totalTimeSeconds).toBeGreaterThan(0);
+    expect(run.laps).toHaveLength(1);
+    noNaN(run);
+  });
+
+  it("is NaN-free for every lap count from one up", () => {
+    for (let n = 1; n <= r.runs[0].laps.length; n++) noNaN(withLaps(n));
+  });
+});
+
+describe("compareRuns — a run with no flying laps", () => {
+  it("refuses rather than dividing by zero", () => {
+    const rec = record("2026-nationals-ip");
+    const basis = { ...rec.basis, start: "gate" as const };
+    const make = (n: number) => ({
+      ref: `x#${n}`,
+      record: rec,
+      run: deriveRun(
+        basis,
+        { ...rec.runs[0], laps: rec.runs[0].laps.slice(0, n) },
+        undefined
+      ),
+    });
+    expect(() => compareRuns([make(1), make(1)])).toThrow(
+      /no flying laps are not comparable/
     );
   });
 });

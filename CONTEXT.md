@@ -161,7 +161,7 @@ The laps of a **Run** ridden from speed — every lap for a flying start, laps 2
 _Avoid_: averaging a standing lap into a run's mean, which makes two runs incomparable whenever their start types differ.
 
 **Decline**:
-`(v_close / v_open)³ − 1` over a **Run**'s **Flying portion** — the proportional power change from its opening segment to its close. Speed cubed is a power ratio over a fixed distance, so it carries no aero constant, only the exponent, and is therefore model-free. Segments are the first and last `min(3, floor((flyingLaps − 1) / 2))` laps, which always leaves a lap between them.
+`(v_close / v_open)³ − 1` over a **Run**'s **Flying portion** — the proportional power change from its opening segment to its close. Speed cubed is a power ratio over a fixed distance, so it carries no aero constant, only the exponent, and is therefore model-free. Segments are the first and last `min(3, floor((flyingLaps − 1) / 2))` laps, which always leaves a lap between them. The minimums: three flying laps give single-lap segments (lap 1 against lap 3) and a decline; two or fewer withhold the decline and segments, with the other aggregates still reported; an empty flying portion (a lone standing or gate lap) withholds every aggregate with a reason, and such a run is refused by comparison.
 _Avoid_: writing it as `(v_open/v_close)³`, which inverts the sign; reading it as watts — it is a ratio, and the modelled-watt decline beside it in `track-context.md` §4 is a different, model-bearing quantity that happens to agree.
 
 **Candidate window**:

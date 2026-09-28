@@ -180,7 +180,10 @@ export function deriveRun(
   let declineRatio: number | undefined;
   let segmentsWithheld: string | undefined;
 
-  if (segLaps >= 1) {
+  if (flying.length === 0) {
+    segmentsWithheld =
+      "The run has no flying laps, so there is nothing to split.";
+  } else if (segLaps >= 1) {
     const open = segment(flying.slice(0, segLaps), d);
     const close = segment(flying.slice(-segLaps), d);
     opening = open.summary;
@@ -198,23 +201,31 @@ export function deriveRun(
       "that do not overlap, so the decline would compare a window against itself.";
   }
 
+  // No flying laps means every aggregate below would divide by zero.
+  const hasFlying = flying.length > 0;
   const summary: RunSummary = {
     totalTimeSeconds: round(splits.durationSeconds, SECONDS_DP),
     totalDistanceMeters: splits.distanceMeters,
     flyingLaps: flying.length,
     flyingTimeSeconds: round(flyingTime, SECONDS_DP),
     flyingDistanceMeters: flyingDistance,
-    meanLapTimeSeconds: round(flyingTime / flying.length, SECONDS_DP),
-    meanSpeedMetersPerSecond: round(flyingDistance / flyingTime, RATE_DP),
-    lapTimeSdSeconds: round(
-      standardDeviation(flying.map((l) => l.lapTimeSeconds)),
-      RATE_DP
-    ),
+    meanLapTimeSeconds: hasFlying
+      ? round(flyingTime / flying.length, SECONDS_DP)
+      : undefined,
+    meanSpeedMetersPerSecond: hasFlying
+      ? round(flyingDistance / flyingTime, RATE_DP)
+      : undefined,
+    lapTimeSdSeconds: hasFlying
+      ? round(standardDeviation(flying.map((l) => l.lapTimeSeconds)), RATE_DP)
+      : undefined,
     opening,
     closing,
     declineRatio,
     segmentsWithheld,
-    pacing: pacing(flying, d, flyingDistance),
+    flyingWithheld: hasFlying
+      ? undefined
+      : "The run is a single standing or gate lap with no flying laps, so every flying aggregate is withheld.",
+    pacing: hasFlying ? pacing(flying, d, flyingDistance) : undefined,
   };
 
   return {

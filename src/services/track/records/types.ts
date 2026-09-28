@@ -121,10 +121,11 @@ export interface RunSummary {
   flyingLaps: number;
   flyingTimeSeconds: number;
   flyingDistanceMeters: number;
-  meanLapTimeSeconds: number;
-  meanSpeedMetersPerSecond: number;
+  /** Absent, with `flyingWithheld` saying why, when there are no flying laps. */
+  meanLapTimeSeconds?: number;
+  meanSpeedMetersPerSecond?: number;
   /** Sample SD (n − 1) of the flying lap times — how evenly it was ridden. */
-  lapTimeSdSeconds: number;
+  lapTimeSdSeconds?: number;
   opening?: SegmentSummary;
   closing?: SegmentSummary;
   /**
@@ -132,13 +133,18 @@ export interface RunSummary {
    * distance, so this is the proportional power change from the opening
    * segment to the close, carrying no aero constant — only the exponent.
    *
-   * Absent when the flying portion is too short to form two segments that do
-   * not overlap.
+   * Absent when the flying portion is two laps or fewer — too short to form
+   * two segments that do not overlap.
    */
   declineRatio?: number;
   /** Present when the segments were formed; says why when they were not. */
   segmentsWithheld?: string;
-  pacing: PacingSummary;
+  /**
+   * Present when the run has no flying laps, so every flying aggregate (mean,
+   * SD, segments, decline, pacing) is absent rather than computed over nothing.
+   */
+  flyingWithheld?: string;
+  pacing?: PacingSummary;
 }
 
 /** One run of a session, derived. */
