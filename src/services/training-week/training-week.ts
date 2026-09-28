@@ -46,45 +46,65 @@ export class TrainingWeek implements ITrainingWeek {
       fitness: computeFitnessDelta(wellness),
       completedActivities: activities.map((a, i) => ({
         ...summarizeActivity(a),
-        middleBandSeconds: perActivity[i],
+        middleBandSeconds: perActivity[i].seconds,
+        ftp: perActivity[i].ftp,
+        lowW: perActivity[i].lowW,
+        highW: perActivity[i].highW,
       })),
       events: events.map(summarizeEvent),
     };
   }
 
-  /** One stream fetch per power-recorded activity; none when FTP is unknown. */
+  /** One stream fetch per power-recorded activity, each against its own FTP. */
   private async measureMiddleBand(activities: Activity[]): Promise<{
-    perActivity: (number | null)[];
+    perActivity: RideBand[];
     middleBand: WeekMiddleBand | null;
   }> {
-    const ftp = (await this.deps.anchors?.getAthleteAnchors())?.ftp;
-    if (!ftp || ftp <= 0) {
-      return { perActivity: activities.map(() => null), middleBand: null };
-    }
-    const bounds = middleBandBounds(ftp);
-
-    let bandSeconds = 0;
-    let powerSeconds = 0;
+    const anchors = this.deps.anchors?.snapshot();
     const perActivity = await Promise.all(
-      activities.map(async (a) => {
-        if (!numericField(a, "icu_average_watts")) return null;
+      activities.map(async (a): Promise<RideBand> => {
+        if (!numericField(a, "icu_average_watts")) return { ...NO_BAND };
+        const ftp = (await anchors?.planFtp(null, a)) ?? null;
+        if (!ftp) return { ...NO_BAND, noFtp: true };
         const streams = await this.deps.activitiesApi.getActivityStreams(a.id, [
           "watts",
         ]);
-        if (!streams.watts?.length) return null;
+        if (!streams.watts?.length) return { ...NO_BAND };
+        const bounds = middleBandBounds(ftp);
         const bucketed = bucketDelivered(streams.watts, [], bounds);
-        bandSeconds += bucketed.middleBandSeconds;
-        powerSeconds += bucketed.totalSeconds;
-        return bucketed.middleBandSeconds;
+        return {
+          seconds: bucketed.middleBandSeconds,
+          powerSeconds: bucketed.totalSeconds,
+          ftp,
+          lowW: bounds.lowW,
+          highW: bounds.highW,
+          noFtp: false,
+        };
       })
     );
 
+    const measured = perActivity.filter((r) => r.ftp !== null);
+    const excludedNoFtp = perActivity.filter((r) => r.noFtp).length;
+    if (!measured.length) return { perActivity, middleBand: null };
+
+    const bandSeconds = sum(measured.map((r) => r.seconds ?? 0));
+    const powerSeconds = sum(measured.map((r) => r.powerSeconds));
+    const ftps = measured.map((r) => r.ftp as number);
+    const ftpRange = { min: Math.min(...ftps), max: Math.max(...ftps) };
     return {
       perActivity,
       middleBand: {
         lowPctFtp: MIDDLE_BAND_LOW_PCT_FTP,
         highPctFtp: MIDDLE_BAND_HIGH_PCT_FTP,
-        ...bounds,
+        ftpRange,
+        ...(ftpRange.min !== ftpRange.max
+          ? {
+              note:
+                `The week spans an FTP change (${ftpRange.min}-${ftpRange.max} W); ` +
+                "each ride was measured against its own FTP.",
+            }
+          : {}),
+        excludedNoFtp,
         seconds: bandSeconds,
         hours: round1(bandSeconds / 3600),
         fractionOfPowerTime: powerSeconds
@@ -93,6 +113,29 @@ export class TrainingWeek implements ITrainingWeek {
       },
     };
   }
+}
+
+interface RideBand {
+  seconds: number | null;
+  powerSeconds: number;
+  ftp: number | null;
+  lowW: number | null;
+  highW: number | null;
+  /** Recorded power but no FTP from any source. */
+  noFtp: boolean;
+}
+
+const NO_BAND: RideBand = {
+  seconds: null,
+  powerSeconds: 0,
+  ftp: null,
+  lowW: null,
+  highW: null,
+  noFtp: false,
+};
+
+function sum(values: number[]): number {
+  return values.reduce((total, v) => total + v, 0);
 }
 
 export function createTrainingWeek(deps: TrainingWeekDeps): TrainingWeek {
@@ -156,7 +199,7 @@ function computeFitnessDelta(wellness: WellnessRecord[]): FitnessDelta | null {
 
 function summarizeActivity(
   a: Activity
-): Omit<ActivitySummary, "middleBandSeconds"> {
+): Omit<ActivitySummary, "middleBandSeconds" | "ftp" | "lowW" | "highW"> {
   const seconds = numericField(a, "moving_time");
   const meters = numericField(a, "distance");
   const source = typeof a.source === "string" ? a.source : null;

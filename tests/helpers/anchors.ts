@@ -25,7 +25,7 @@ export function pinnedAnchors(
     getMapAnchors: () => map(),
     async planFtp(event, ride) {
       return (
-        positive(event.icu_ftp) ??
+        positive(event?.icu_ftp) ??
         positive(ride?.icu_ftp) ??
         (await anchors.getAthleteAnchors()).ftp
       );

@@ -45,11 +45,11 @@ class AthleteAnchorsService implements IAthleteAnchors {
   }
 
   async planFtp(
-    event: Pick<IntervalsEvent, "icu_ftp">,
+    event: Pick<IntervalsEvent, "icu_ftp"> | null,
     ride: { icu_ftp?: unknown } | null | undefined
   ): Promise<number | null> {
     return (
-      positiveNumber(event as Record<string, unknown>, ["icu_ftp"]) ??
+      positiveNumber(event as Record<string, unknown> | null, ["icu_ftp"]) ??
       positiveNumber(ride as Record<string, unknown> | undefined, [
         "icu_ftp",
       ]) ??

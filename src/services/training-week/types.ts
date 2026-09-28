@@ -8,8 +8,9 @@ export interface TrainingWeekDeps {
   wellnessApi: IWellnessApi;
   eventsApi: IEventsApi;
   /**
-   * The athlete's FTP, which anchors the middle band. Optional: without it the
-   * week summary reports no middle-band figures rather than guessing a frame.
+   * Resolves each ride's FTP, which anchors its middle band. Optional: without
+   * it the week summary reports no middle-band figures rather than guessing a
+   * frame.
    */
   anchors?: IAthleteAnchors;
   /** "Today" as YYYY-MM-DD; defaults to the system clock (UTC). */
@@ -46,14 +47,22 @@ export interface ActivitySummary {
    * Null when the activity has no power or the band could not be framed.
    */
   middleBandSeconds: number | null;
+  /** The FTP this ride was measured against, and its band bounds; null without power or FTP. */
+  ftp: number | null;
+  lowW: number | null;
+  highW: number | null;
 }
 
 /** The tempo-through-threshold window, as bounds and the week's delivered time in it. */
 export interface WeekMiddleBand {
   lowPctFtp: number;
   highPctFtp: number;
-  lowW: number;
-  highW: number;
+  /** Min and max of the per-ride FTPs of the rides that contributed. */
+  ftpRange: { min: number; max: number };
+  /** Present when the week spans an FTP change. */
+  note?: string;
+  /** Power-recorded rides with no FTP from any source, left out of the figures. */
+  excludedNoFtp: number;
   seconds: number;
   hours: number;
   /** Fraction of the power-recorded riding time spent in the band. */

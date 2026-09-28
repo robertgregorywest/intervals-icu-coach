@@ -43,8 +43,9 @@ const getTrainingWeekSummaryOutputSchema = z.object({
     .object({
       lowPctFtp: z.number(),
       highPctFtp: z.number(),
-      lowW: z.number(),
-      highW: z.number(),
+      ftpRange: z.object({ min: z.number(), max: z.number() }),
+      note: z.string().optional(),
+      excludedNoFtp: z.number(),
       seconds: z.number(),
       hours: z.number(),
       fractionOfPowerTime: z.number().nullable(),
@@ -71,6 +72,9 @@ const getTrainingWeekSummaryOutputSchema = z.object({
       avgWatts: z.number().nullable(),
       avgHr: z.number().nullable(),
       middleBandSeconds: z.number().nullable(),
+      ftp: z.number().nullable(),
+      lowW: z.number().nullable(),
+      highW: z.number().nullable(),
     })
   ),
   events: z.array(
@@ -93,9 +97,12 @@ export const getTrainingWeekSummaryTool = defineTool({
     "Use this for weekly review or planning the next week. " +
     "Saves the multi-call dance of get_activities + get_wellness + get_events. " +
     "middleBand is the week's delivered time at 76-106% FTP (tempo through " +
-    "threshold), from recorded power streams, with the watt bounds it used; " +
-    "null when FTP is unavailable. Each completed activity carries its own " +
-    "middleBandSeconds (null without power). " +
+    "threshold), from recorded power streams, each ride measured against its own FTP " +
+    "(the ride's icu_ftp, else the athlete's current). ftpRange is the min/max " +
+    "FTP used; a note appears when the week spans an FTP change; excludedNoFtp " +
+    "counts power rides with no FTP from any source. middleBand is null when no " +
+    "ride contributed. Each completed activity carries its own " +
+    "middleBandSeconds, ftp, lowW and highW (all null without power or FTP). " +
     "Returns: { week, totals, middleBand, bySport, fitness: { ctl, atl, tsb }, " +
     "completedActivities: [...], events: [...] }.",
   schema: getTrainingWeekSummarySchema,
