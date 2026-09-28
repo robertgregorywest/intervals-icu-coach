@@ -6,6 +6,7 @@ import type {
 } from "../../types.js";
 import type {
   DiscardedLine,
+  DiscardReason,
   IWorkoutParser,
   ParseAnchors,
   ParsedWorkout,
@@ -32,16 +33,27 @@ const SECTION_HEADERS: Record<string, "warmup" | "cooldown"> = {
   "cool-down": "cooldown",
 };
 
+/**
+ * A horizontal rule: three or more dashes, optionally spaced (`---`, `-----`,
+ * `- - -`). Measured against the platform (#37): it is no step and is dropped
+ * without a trace, but it closes an open repeat or section block, as a blank
+ * line does. `--` and `--- note` are ordinary step lines, dropped for want of
+ * a duration, and close nothing.
+ */
+const RULE = /^-(?:\s*-){2,}$/;
+
 type OpenBlock =
   | { kind: "repeat"; reps: number; text: string; steps: PlannedDocStep[] }
   | { kind: "section"; flag: "warmup" | "cooldown" };
 
-export class WorkoutParser implements IWorkoutParser {
+class WorkoutParser implements IWorkoutParser {
   parse(text: string, anchors: ParseAnchors = {}): ParsedWorkout {
     const steps: PlannedDocStep[] = [];
     const discarded: DiscardedLine[] = [];
     const notes: string[] = [];
     let block: OpenBlock | undefined;
+    // Index of the first line read as structure; the preamble is what's above.
+    let structureStart: number | undefined;
 
     const closeBlock = (): void => {
       if (block?.kind === "repeat" && block.steps.length > 0) {
@@ -54,12 +66,13 @@ export class WorkoutParser implements IWorkoutParser {
     lines.forEach((raw, i) => {
       const line = raw.trim();
 
-      if (line === "") {
+      if (line === "" || RULE.test(line)) {
         closeBlock();
         return;
       }
 
       if (line.startsWith("-")) {
+        structureStart ??= i;
         const step = parseStepLine(line);
         if (!step) {
           discarded.push({
@@ -83,6 +96,7 @@ export class WorkoutParser implements IWorkoutParser {
       // A non-step line. It either opens a block or is prose.
       const reps = matchRepeatHeader(line);
       if (reps !== undefined) {
+        structureStart ??= i;
         closeBlock();
         block = { kind: "repeat", reps, text: line, steps: [] };
         return;
@@ -90,6 +104,7 @@ export class WorkoutParser implements IWorkoutParser {
 
       const section = SECTION_HEADERS[line.toLowerCase()];
       if (section !== undefined) {
+        structureStart ??= i;
         closeBlock();
         block = { kind: "section", flag: section };
         return;
@@ -116,6 +131,7 @@ export class WorkoutParser implements IWorkoutParser {
       },
       discarded,
       notes,
+      preamble: lines.slice(0, structureStart).join("\n").trim(),
     };
   }
 
@@ -126,9 +142,20 @@ export class WorkoutParser implements IWorkoutParser {
   ): { target?: ResolvedPower; unresolved?: string } {
     return resolvePowerTarget(power, anchors, ramp);
   }
+
+  resolveZones(doc: WorkoutDoc, anchors: ParseAnchors): WorkoutDoc {
+    return resolveZoneTargets(doc, anchors);
+  }
+
+  labelTerminator(label: string): string | undefined {
+    const text = label.trimEnd();
+    const { end, clearLabel } = labelEnd(text);
+    if (!clearLabel && end >= text.length) return undefined;
+    return text.slice(end).split(/\s+/)[0];
+  }
 }
 
-export function createWorkoutParser(): WorkoutParser {
+export function createWorkoutParser(): IWorkoutParser {
   return new WorkoutParser();
 }
 
@@ -210,10 +237,7 @@ function parseStepLine(line: string): PlannedDocStep | undefined {
   };
 }
 
-/** The discard reason a step prescribed by distance alone is given. */
-export const DISTANCE_STEP_DISCARDED = "distance-based step with no duration";
-
-function discardReason(line: string): string {
+function discardReason(line: string): DiscardReason {
   const body = line.replace(/^-\s*/, "");
   const tokens = body.split(/\s+/).filter(Boolean);
   const hasZero = tokens.some((t) => {
@@ -222,7 +246,7 @@ function discardReason(line: string): string {
   });
   if (hasZero) return "zero duration";
   const hasDistance = tokens.some((t) => classify(t).kind === "distance");
-  if (hasDistance) return DISTANCE_STEP_DISCARDED;
+  if (hasDistance) return "distance-based step with no duration";
   return "no parseable duration";
 }
 
@@ -234,7 +258,7 @@ function discardReason(line: string): string {
  * dose in `bucket.ts` depends on. An unresolvable target is named, never
  * defaulted: a plausible wrong wattage is worse than a stated gap.
  */
-export function resolvePowerTarget(
+function resolvePowerTarget(
   power: PlannedPower | undefined,
   anchors: ParseAnchors,
   ramp = false
@@ -313,7 +337,7 @@ export function resolvePowerTarget(
  * cannot resolve is left in place, so the step surfaces downstream as an
  * unresolved target rather than as a plausible wrong wattage.
  */
-export function resolveZoneTargets(
+function resolveZoneTargets(
   doc: WorkoutDoc,
   anchors: ParseAnchors
 ): WorkoutDoc {

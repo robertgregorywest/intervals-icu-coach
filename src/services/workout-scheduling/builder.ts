@@ -1,18 +1,16 @@
 import type { IntervalsEvent, SportType } from "../../types.js";
 import type { WorkoutPlan, WorkoutStep, RepeatBlock } from "./plan.js";
 import { isRepeatBlock } from "./plan.js";
-import { labelEnd } from "../workout-parser/index.js";
+import type { IWorkoutParser } from "../workout-parser/index.js";
 
 /**
  * Refuses a label the platform would not read back as a label. Intervals.icu
  * ends a step's label at its first number-with-a-unit or zone token, so
  * `MAP — best 60s` silently becomes a longer step with a truncated label.
  */
-function assertPlainLabel(label: string): void {
-  const text = label.trimEnd();
-  const { end, clearLabel } = labelEnd(text);
-  if (!clearLabel && end >= text.length) return;
-  const token = text.slice(end).split(/\s+/)[0];
+function assertPlainLabel(label: string, parser: IWorkoutParser): void {
+  const token = parser.labelTerminator(label);
+  if (token === undefined) return;
   throw new Error(
     `Step label "${label}" contains "${token}", which Intervals.icu reads as ` +
       `the step's duration or target, corrupting the step. Keep step labels to ` +
@@ -20,11 +18,11 @@ function assertPlainLabel(label: string): void {
   );
 }
 
-function formatStep(step: WorkoutStep): string {
+function formatStep(step: WorkoutStep, parser: IWorkoutParser): string {
   const parts: string[] = [];
 
   if (step.label) {
-    assertPlainLabel(step.label);
+    assertPlainLabel(step.label, parser);
     parts.push(step.label);
   }
 
@@ -43,18 +41,19 @@ function formatStep(step: WorkoutStep): string {
   return `- ${parts.join(" ")}`;
 }
 
-function formatRepeatBlock(block: RepeatBlock): string {
+function formatRepeatBlock(block: RepeatBlock, parser: IWorkoutParser): string {
   const header = block.label
     ? `${block.label} ${block.iterations}x`
     : `${block.iterations}x`;
 
-  const steps = block.steps.map(formatStep).join("\n");
+  const steps = block.steps.map((s) => formatStep(s, parser)).join("\n");
 
   return `${header}\n${steps}`;
 }
 
 /** Workout-text for a set of steps, with any session prose above them. */
 export function toDescription(
+  parser: IWorkoutParser,
   steps: Array<WorkoutStep | RepeatBlock>,
   notes?: string
 ): string {
@@ -64,21 +63,24 @@ export function toDescription(
 
   for (const step of steps) {
     if (isRepeatBlock(step)) {
-      sections.push(formatRepeatBlock(step));
+      sections.push(formatRepeatBlock(step, parser));
     } else {
-      sections.push(formatStep(step));
+      sections.push(formatStep(step, parser));
     }
   }
 
   return sections.join("\n\n");
 }
 
-export function buildEvent(plan: WorkoutPlan): IntervalsEvent {
+export function buildEvent(
+  plan: WorkoutPlan,
+  parser: IWorkoutParser
+): IntervalsEvent {
   return workoutEvent({
     name: plan.name,
     date: plan.date,
     type: plan.sportType,
-    description: toDescription(plan.steps, plan.notes),
+    description: toDescription(parser, plan.steps, plan.notes),
     externalId: plan.externalId,
     color: plan.color,
   });

@@ -12,6 +12,7 @@ import { createAthleteAnchors } from "../../../src/services/athlete-anchors/inde
 import { createMap } from "../../../src/services/map/index.js";
 import type { IActivitiesApi } from "../../../src/services/activities/index.js";
 import type { IPowerCurvesApi } from "../../../src/services/power-curves/index.js";
+import { createWorkoutParser } from "../../../src/services/workout-parser/index.js";
 
 const FIXTURE = JSON.parse(
   readFileSync(
@@ -102,7 +103,7 @@ function build(stub: StubOptions = {}) {
       map: createMap({ activitiesApi: {} as IActivitiesApi }),
       powerCurvesApi: {} as IPowerCurvesApi,
     }),
-    prescription: createPrescription(),
+    prescription: createPrescription({ workoutParser: createWorkoutParser() }),
   });
   return { service, fetchFn };
 }

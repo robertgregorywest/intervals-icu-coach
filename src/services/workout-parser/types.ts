@@ -19,12 +19,22 @@ export interface ParseAnchors {
   powerZones?: number[] | null;
 }
 
+/**
+ * Why a step line was dropped. The strings reach tool output unchanged, and a
+ * caller that singles one out compares against the literal, so `tsc` catches
+ * it drifting.
+ */
+export type DiscardReason =
+  | "zero duration"
+  | "distance-based step with no duration"
+  | "no parseable duration";
+
 /** A line the parse read as a step and then dropped, with the reason. */
 export interface DiscardedLine {
   /** 1-based line number in the source text. */
   line: number;
   text: string;
-  reason: string;
+  reason: DiscardReason;
   /** Repetitions of the repeat block the line sat in, when it sat in one. */
   reps?: number;
 }
@@ -52,6 +62,13 @@ export interface ParsedWorkout {
   discarded: DiscardedLine[];
   /** Lines that carried no step — the workout's prose notes. */
   notes: string[];
+  /**
+   * The text above the first line the parse read as structure — a step line,
+   * a repeat header or a section header — as written, blank lines kept, with
+   * the blank lines around it trimmed. A horizontal rule is not structure, so
+   * it stays in the preamble.
+   */
+  preamble: string;
 }
 
 /** A power target resolved to absolute watts. */
@@ -75,6 +92,13 @@ export interface IWorkoutParser {
   /** Parse workout text into Intervals.icu's own parsed-document shape. */
   parse(text: string, anchors?: ParseAnchors): ParsedWorkout;
   /**
+   * Rewrite zone targets in a document — the platform's or a local parse —
+   * into the watt bands they resolve to against the anchors, leaving every
+   * other target alone. A zone the anchors cannot resolve is left in place, so
+   * it surfaces downstream as an unresolved target, never a guessed wattage.
+   */
+  resolveZones(doc: WorkoutDoc, anchors: ParseAnchors): WorkoutDoc;
+  /**
    * Resolve one step's power target to absolute watts against the anchors,
    * naming a target it cannot resolve rather than substituting a default.
    */
@@ -83,6 +107,12 @@ export interface IWorkoutParser {
     anchors: ParseAnchors,
     ramp?: boolean
   ): { target?: ResolvedPower; unresolved?: string };
+  /**
+   * The token at which Intervals.icu stops reading `label` as a step label —
+   * the first number-with-a-unit, or a zone that clears the label — or
+   * undefined when the whole text survives as the label.
+   */
+  labelTerminator(label: string): string | undefined;
 }
 
 export type { PlannedDocStep, PlannedPower, WorkoutDoc };

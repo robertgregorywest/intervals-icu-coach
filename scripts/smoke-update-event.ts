@@ -6,6 +6,7 @@
 import "dotenv/config";
 import { createServices } from "../src/index.js";
 import { buildEvent } from "../src/services/workout-scheduling/builder.js";
+import { createWorkoutParser } from "../src/services/workout-parser/index.js";
 import { updateEvent } from "../src/mcp/tools/events.js";
 
 function header(s: string) {
@@ -26,24 +27,27 @@ async function main() {
 
   try {
     header("0. seed: create multi-step structured workout");
-    const seed = buildEvent({
-      name: "SMOKE update_event multistep",
-      date,
-      sportType: "Ride",
-      steps: [
-        { label: "Warmup", duration: "10m", target: "150w" },
-        {
-          iterations: 3,
-          label: "Main Set",
-          steps: [
-            { label: "On", duration: "5m", target: "240w" },
-            { label: "Off", duration: "3m", target: "150w" },
-          ],
-        },
-        { label: "Cooldown", duration: "5m", target: "140w" },
-      ],
-      externalId: `smoke-update-event-${Date.now()}`,
-    });
+    const seed = buildEvent(
+      {
+        name: "SMOKE update_event multistep",
+        date,
+        sportType: "Ride",
+        steps: [
+          { label: "Warmup", duration: "10m", target: "150w" },
+          {
+            iterations: 3,
+            label: "Main Set",
+            steps: [
+              { label: "On", duration: "5m", target: "240w" },
+              { label: "Off", duration: "3m", target: "150w" },
+            ],
+          },
+          { label: "Cooldown", duration: "5m", target: "140w" },
+        ],
+        externalId: `smoke-update-event-${Date.now()}`,
+      },
+      createWorkoutParser()
+    );
     const created = (await services.events.createEvents([seed])) as Array<
       Record<string, unknown>
     >;

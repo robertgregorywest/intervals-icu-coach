@@ -1,5 +1,6 @@
 import type { IWorkoutLibraryApi } from "./api.js";
 import type { IPrescription } from "../prescription/index.js";
+import type { IWorkoutParser } from "../workout-parser/index.js";
 import type {
   LibraryFolder,
   LibraryNode,
@@ -40,6 +41,8 @@ export interface IWorkoutLibrary {
 export interface WorkoutLibraryDeps {
   /** Counts each workout's steps and time for its summary. */
   prescription: IPrescription;
+  /** Finds where each workout's prose ends and its steps begin. */
+  workoutParser: IWorkoutParser;
 }
 
 export class WorkoutLibrary implements IWorkoutLibrary {
@@ -78,7 +81,7 @@ export class WorkoutLibrary implements IWorkoutLibrary {
       });
       for (const w of collected) {
         const description = w.description ?? "";
-        const purpose = extractPurpose(description);
+        const purpose = extractPurpose(description, this.deps.workoutParser);
         workouts.push({
           id: w.id,
           name: w.name,

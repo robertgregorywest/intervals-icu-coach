@@ -17,6 +17,7 @@ Index of Intervals.icu endpoints currently used by this server, plus quirks wort
 - A planned event also carries the platform's **projection** onto it: `icu_ctl`, `icu_atl`, `icu_intensity`, `icu_training_load`. These are the figures a forecast is checked against.
 - `WeightTraining` events carry `icu_training_load: null` and are excluded from the platform's own projection. Strength contributes zero, so a model that assigns it a figure diverges from the dashboard.
 - **Zone targets do not resolve like the equivalent percentage band.** A `ZN` target resolves to the midpoint of `[floor(prevPct/100 × FTP) + 1, floor(pct/100 × FTP)]`, converting each bound to watts _before_ averaging. At FTP 286 that puts `Z6` at 387 W where `120-150%` lands on 386. Zone 1 has no zone below it and the platform substitutes a floor at four fifths of the zone's ceiling — measured, not documented. Committed as `tests/fixtures/workout-parser/zone-targets.json`; re-measure with `npx tsx scripts/capture-workout-parser-fixtures.ts --zones`.
+- **A horizontal rule is not a step.** A line of three or more dashes, optionally spaced (`---`, `-----`, `- - -`), is dropped from `workout_doc` without trace and closes an open repeat block or `Warmup`/`Cooldown` section, as a blank line does: `3x / - 1m 300w / --- / - 1m 100w` comes back as a 3×1m block plus one loose step. `--` and `--- note` are ordinary step lines, dropped for want of a duration, and close nothing. Measured for #37.
 
 ## Folders + saved workouts (the workout library)
 

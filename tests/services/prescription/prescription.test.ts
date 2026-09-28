@@ -4,8 +4,11 @@ import { fileURLToPath } from "node:url";
 import { createPrescription } from "../../../src/services/prescription/index.js";
 import { WORK_WORDS } from "../../../src/work-words.js";
 import type { WorkoutDoc } from "../../../src/types.js";
+import { createWorkoutParser } from "../../../src/services/workout-parser/index.js";
 
-const prescription = createPrescription();
+const prescription = createPrescription({
+  workoutParser: createWorkoutParser(),
+});
 const FTP = 300;
 const FLOOR = 264; // 88% of FTP
 const ANCHORS = { ftp: FTP, powerZones: [55, 75, 90, 105, 120, 150, 999] };

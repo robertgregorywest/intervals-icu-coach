@@ -102,6 +102,38 @@ describe("workout-text parser — reconstruction rules", () => {
     expect(parsed.notes).toEqual(["Intent: bridge the VO2 gap. MAP = 394w."]);
   });
 
+  // Measured against the platform for #37: a line of three or more dashes is
+  // dropped silently and closes an open block, as a blank line does.
+  it("drops a horizontal rule without naming it as a discarded step", () => {
+    for (const rule of ["---", "-----", "- - -"]) {
+      const parsed = parser.parse(`Purpose line.\n${rule}\n- 10m 200w`);
+      expect(parsed.doc.steps).toHaveLength(1);
+      expect(parsed.discarded).toEqual([]);
+      expect(parsed.notes).toEqual(["Purpose line."]);
+    }
+  });
+
+  it("closes a repeat block at a horizontal rule", () => {
+    const parsed = parser.parse("3x\n- 1m 300w\n---\n- 1m 100w");
+    expect(parsed.doc.steps?.map((s) => s.reps)).toEqual([3, undefined]);
+    expect(parsed.doc.duration).toBe(240);
+  });
+
+  it("closes a section at a horizontal rule", () => {
+    const parsed = parser.parse("Warmup\n- 1m 150w\n---\n- 1m 100w");
+    expect(parsed.doc.steps?.map((s) => s.warmup)).toEqual([true, undefined]);
+  });
+
+  it("reads a two-dash line, or a rule with text, as a dropped step inside the block", () => {
+    for (const line of ["--", "--- note"]) {
+      const parsed = parser.parse(`3x\n- 1m 300w\n${line}\n- 1m 100w`);
+      expect(parsed.doc.duration).toBe(360);
+      expect(parsed.discarded).toEqual([
+        { line: 3, text: line, reason: "no parseable duration", reps: 3 },
+      ]);
+    }
+  });
+
   it("flags the steps under a Warmup or Cooldown header", () => {
     const parsed = parser.parse(
       "Warmup\n- 10m ramp 54-80%\n\n- 5m 74%\n\nCooldown\n- 10m ramp 60-47%"
@@ -241,5 +273,88 @@ describe("workout-text parser — target resolution to watts", () => {
     expect(
       parser.resolvePower({ units: "bpm", value: 150 }, anchors).unresolved
     ).toMatch(/unsupported/i);
+  });
+});
+
+describe("workout-text parser — preamble", () => {
+  it("is the text above the first step, paragraphs kept", () => {
+    const parsed = parser.parse("First para.\n\nSecond para.\n\n- 10m 200w");
+    expect(parsed.preamble).toBe("First para.\n\nSecond para.");
+  });
+
+  it("ends at a repeat header", () => {
+    expect(parser.parse("Intent.\n\n3x\n- 1m 300w").preamble).toBe("Intent.");
+  });
+
+  it("ends at a section header, which is structure rather than prose", () => {
+    expect(parser.parse("Intent.\n\nWarmup\n- 10m 150w").preamble).toBe(
+      "Intent."
+    );
+  });
+
+  it("ends at a step line the platform drops — it is still a step line", () => {
+    expect(parser.parse("Intent.\n- MAX effort\n- 1m 100w").preamble).toBe(
+      "Intent."
+    );
+  });
+
+  it("runs past a horizontal rule, which is not structure", () => {
+    expect(parser.parse("Intent.\n\n---\n\n- 1m 100w").preamble).toBe(
+      "Intent.\n\n---"
+    );
+  });
+
+  it("is the whole text when there is no structure, and empty when there is no prose", () => {
+    expect(parser.parse("Just notes.\n\nMore.").preamble).toBe(
+      "Just notes.\n\nMore."
+    );
+    expect(parser.parse("- 10m 200w").preamble).toBe("");
+  });
+});
+
+describe("workout-text parser — labelTerminator", () => {
+  it("is undefined for a label the platform keeps whole", () => {
+    expect(parser.labelTerminator("Warmup")).toBeUndefined();
+    expect(parser.labelTerminator("Rep 1")).toBeUndefined();
+    expect(parser.labelTerminator("Ramp to failure")).toBeUndefined();
+  });
+
+  it("names the number-with-a-unit that cuts the label short", () => {
+    expect(parser.labelTerminator("MAP — best 60s")).toBe("60s");
+  });
+
+  it("names a zone that clears the label", () => {
+    expect(parser.labelTerminator("Easy Z2 spin")).toBe("Z2");
+  });
+});
+
+describe("workout-text parser — resolveZones", () => {
+  const anchors = {
+    ftp: ZONE_TARGETS.harvest.ftp,
+    powerZones: ZONE_TARGETS.harvest.powerZones,
+  };
+
+  it("rewrites a zone target to its watt band, inside repeats too", () => {
+    const { doc } = parser.parse("3x\n- 1m Z2\n- 1m 150w");
+    const resolved = parser.resolveZones(doc, anchors);
+    const [zone, watts] = resolved.steps?.[0].steps ?? [];
+    const band = parser.resolvePower(
+      { units: "power_zone", value: 2 },
+      anchors
+    ).target;
+    expect(zone.power).toMatchObject({
+      units: "w",
+      start: band?.low,
+      end: band?.high,
+    });
+    expect(watts.power).toEqual({ units: "w", value: 150 });
+  });
+
+  it("leaves a zone it cannot resolve in place", () => {
+    const { doc } = parser.parse("- 1m Z2");
+    expect(parser.resolveZones(doc, {}).steps?.[0].power).toEqual({
+      units: "power_zone",
+      value: 2,
+    });
   });
 });

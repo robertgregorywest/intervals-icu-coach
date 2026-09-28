@@ -9,6 +9,9 @@ import type { IServices } from "../../src/index.js";
 import { createWorkoutScheduling } from "../../src/services/workout-scheduling/index.js";
 import type { WorkoutSchedulingDeps } from "../../src/services/workout-scheduling/index.js";
 import type { IntervalsEvent } from "../../src/types.js";
+import { createWorkoutParser } from "../../src/services/workout-parser/index.js";
+
+const workoutParser = createWorkoutParser();
 
 /** The real scheduling module over mocked APIs; no FTP unless a test sets one. */
 function createMockServices(
@@ -19,7 +22,8 @@ function createMockServices(
     eventsApi: { createEvents: vi.fn().mockResolvedValue(returnEvents) },
     workoutLibrary: { get: vi.fn() },
     anchors: { getAthleteAnchors: vi.fn().mockResolvedValue({ ftp: null }) },
-    prescription: createPrescription(),
+    prescription: createPrescription({ workoutParser }),
+    workoutParser,
     ...deps,
   } as unknown as WorkoutSchedulingDeps;
   return {

@@ -5,6 +5,7 @@ import { createEventsApi } from "../../src/services/events/index.js";
 import { pinnedAnchors } from "./anchors.js";
 import { createFitCodec } from "../../src/services/fit/index.js";
 import { createPrescription } from "../../src/services/prescription/index.js";
+import { createWorkoutParser } from "../../src/services/workout-parser/index.js";
 
 /**
  * The one fixture harness for the execution-review lenses: a fetch routed by
@@ -90,7 +91,7 @@ export function intervalsApis(fetchFn: RoutedFetch) {
     }),
     eventsApi: createEventsApi(httpClient, config.athleteId),
     anchors: pinnedAnchors({}),
-    prescription: createPrescription(),
+    prescription: createPrescription({ workoutParser: createWorkoutParser() }),
   };
 }
 

@@ -1,9 +1,4 @@
-import {
-  createWorkoutParser,
-  DISTANCE_STEP_DISCARDED,
-  resolveZoneTargets,
-  type ParseAnchors,
-} from "../workout-parser/index.js";
+import type { IWorkoutParser, ParseAnchors } from "../workout-parser/index.js";
 import type { WorkoutDoc } from "../../types.js";
 import { flattenPlannedSteps, plannedDuration } from "./planned.js";
 import { stepRole } from "./roles.js";
@@ -17,8 +12,6 @@ import type {
   PrescriptionShape,
 } from "./types.js";
 
-const parser = createWorkoutParser();
-
 /**
  * A session counts as key when it prescribes a work step at or above this.
  *
@@ -28,10 +21,19 @@ const parser = createWorkoutParser();
  */
 const KEY_SESSION_FLOOR_PCT_FTP = 88;
 
-export function createPrescription(): IPrescription {
+export interface PrescriptionDeps {
+  /** Parses workout text, and resolves zone targets in any doc to watts. */
+  workoutParser: IWorkoutParser;
+}
+
+export function createPrescription(deps: PrescriptionDeps): IPrescription {
+  const read = (
+    source: WorkoutDoc | string | undefined,
+    anchors?: ParseAnchors
+  ): Prescription => readPrescription(deps.workoutParser, source, anchors);
   return {
-    read: readPrescription,
-    shape: prescriptionShape,
+    read,
+    shape: (text) => prescriptionShape(read(text)),
     keySessionFloorPctFtp: KEY_SESSION_FLOOR_PCT_FTP,
   };
 }
@@ -44,11 +46,12 @@ export function createPrescription(): IPrescription {
  * midpoint is taken once; the facts derived from the steps are taken here too.
  */
 function readPrescription(
+  parser: IWorkoutParser,
   source: WorkoutDoc | string | undefined,
   anchors: ParseAnchors = {}
 ): Prescription {
-  const read = readSource(source, anchors);
-  const doc = read.doc ? resolveZoneTargets(read.doc, anchors) : undefined;
+  const read = readSource(parser, source, anchors);
+  const doc = read.doc ? parser.resolveZones(read.doc, anchors) : undefined;
 
   const steps: PlannedStep[] = flattenPlannedSteps(doc, {
     ftp: anchors.ftp,
@@ -85,6 +88,7 @@ function readPrescription(
 }
 
 function readSource(
+  parser: IWorkoutParser,
   source: WorkoutDoc | string | undefined,
   anchors: ParseAnchors
 ): Pick<Prescription, "basis" | "discarded"> & { doc?: WorkoutDoc } {
@@ -124,10 +128,13 @@ function targetMidpoint(target: PowerTarget | undefined): number | undefined {
  * it, but it is a real step (a run's `- 2km Z2`), so it counts and is flagged
  * rather than vanishing.
  */
-function prescriptionShape(text: string): PrescriptionShape {
-  const { steps, discarded, totalSeconds } = readPrescription(text);
+function prescriptionShape({
+  steps,
+  discarded,
+  totalSeconds,
+}: Prescription): PrescriptionShape {
   const distanceSteps = discarded
-    .filter((d) => d.reason === DISTANCE_STEP_DISCARDED)
+    .filter((d) => d.reason === "distance-based step with no duration")
     .reduce((sum, d) => sum + (d.reps ?? 1), 0);
 
   return {

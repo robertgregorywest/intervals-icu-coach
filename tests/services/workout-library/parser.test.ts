@@ -7,6 +7,9 @@ import {
   hasTemplateMarker,
   parseDescriptionSummary,
 } from "../../../src/services/workout-library/parser.js";
+import { createWorkoutParser } from "../../../src/services/workout-parser/index.js";
+
+const parser = createWorkoutParser();
 
 describe("stripMarkers", () => {
   it("removes the template marker", () => {
@@ -47,24 +50,36 @@ describe("extractProse / extractPurpose", () => {
   ].join("\n");
 
   it("returns the text preceding the first step", () => {
-    expect(extractProse(desc)).toBe(
+    expect(extractProse(desc, parser)).toBe(
       "Day before a race. Opens the legs without cost.\n\nLonger rationale paragraph explaining the session."
     );
   });
 
   it("purpose is the first paragraph only", () => {
-    expect(extractPurpose(desc)).toBe(
+    expect(extractPurpose(desc, parser)).toBe(
       "Day before a race. Opens the legs without cost."
     );
   });
 
   it("purpose is undefined when there is no prose", () => {
-    expect(extractPurpose("- 5m 95%")).toBeUndefined();
+    expect(extractPurpose("- 5m 95%", parser)).toBeUndefined();
+  });
+
+  it("ends the prose at a section header, which is structure, not purpose", () => {
+    const desc = "Warmup\n- 10m 150w\n\n- 20m 250w";
+    expect(extractProse(desc, parser)).toBe("");
+    expect(extractPurpose(desc, parser)).toBeUndefined();
+  });
+
+  it("keeps a horizontal rule in the prose, where the platform ignores it", () => {
+    const desc = "Purpose.\n\n---\n\n3x\n- 1m 300w";
+    expect(extractProse(desc, parser)).toBe("Purpose.\n\n---");
+    expect(extractPurpose(desc, parser)).toBe("Purpose.");
   });
 });
 
 describe("parseDescriptionSummary", () => {
-  const prescription = createPrescription();
+  const prescription = createPrescription({ workoutParser: parser });
 
   it("counts simple steps and sums durations", () => {
     const desc = "- 10m 75%\n- 5m 50%";

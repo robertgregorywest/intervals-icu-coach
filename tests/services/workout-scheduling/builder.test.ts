@@ -8,54 +8,57 @@ import type {
   RepeatBlock,
   WorkoutPlan,
 } from "../../../src/services/workout-scheduling/plan.js";
+import { createWorkoutParser } from "../../../src/services/workout-parser/index.js";
+
+const parser = createWorkoutParser();
 
 describe("workout builder", () => {
   describe("toDescription", () => {
     it("formats a simple step with duration and target", () => {
       const steps: WorkoutStep[] = [{ duration: "10m", target: "60%" }];
-      expect(toDescription(steps)).toBe("- 10m 60%");
+      expect(toDescription(parser, steps)).toBe("- 10m 60%");
     });
 
     it("formats a step with label", () => {
       const steps: WorkoutStep[] = [
         { label: "Warmup", duration: "10m", target: "60%" },
       ];
-      expect(toDescription(steps)).toBe("- Warmup 10m 60%");
+      expect(toDescription(parser, steps)).toBe("- Warmup 10m 60%");
     });
 
     it("refuses a step label carrying a number+unit token", () => {
       const steps: WorkoutStep[] = [
         { label: "MAP — best 60s", duration: "1m", target: "400w" },
       ];
-      expect(() => toDescription(steps)).toThrow(/contains "60s"/);
+      expect(() => toDescription(parser, steps)).toThrow(/contains "60s"/);
     });
 
     it("refuses a step label carrying a zone", () => {
       const steps: WorkoutStep[] = [
         { label: "Easy Z2 spin", duration: "45m", target: "180w" },
       ];
-      expect(() => toDescription(steps)).toThrow(/contains "Z2"/);
+      expect(() => toDescription(parser, steps)).toThrow(/contains "Z2"/);
     });
 
     it("keeps a label whose numbers carry no unit", () => {
       const steps: WorkoutStep[] = [
         { label: "Rep 1", duration: "4m", target: "360w" },
       ];
-      expect(toDescription(steps)).toBe("- Rep 1 4m 360w");
+      expect(toDescription(parser, steps)).toBe("- Rep 1 4m 360w");
     });
 
     it("formats a step with cadence", () => {
       const steps: WorkoutStep[] = [
         { duration: "5m", target: "95%", cadence: "90rpm" },
       ];
-      expect(toDescription(steps)).toBe("- 5m 95% 90rpm");
+      expect(toDescription(parser, steps)).toBe("- 5m 95% 90rpm");
     });
 
     it("formats a ramp step", () => {
       const steps: WorkoutStep[] = [
         { duration: "10m", target: "50%-75%", ramp: true },
       ];
-      expect(toDescription(steps)).toBe("- 10m ramp 50%-75%");
+      expect(toDescription(parser, steps)).toBe("- 10m ramp 50%-75%");
     });
 
     it("formats a ramp step with label and cadence", () => {
@@ -68,19 +71,21 @@ describe("workout builder", () => {
           ramp: true,
         },
       ];
-      expect(toDescription(steps)).toBe("- Warmup 15m ramp 40%-70% 85rpm");
+      expect(toDescription(parser, steps)).toBe(
+        "- Warmup 15m ramp 40%-70% 85rpm"
+      );
     });
 
     it("formats a step with duration only (freeride)", () => {
       const steps: WorkoutStep[] = [{ duration: "20m" }];
-      expect(toDescription(steps)).toBe("- 20m");
+      expect(toDescription(parser, steps)).toBe("- 20m");
     });
 
     it("formats a step with distance", () => {
       const steps: WorkoutStep[] = [
         { duration: "2km", target: "5:00/km Pace" },
       ];
-      expect(toDescription(steps)).toBe("- 2km 5:00/km Pace");
+      expect(toDescription(parser, steps)).toBe("- 2km 5:00/km Pace");
     });
 
     it("formats a repeat block", () => {
@@ -93,7 +98,7 @@ describe("workout builder", () => {
           ],
         },
       ];
-      expect(toDescription(steps)).toBe("4x\n- 2m 95%\n- 2m 55%");
+      expect(toDescription(parser, steps)).toBe("4x\n- 2m 95%\n- 2m 55%");
     });
 
     it("formats a repeat block with label", () => {
@@ -107,7 +112,9 @@ describe("workout builder", () => {
           ],
         },
       ];
-      expect(toDescription(steps)).toBe("Main Set 4x\n- 2m 95%\n- 2m 55%");
+      expect(toDescription(parser, steps)).toBe(
+        "Main Set 4x\n- 2m 95%\n- 2m 55%"
+      );
     });
 
     it("formats a full workout with mixed steps and repeats", () => {
@@ -123,7 +130,7 @@ describe("workout builder", () => {
         },
         { label: "Recovery", duration: "5m", target: "50%" },
       ];
-      expect(toDescription(steps)).toBe(
+      expect(toDescription(parser, steps)).toBe(
         "- Warmup 10m 60%\n\n" +
           "Main Set 4x\n- 2m 95%\n- 2m 55%\n\n" +
           "- Recovery 5m 50%"
@@ -132,17 +139,17 @@ describe("workout builder", () => {
 
     it("formats HR target steps", () => {
       const steps: WorkoutStep[] = [{ duration: "30m", target: "70% HR" }];
-      expect(toDescription(steps)).toBe("- 30m 70% HR");
+      expect(toDescription(parser, steps)).toBe("- 30m 70% HR");
     });
 
     it("formats power zone steps", () => {
       const steps: WorkoutStep[] = [{ duration: "20m", target: "Z2" }];
-      expect(toDescription(steps)).toBe("- 20m Z2");
+      expect(toDescription(parser, steps)).toBe("- 20m Z2");
     });
 
     it("formats watt-based steps", () => {
       const steps: WorkoutStep[] = [{ duration: "5m", target: "220w" }];
-      expect(toDescription(steps)).toBe("- 5m 220w");
+      expect(toDescription(parser, steps)).toBe("- 5m 220w");
     });
   });
 
@@ -165,7 +172,7 @@ describe("workout builder", () => {
         ],
       };
 
-      const event = buildEvent(plan);
+      const event = buildEvent(plan, parser);
 
       expect(event.category).toBe("WORKOUT");
       expect(event.type).toBe("Ride");
@@ -186,7 +193,7 @@ describe("workout builder", () => {
         externalId: "my-custom-id",
       };
 
-      const event = buildEvent(plan);
+      const event = buildEvent(plan, parser);
       expect(event.external_id).toBe("my-custom-id");
     });
 
@@ -199,7 +206,7 @@ describe("workout builder", () => {
         color: "green",
       };
 
-      const event = buildEvent(plan);
+      const event = buildEvent(plan, parser);
       expect(event.color).toBe("green");
     });
 
@@ -211,7 +218,7 @@ describe("workout builder", () => {
         steps: [{ duration: "30m", target: "60%" }],
       };
 
-      const event = buildEvent(plan);
+      const event = buildEvent(plan, parser);
       expect(event.color).toBeUndefined();
     });
   });

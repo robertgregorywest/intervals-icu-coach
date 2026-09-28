@@ -11,6 +11,7 @@ import type { IEventsApi } from "../../src/services/events/index.js";
 import { createWorkoutScheduling } from "../../src/services/workout-scheduling/index.js";
 import type { IWorkoutLibrary } from "../../src/services/workout-library/index.js";
 import type { IAthleteAnchors } from "../../src/services/athlete-anchors/index.js";
+import { createWorkoutParser } from "../../src/services/workout-parser/index.js";
 
 const getEvents = getEventsTool.handler;
 const getEvent = getEventTool.handler;
@@ -43,10 +44,13 @@ function createMockServices(overrides: Partial<IEventsApi> = {}): IServices {
       eventsApi: events,
       workoutLibrary: {} as IWorkoutLibrary,
       anchors: {} as IAthleteAnchors,
-      prescription: createPrescription(),
+      prescription: createPrescription({ workoutParser }),
+      workoutParser,
     }),
   } as unknown as IServices;
 }
+
+const workoutParser = createWorkoutParser();
 
 describe("getEvents tool handler", () => {
   it("returns events as JSON", async () => {

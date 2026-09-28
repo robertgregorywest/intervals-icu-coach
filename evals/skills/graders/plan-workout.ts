@@ -1,7 +1,6 @@
 import { z } from "zod";
 import {
   createWorkoutParser,
-  resolvePowerTarget,
   type ParseAnchors,
   type ParsedWorkout,
 } from "../../../src/services/workout-parser/index.js";
@@ -242,7 +241,7 @@ export const targetsInBand = defineGrader(
         const stepName = step.text
           ? `"${step.text}"`
           : `${minutes(step.duration ?? 0)} step`;
-        const { target, unresolved } = resolvePowerTarget(
+        const { target, unresolved } = parser.resolvePower(
           step.power,
           anchors,
           step.ramp

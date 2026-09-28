@@ -9,6 +9,7 @@ import type {
 } from "../../../src/services/activities/index.js";
 import type { IEventsApi } from "../../../src/services/events/index.js";
 import type { IntervalsEvent, PlannedDocStep } from "../../../src/types.js";
+import { createWorkoutParser } from "../../../src/services/workout-parser/index.js";
 
 /**
  * The three lenses read one planned event, whose percentages must resolve
@@ -79,7 +80,9 @@ function lenses(ride: Activity | null) {
       activitiesApi,
       eventsApi,
       anchors,
-      prescription: createPrescription(),
+      prescription: createPrescription({
+        workoutParser: createWorkoutParser(),
+      }),
     }),
     athleteFtpReads,
   };

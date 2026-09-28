@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { createPrescription } from "../../../src/services/prescription/index.js";
 import { WorkoutLibrary } from "../../../src/services/workout-library/library.js";
 import type { IWorkoutLibraryApi } from "../../../src/services/workout-library/api.js";
+import { createWorkoutParser } from "../../../src/services/workout-parser/index.js";
 
 function fakeApi(
   overrides: Partial<IWorkoutLibraryApi> = {}
@@ -17,6 +18,9 @@ function fakeApi(
     ...overrides,
   };
 }
+
+const workoutParser = createWorkoutParser();
+const prescription = createPrescription({ workoutParser });
 
 describe("WorkoutLibrary.list", () => {
   it("walks the children tree and summarizes each workout", async () => {
@@ -56,7 +60,7 @@ describe("WorkoutLibrary.list", () => {
         },
       ]),
     });
-    const lib = new WorkoutLibrary(api, { prescription: createPrescription() });
+    const lib = new WorkoutLibrary(api, { prescription, workoutParser });
 
     const result = await lib.list();
 
@@ -97,7 +101,7 @@ describe("WorkoutLibrary.list", () => {
         },
       ]),
     });
-    const lib = new WorkoutLibrary(api, { prescription: createPrescription() });
+    const lib = new WorkoutLibrary(api, { prescription, workoutParser });
     const result = await lib.list();
     expect(result.workouts).toHaveLength(1);
     expect(result.workouts[0].name).toBe("Buried");
@@ -130,7 +134,7 @@ describe("WorkoutLibrary.list", () => {
         },
       ]),
     });
-    const lib = new WorkoutLibrary(api, { prescription: createPrescription() });
+    const lib = new WorkoutLibrary(api, { prescription, workoutParser });
 
     const result = await lib.list("Coach Templates");
 
@@ -145,7 +149,7 @@ describe("WorkoutLibrary.list", () => {
         .fn()
         .mockResolvedValue([{ id: 1, name: "Empty", type: "FOLDER" }]),
     });
-    const lib = new WorkoutLibrary(api, { prescription: createPrescription() });
+    const lib = new WorkoutLibrary(api, { prescription, workoutParser });
     const result = await lib.list();
     expect(result.workouts).toHaveLength(0);
     expect(result.folders[0].num_workouts).toBe(0);
@@ -163,7 +167,7 @@ describe("WorkoutLibrary.get", () => {
         description,
       }),
     });
-    const lib = new WorkoutLibrary(api, { prescription: createPrescription() });
+    const lib = new WorkoutLibrary(api, { prescription, workoutParser });
 
     const item = await lib.get(42);
 
@@ -182,7 +186,7 @@ describe("WorkoutLibrary.get", () => {
         description: "- 30m 75%",
       }),
     });
-    const lib = new WorkoutLibrary(api, { prescription: createPrescription() });
+    const lib = new WorkoutLibrary(api, { prescription, workoutParser });
     const item = await lib.get(1);
     expect(item.seedId).toBeNull();
   });

@@ -1,4 +1,5 @@
 export { createPrescription } from "./prescription.js";
+export type { PrescriptionDeps } from "./prescription.js";
 export type {
   CadenceRange,
   IPrescription,

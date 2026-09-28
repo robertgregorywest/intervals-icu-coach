@@ -9,6 +9,7 @@
 import "dotenv/config";
 import { createServices } from "../src/index.js";
 import { buildEvent } from "../src/services/workout-scheduling/builder.js";
+import { createWorkoutParser } from "../src/services/workout-parser/index.js";
 
 function header(s: string) {
   console.log("\n" + "=".repeat(70) + "\n" + s + "\n" + "=".repeat(70));
@@ -42,24 +43,27 @@ async function main() {
 
   try {
     header("0. create a multi-step structured workout (with external_id)");
-    const event = buildEvent({
-      name: "PROBE update_event multistep",
-      date,
-      sportType: "Ride",
-      steps: [
-        { label: "Warmup", duration: "10m", target: "150w" },
-        {
-          iterations: 3,
-          label: "Main Set",
-          steps: [
-            { label: "On", duration: "5m", target: "240w" },
-            { label: "Off", duration: "3m", target: "150w" },
-          ],
-        },
-        { label: "Cooldown", duration: "5m", target: "140w" },
-      ],
-      externalId,
-    });
+    const event = buildEvent(
+      {
+        name: "PROBE update_event multistep",
+        date,
+        sportType: "Ride",
+        steps: [
+          { label: "Warmup", duration: "10m", target: "150w" },
+          {
+            iterations: 3,
+            label: "Main Set",
+            steps: [
+              { label: "On", duration: "5m", target: "240w" },
+              { label: "Off", duration: "3m", target: "150w" },
+            ],
+          },
+          { label: "Cooldown", duration: "5m", target: "140w" },
+        ],
+        externalId,
+      },
+      createWorkoutParser()
+    );
     const created = (await services.events.createEvents([event])) as Array<
       Record<string, unknown>
     >;

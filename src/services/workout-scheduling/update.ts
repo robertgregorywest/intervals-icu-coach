@@ -1,5 +1,6 @@
 import type { IEventsApi } from "../events/index.js";
 import type { IPrescription } from "../prescription/index.js";
+import type { IWorkoutParser } from "../workout-parser/index.js";
 import type { IntervalsEvent } from "../../types.js";
 import { startOfDay, toDescription } from "./builder.js";
 import type { EventChanges } from "./types.js";
@@ -8,6 +9,7 @@ import type { EventChanges } from "./types.js";
 export async function updateEvent(
   eventsApi: IEventsApi,
   prescription: IPrescription,
+  parser: IWorkoutParser,
   id: number,
   changes: EventChanges
 ): Promise<IntervalsEvent> {
@@ -58,7 +60,7 @@ export async function updateEvent(
   if (color !== undefined) data.color = color;
   if (date) data.start_date_local = startOfDay(date);
   if (description !== undefined) data.description = description;
-  if (steps) data.description = toDescription(steps, notes);
+  if (steps) data.description = toDescription(parser, steps, notes);
 
   return eventsApi.updateEvent(id, data);
 }

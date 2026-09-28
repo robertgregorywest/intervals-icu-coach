@@ -2,6 +2,7 @@ import type { IEventsApi } from "../events/index.js";
 import type { IWorkoutLibrary } from "../workout-library/index.js";
 import type { IAthleteAnchors } from "../athlete-anchors/index.js";
 import type { IPrescription, UnreviewableStep } from "../prescription/index.js";
+import type { IWorkoutParser } from "../workout-parser/index.js";
 import type { IntervalsEvent, SportType } from "../../types.js";
 import { buildEvent, workoutEvent } from "./builder.js";
 import { updateEvent } from "./update.js";
@@ -21,13 +22,17 @@ export interface WorkoutSchedulingDeps {
   anchors: IAthleteAnchors;
   /** Reads the written text back, for the update guard and the warning. */
   prescription: IPrescription;
+  /** Refuses a step label the platform would cut short. */
+  workoutParser: IWorkoutParser;
 }
 
 export class WorkoutScheduling implements IWorkoutScheduling {
   constructor(private deps: WorkoutSchedulingDeps) {}
 
   async schedulePlan(plan: WorkoutPlan): Promise<ScheduledWorkouts> {
-    return this.write(buildEvent(plan), { warn: true });
+    return this.write(buildEvent(plan, this.deps.workoutParser), {
+      warn: true,
+    });
   }
 
   async scheduleLibraryWorkout(
@@ -57,6 +62,7 @@ export class WorkoutScheduling implements IWorkoutScheduling {
     return updateEvent(
       this.deps.eventsApi,
       this.deps.prescription,
+      this.deps.workoutParser,
       id,
       changes
     );

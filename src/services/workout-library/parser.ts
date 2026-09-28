@@ -1,18 +1,11 @@
 import type { WorkoutSummary } from "./types.js";
-import { matchRepeatHeader } from "../workout-parser/index.js";
+import type { IWorkoutParser } from "../workout-parser/index.js";
 import type { IPrescription } from "../prescription/index.js";
 
 /** Provenance marker written by sync. */
 const TEMPLATE_MARKER_RE = /<!--\s*template:\s*[a-z0-9][a-z0-9-]*\s*-->/i;
 /** Legacy marker from the retired seed/refresh path — stripped, never written. */
 const LEGACY_RATIONALE_RE = /<!--\s*rationale\s*[\s\S]+?\s*-->/i;
-
-/**
- * A step line. Intervals.icu accepts a dash with no following space
- * (`-Warm-up 5m 160w`), which workouts authored in its UI commonly use, so the
- * space is optional here. The negative class keeps a `---` rule from matching.
- */
-const STEP_LINE_RE = /^\s*-\s*[^\s-]/;
 
 export function stripMarkers(description: string): string {
   return description
@@ -21,36 +14,26 @@ export function stripMarkers(description: string): string {
     .trimEnd();
 }
 
-/** The step body of a line, or null when the line is not a step. */
-function stepBody(line: string): string | null {
-  if (!STEP_LINE_RE.test(line)) return null;
-  return line.trim().replace(/^-\s*/, "");
-}
-
 /**
- * The human text preceding the first step or repeat header, markers removed.
+ * The human text above the workout's structure, markers removed — where the
+ * structure starts is the parse's call, so it cannot disagree with the steps.
  */
-export function extractProse(description: string): string {
-  const lines = stripMarkers(description).split(/\r?\n/);
-  let end = lines.length;
-  for (let i = 0; i < lines.length; i++) {
-    if (
-      stepBody(lines[i]) !== null ||
-      matchRepeatHeader(lines[i]) !== undefined
-    ) {
-      end = i;
-      break;
-    }
-  }
-  return lines.slice(0, end).join("\n").trim();
+export function extractProse(
+  description: string,
+  parser: IWorkoutParser
+): string {
+  return parser.parse(stripMarkers(description)).preamble;
 }
 
 /**
  * The template's `purpose`: sync renders it as the first paragraph of the
  * description, so it is the first blank-line-delimited block of the prose.
  */
-export function extractPurpose(description: string): string | undefined {
-  const prose = extractProse(description);
+export function extractPurpose(
+  description: string,
+  parser: IWorkoutParser
+): string | undefined {
+  const prose = extractProse(description, parser);
   if (!prose) return undefined;
   const first = prose.split(/\n\s*\n/)[0]?.trim();
   return first || undefined;

@@ -37,6 +37,7 @@ import { createAthleteAnchors } from "./services/athlete-anchors/index.js";
 import type { IAthleteAnchors } from "./services/athlete-anchors/index.js";
 import { createPowerProfile } from "./services/power-profile/index.js";
 import { createPrescription } from "./services/prescription/index.js";
+import { createWorkoutParser } from "./services/workout-parser/index.js";
 import type { IPowerProfile } from "./services/power-profile/index.js";
 
 /**
@@ -94,11 +95,14 @@ export function createServices(options: ServicesOptions = {}): IServices {
   const activities = createActivitiesApi(httpClient, athleteId, { fit });
   const wellness = createWellnessApi(httpClient, athleteId);
   const powerCurves = createPowerCurvesApi(httpClient, athleteId);
+  // The one reading of workout text, so the builder, the library and every
+  // planned-side lens agree with each other and with the platform.
+  const workoutParser = createWorkoutParser();
   // The one reader of every prescription, so no two lenses disagree on a plan.
-  const prescription = createPrescription();
+  const prescription = createPrescription({ workoutParser });
   const workoutLibrary = createWorkoutLibrary(
     createWorkoutLibraryApi(httpClient, athleteId),
-    { prescription }
+    { prescription, workoutParser }
   );
   const analysis = createActivityAnalysis({ activitiesApi: activities });
   // One source for every FTP and MAP-zone reader, so nothing builds the
@@ -114,6 +118,7 @@ export function createServices(options: ServicesOptions = {}): IServices {
     workoutLibrary,
     anchors,
     prescription,
+    workoutParser,
   });
   const executionReview = createExecutionReview({
     activitiesApi: activities,
