@@ -1,13 +1,23 @@
 import type { Activity, IActivitiesApi } from "../activities/index.js";
 import { computeBestPower } from "../analysis/index.js";
-import type { MapDerivation } from "./types.js";
+import type { IMap, MapDerivation } from "./types.js";
 import { daysBetween, shiftDate } from "../../dates.js";
 
-export const MAP_LOOKBACK_DAYS = 90;
-export const RAMP_TEST_NAME_PREFIX = "map ramp test";
-export const RAMP_TEST_SKIP_MARKER = "(skip)";
+const MAP_LOOKBACK_DAYS = 90;
+const RAMP_TEST_NAME_PREFIX = "map ramp test";
+const RAMP_TEST_SKIP_MARKER = "(skip)";
 
-export async function deriveLatestMap(
+export interface MapDeps {
+  activitiesApi: IActivitiesApi;
+}
+
+export function createMap(deps: MapDeps): IMap {
+  return {
+    deriveLatest: (today) => deriveLatestMap(deps.activitiesApi, today),
+  };
+}
+
+async function deriveLatestMap(
   activitiesApi: IActivitiesApi,
   today: string
 ): Promise<MapDerivation> {

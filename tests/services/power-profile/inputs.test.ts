@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { resolveInputs } from "../../../src/services/power-profile/index.js";
 import { createAthleteAnchors } from "../../../src/services/athlete-anchors/index.js";
+import { createMap } from "../../../src/services/map/index.js";
 import type {
   Activity,
   ActivityStreams,
@@ -84,7 +85,7 @@ describe("resolveInputs", () => {
       {
         anchors: createAthleteAnchors({
           athleteApi: fakeAthlete(),
-          activitiesApi: fakeActivities(),
+          map: createMap({ activitiesApi: fakeActivities() }),
           powerCurvesApi: fakePowerCurves(CURVE_ENVELOPE),
         }),
         powerCurvesApi: fakePowerCurves(CURVE_ENVELOPE),
@@ -115,7 +116,7 @@ describe("resolveInputs", () => {
       {
         anchors: createAthleteAnchors({
           athleteApi: fakeAthlete(),
-          activitiesApi: fakeActivities(),
+          map: createMap({ activitiesApi: fakeActivities() }),
           powerCurvesApi: fakePowerCurves(CURVE_ENVELOPE),
         }),
         powerCurvesApi: fakePowerCurves(CURVE_ENVELOPE),
@@ -154,7 +155,7 @@ describe("resolveInputs", () => {
       {
         anchors: createAthleteAnchors({
           athleteApi: fakeAthlete(),
-          activitiesApi: noActivities,
+          map: createMap({ activitiesApi: noActivities }),
           powerCurvesApi: fakePowerCurves(CURVE_ENVELOPE),
         }),
         powerCurvesApi: fakePowerCurves(CURVE_ENVELOPE),
@@ -180,7 +181,7 @@ describe("resolveInputs", () => {
       {
         anchors: createAthleteAnchors({
           athleteApi: fakeAthlete(),
-          activitiesApi: fakeActivities(),
+          map: createMap({ activitiesApi: fakeActivities() }),
           powerCurvesApi: failingCurves,
         }),
         powerCurvesApi: failingCurves,
@@ -201,7 +202,7 @@ describe("resolveInputs", () => {
             ...ATHLETE,
             icu_date_of_birth: null,
           } as Partial<AthleteProfile>),
-          activitiesApi: fakeActivities(),
+          map: createMap({ activitiesApi: fakeActivities() }),
           powerCurvesApi: fakePowerCurves(CURVE_ENVELOPE),
         }),
         powerCurvesApi: fakePowerCurves(CURVE_ENVELOPE),

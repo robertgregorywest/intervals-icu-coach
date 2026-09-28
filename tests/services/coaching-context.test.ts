@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { buildCoachingContext } from "../../src/services/coaching-context/coaching-context.js";
 import { createAthleteAnchors } from "../../src/services/athlete-anchors/index.js";
+import { createMap } from "../../src/services/map/index.js";
 import type {
   AthleteProfile,
   IAthleteApi,
@@ -89,7 +90,7 @@ describe("buildCoachingContext", () => {
       {
         anchors: createAthleteAnchors({
           athleteApi,
-          activitiesApi: emptyActivitiesApi,
+          map: createMap({ activitiesApi: emptyActivitiesApi }),
           powerCurvesApi: emptyPowerCurvesApi,
         }),
         wellnessApi,
@@ -122,7 +123,7 @@ describe("buildCoachingContext", () => {
       {
         anchors: createAthleteAnchors({
           athleteApi,
-          activitiesApi: emptyActivitiesApi,
+          map: createMap({ activitiesApi: emptyActivitiesApi }),
           powerCurvesApi: emptyPowerCurvesApi,
         }),
         wellnessApi,
@@ -172,7 +173,7 @@ describe("buildCoachingContext", () => {
       {
         anchors: createAthleteAnchors({
           athleteApi,
-          activitiesApi: emptyActivitiesApi,
+          map: createMap({ activitiesApi: emptyActivitiesApi }),
           powerCurvesApi: emptyPowerCurvesApi,
         }),
         wellnessApi,
@@ -209,7 +210,7 @@ describe("buildCoachingContext", () => {
       {
         anchors: createAthleteAnchors({
           athleteApi,
-          activitiesApi,
+          map: createMap({ activitiesApi }),
           powerCurvesApi,
         }),
         wellnessApi,
@@ -236,7 +237,7 @@ describe("buildCoachingContext", () => {
         {
           anchors: createAthleteAnchors({
             athleteApi,
-            activitiesApi: emptyActivitiesApi,
+            map: createMap({ activitiesApi: emptyActivitiesApi }),
             powerCurvesApi: emptyPowerCurvesApi,
           }),
           wellnessApi,
@@ -249,7 +250,7 @@ describe("buildCoachingContext", () => {
         {
           anchors: createAthleteAnchors({
             athleteApi,
-            activitiesApi: emptyActivitiesApi,
+            map: createMap({ activitiesApi: emptyActivitiesApi }),
             powerCurvesApi: emptyPowerCurvesApi,
           }),
           wellnessApi,

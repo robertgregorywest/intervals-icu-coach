@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { deriveLatestMap } from "../../src/services/map/index.js";
+import { createMap } from "../../src/services/map/index.js";
 import type {
   Activity,
   ActivityStreams,
@@ -30,7 +30,7 @@ function makeRampStream(secs: number, peakStartIdx: number): number[] {
   return stream;
 }
 
-describe("deriveLatestMap", () => {
+describe("IMap.deriveLatest", () => {
   it("derives MAP from the most recent ramp test", async () => {
     const stream = makeRampStream(1000, 800);
     const activitiesApi = fakeActivitiesApi(
@@ -44,7 +44,9 @@ describe("deriveLatestMap", () => {
       { i7777: { watts: stream } }
     );
 
-    const result = await deriveLatestMap(activitiesApi, "2026-05-09");
+    const result = await createMap({ activitiesApi }).deriveLatest(
+      "2026-05-09"
+    );
 
     expect(result.map).not.toBeNull();
     expect(result.map?.watts).toBe(394);
@@ -81,7 +83,9 @@ describe("deriveLatestMap", () => {
       }
     );
 
-    const result = await deriveLatestMap(activitiesApi, "2026-05-09");
+    const result = await createMap({ activitiesApi }).deriveLatest(
+      "2026-05-09"
+    );
 
     expect(result.map?.watts).toBe(394);
     expect(result.map?.computedFrom.activityId).toBe("new");
@@ -112,7 +116,9 @@ describe("deriveLatestMap", () => {
       }
     );
 
-    const result = await deriveLatestMap(activitiesApi, "2026-05-09");
+    const result = await createMap({ activitiesApi }).deriveLatest(
+      "2026-05-09"
+    );
 
     expect(result.map?.watts).toBe(394);
     expect(result.map?.computedFrom.activityId).toBe("good");
@@ -127,7 +133,9 @@ describe("deriveLatestMap", () => {
       } as Activity,
     ]);
 
-    const result = await deriveLatestMap(activitiesApi, "2026-05-09");
+    const result = await createMap({ activitiesApi }).deriveLatest(
+      "2026-05-09"
+    );
 
     expect(result.map).toBeNull();
     expect(result.mapWarning).toMatch(/90 days/);
@@ -146,7 +154,9 @@ describe("deriveLatestMap", () => {
       { i42: {} }
     );
 
-    const result = await deriveLatestMap(activitiesApi, "2026-05-09");
+    const result = await createMap({ activitiesApi }).deriveLatest(
+      "2026-05-09"
+    );
 
     expect(result.map).toBeNull();
     expect(result.mapWarning).toMatch(/no power data/i);
@@ -167,7 +177,9 @@ describe("deriveLatestMap", () => {
       { noisy: { watts: stream } }
     );
 
-    const result = await deriveLatestMap(activitiesApi, "2026-05-09");
+    const result = await createMap({ activitiesApi }).deriveLatest(
+      "2026-05-09"
+    );
 
     expect(result.map).toBeNull();
     expect(result.mapWarning).toMatch(/90 days/);
@@ -186,7 +198,9 @@ describe("deriveLatestMap", () => {
       { lower: { watts: stream } }
     );
 
-    const result = await deriveLatestMap(activitiesApi, "2026-05-09");
+    const result = await createMap({ activitiesApi }).deriveLatest(
+      "2026-05-09"
+    );
 
     expect(result.map?.watts).toBe(394);
   });
@@ -200,7 +214,9 @@ describe("deriveLatestMap", () => {
       getActivityStreams: async () => ({}) as ActivityStreams,
     };
 
-    const result = await deriveLatestMap(activitiesApi, "2026-05-09");
+    const result = await createMap({ activitiesApi }).deriveLatest(
+      "2026-05-09"
+    );
 
     expect(result.map).toBeNull();
     expect(result.mapWarning).toMatch(/MAP/);

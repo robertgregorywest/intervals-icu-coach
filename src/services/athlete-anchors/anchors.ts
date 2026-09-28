@@ -1,17 +1,16 @@
 import type { IAthleteApi } from "../athlete/index.js";
-import type { IActivitiesApi } from "../activities/index.js";
 import type { IPowerCurvesApi } from "../power-curves/index.js";
 import { extractPeaks } from "../power-curves/index.js";
 import type { IntervalsEvent } from "../../types.js";
 import { isoToday } from "../../clock.js";
-import { deriveLatestMap } from "../map/index.js";
+import type { IMap } from "../map/index.js";
 import { positiveNumber, readAthlete } from "./fields.js";
 import { computeMapZones } from "./zones.js";
 import type { AthleteAnchors, IAthleteAnchors, MapAnchors } from "./types.js";
 
 export interface AthleteAnchorsDeps {
   athleteApi: IAthleteApi;
-  activitiesApi: IActivitiesApi;
+  map: IMap;
   powerCurvesApi: IPowerCurvesApi;
   /** "Today" as YYYY-MM-DD; defaults to the system clock (UTC). */
   today?: () => string;
@@ -102,11 +101,11 @@ export function createAthleteAnchorsFrom(
  * degrades that one cap rather than failing the zones.
  */
 async function deriveMapAnchors(
-  deps: Pick<AthleteAnchorsDeps, "activitiesApi" | "powerCurvesApi">,
+  deps: Pick<AthleteAnchorsDeps, "map" | "powerCurvesApi">,
   today: string
 ): Promise<MapAnchors> {
   const [{ map, mapWarning }, curveRaw] = await Promise.all([
-    deriveLatestMap(deps.activitiesApi, today),
+    deps.map.deriveLatest(today),
     deps.powerCurvesApi
       .getPowerCurve({ range: "90d", type: "Ride" })
       .catch(() => null),

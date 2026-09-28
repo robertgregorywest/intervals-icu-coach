@@ -31,6 +31,7 @@ import { createTrainingLoadForecast } from "./services/training-load-forecast/in
 import type { ITrainingLoadForecast } from "./services/training-load-forecast/index.js";
 import { createCoachingContext } from "./services/coaching-context/index.js";
 import type { ICoachingContext } from "./services/coaching-context/index.js";
+import { createMap } from "./services/map/index.js";
 import { createAthleteAnchors } from "./services/athlete-anchors/index.js";
 import type { IAthleteAnchors } from "./services/athlete-anchors/index.js";
 import { createPowerProfile } from "./services/power-profile/index.js";
@@ -98,7 +99,7 @@ export function createServices(options: ServicesOptions = {}): IServices {
   // coaching context to get them.
   const anchors = createAthleteAnchors({
     athleteApi: athlete,
-    activitiesApi: activities,
+    map: createMap({ activitiesApi: activities }),
     powerCurvesApi: powerCurves,
     today,
   });
@@ -268,7 +269,7 @@ export type {
   FitnessSnapshot,
   WellnessTrendPoint,
 } from "./services/coaching-context/index.js";
-export type { MapInfo, MapDerivation } from "./services/map/index.js";
+export type { IMap, MapInfo, MapDerivation } from "./services/map/index.js";
 export type {
   AthleteAnchors,
   IAthleteAnchors,

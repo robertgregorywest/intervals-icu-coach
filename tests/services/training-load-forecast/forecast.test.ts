@@ -8,6 +8,7 @@ import { createAthleteApi } from "../../../src/services/athlete/index.js";
 import { TrainingLoadForecast } from "../../../src/services/training-load-forecast/forecast.js";
 import type { ForecastOptions } from "../../../src/services/training-load-forecast/index.js";
 import { createAthleteAnchors } from "../../../src/services/athlete-anchors/index.js";
+import { createMap } from "../../../src/services/map/index.js";
 import type { IActivitiesApi } from "../../../src/services/activities/index.js";
 import type { IPowerCurvesApi } from "../../../src/services/power-curves/index.js";
 
@@ -97,7 +98,7 @@ function build(stub: StubOptions = {}) {
     wellnessApi: createWellnessApi(httpClient, config.athleteId),
     anchors: createAthleteAnchors({
       athleteApi: createAthleteApi(httpClient, config.athleteId),
-      activitiesApi: {} as IActivitiesApi,
+      map: createMap({ activitiesApi: {} as IActivitiesApi }),
       powerCurvesApi: {} as IPowerCurvesApi,
     }),
   });

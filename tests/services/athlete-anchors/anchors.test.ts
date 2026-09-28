@@ -4,6 +4,7 @@ import {
   createAthleteAnchors,
 } from "../../../src/services/athlete-anchors/index.js";
 import { createAthleteAnchorsFrom } from "../../../src/services/athlete-anchors/anchors.js";
+import { createMap } from "../../../src/services/map/index.js";
 import type { IAthleteApi } from "../../../src/services/athlete/index.js";
 import type {
   Activity,
@@ -49,7 +50,7 @@ const ATHLETE = {
 function read(record: unknown) {
   return createAthleteAnchors({
     athleteApi: { getAthlete: async () => record as never },
-    activitiesApi: {} as IActivitiesApi,
+    map: createMap({ activitiesApi: {} as IActivitiesApi }),
     powerCurvesApi: {} as IPowerCurvesApi,
   }).getAthleteAnchors();
 }
@@ -153,7 +154,7 @@ function harness() {
   };
   const anchors = createAthleteAnchors({
     athleteApi,
-    activitiesApi,
+    map: createMap({ activitiesApi }),
     powerCurvesApi,
     today: () => "2026-09-10",
   });
