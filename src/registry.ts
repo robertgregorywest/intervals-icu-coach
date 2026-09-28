@@ -42,6 +42,7 @@ import {
   compareTrackSessionsTool,
 } from "./tools/track-sessions.js";
 import { getTrainingWeekSummaryTool } from "./tools/training-week.js";
+import { getMiddleBandTrendTool } from "./tools/middle-band-trend.js";
 import { getCoachingContextTool } from "./tools/coaching-context.js";
 import { forecastTrainingLoadTool } from "./tools/training-load-forecast.js";
 
@@ -87,6 +88,7 @@ export const TOOLS: ToolDef[] = [
   getTrackSessionTool,
   compareTrackSessionsTool,
   getTrainingWeekSummaryTool,
+  getMiddleBandTrendTool,
   getCoachingContextTool,
   forecastTrainingLoadTool,
 ];

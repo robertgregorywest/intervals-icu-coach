@@ -54,14 +54,14 @@ function makeServices(): IServices {
 }
 
 describe("CLI describe command", () => {
-  it("emits 34 tools and no instructions when called with no names", async () => {
+  it("emits 35 tools and no instructions when called with no names", async () => {
     const io = makeIO();
     await runCli(["describe"], () => makeServices(), io);
 
     expect(io.exitCode).toBeNull();
     expect(io.outLines).toHaveLength(1);
     const doc = JSON.parse(io.outLines[0]);
-    expect(doc.tools).toHaveLength(34);
+    expect(doc.tools).toHaveLength(35);
     expect(doc.instructions).toBeUndefined();
   });
 

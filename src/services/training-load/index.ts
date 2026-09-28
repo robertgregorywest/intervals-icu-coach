@@ -1,6 +1,13 @@
 export { createTrainingLoad } from "./training-load.js";
 export type { ITrainingLoad, TrainingLoadDeps } from "./types.js";
 export { MAX_FORECAST_DAYS } from "./forecast/forecast.js";
+export { MAX_TREND_WEEKS } from "./trend/trend.js";
+export type {
+  MiddleBandFigures,
+  MiddleBandTrendOptions,
+  MiddleBandTrendResult,
+  MiddleBandTrendWeek,
+} from "./trend/types.js";
 export type {
   ForecastBasis,
   ForecastOptions,

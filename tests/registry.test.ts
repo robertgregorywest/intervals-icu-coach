@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { TOOLS, READ_ONLY, MUTATING, UPSERT } from "../src/registry.js";
 
 describe("TOOLS registry", () => {
-  it("has 34 tools", () => {
-    expect(TOOLS).toHaveLength(34);
+  it("has 35 tools", () => {
+    expect(TOOLS).toHaveLength(35);
   });
 
   it("every tool has required fields", () => {

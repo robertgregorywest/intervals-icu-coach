@@ -5,6 +5,10 @@ import type { IAthleteAnchors } from "../athlete-anchors/index.js";
 import type { IPrescription } from "../prescription/index.js";
 import type { ForecastOptions, ForecastResult } from "./forecast/types.js";
 import type { TrainingWeekSummary } from "./week/types.js";
+import type {
+  MiddleBandTrendOptions,
+  MiddleBandTrendResult,
+} from "./trend/types.js";
 
 export interface TrainingLoadDeps {
   activitiesApi: IActivitiesApi;
@@ -31,4 +35,12 @@ export interface ITrainingLoad {
    * Throws for a window longer than `MAX_FORECAST_DAYS` or running backwards.
    */
   forecast(options: ForecastOptions): Promise<ForecastResult>;
+  /**
+   * Delivered middle-band time per Monday-to-Sunday week across a range,
+   * measured exactly as `summarizeWeek` measures one week. Throws for a range
+   * of more than `MAX_TREND_WEEKS` weeks once snapped, or one running backwards.
+   */
+  getMiddleBandTrend(
+    options: MiddleBandTrendOptions
+  ): Promise<MiddleBandTrendResult>;
 }

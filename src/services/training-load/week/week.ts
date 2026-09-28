@@ -6,9 +6,9 @@ import type { IntervalsEvent } from "../../../types.js";
 import {
   MIDDLE_BAND_HIGH_PCT_FTP,
   MIDDLE_BAND_LOW_PCT_FTP,
-  bucketDelivered,
-  middleBandBounds,
-} from "../../execution-review/index.js";
+  measureRides,
+  rollUpBand,
+} from "../middle-band.js";
 import type {
   ActivitySummary,
   EventSummary,
@@ -18,6 +18,7 @@ import type {
   TrainingWeekSummary,
   WeekMiddleBand,
 } from "./types.js";
+import type { RideBand } from "../middle-band.js";
 
 export class TrainingWeek {
   constructor(private deps: TrainingWeekDeps) {}
@@ -54,87 +55,28 @@ export class TrainingWeek {
     };
   }
 
-  /** One stream fetch per power-recorded activity, each against its own FTP. */
+  /** The week's middle band, from the one measurement the trend shares. */
   private async measureMiddleBand(activities: Activity[]): Promise<{
     perActivity: RideBand[];
     middleBand: WeekMiddleBand | null;
   }> {
-    const anchors = this.deps.anchors?.snapshot();
-    const perActivity = await Promise.all(
-      activities.map(async (a): Promise<RideBand> => {
-        if (!numericField(a, "icu_average_watts")) return { ...NO_BAND };
-        const ftp = (await anchors?.planFtp(null, a)) ?? null;
-        if (!ftp) return { ...NO_BAND, noFtp: true };
-        const streams = await this.deps.activitiesApi.getActivityStreams(a.id, [
-          "watts",
-        ]);
-        if (!streams.watts?.length) return { ...NO_BAND };
-        const bounds = middleBandBounds(ftp);
-        const bucketed = bucketDelivered(streams.watts, [], bounds);
-        return {
-          seconds: bucketed.middleBandSeconds,
-          powerSeconds: bucketed.totalSeconds,
-          ftp,
-          lowW: bounds.lowW,
-          highW: bounds.highW,
-          noFtp: false,
-        };
-      })
+    const perActivity = await measureRides(
+      activities,
+      this.deps.activitiesApi,
+      this.deps.anchors?.snapshot()
     );
-
-    const measured = perActivity.filter((r) => r.ftp !== null);
-    const excludedNoFtp = perActivity.filter((r) => r.noFtp).length;
-    if (!measured.length) return { perActivity, middleBand: null };
-
-    const bandSeconds = sum(measured.map((r) => r.seconds ?? 0));
-    const powerSeconds = sum(measured.map((r) => r.powerSeconds));
-    const ftps = measured.map((r) => r.ftp as number);
-    const ftpRange = { min: Math.min(...ftps), max: Math.max(...ftps) };
+    const rolled = rollUpBand(perActivity, "week");
+    if (!rolled) return { perActivity, middleBand: null };
+    const { rides: _rides, ...band } = rolled;
     return {
       perActivity,
       middleBand: {
         lowPctFtp: MIDDLE_BAND_LOW_PCT_FTP,
         highPctFtp: MIDDLE_BAND_HIGH_PCT_FTP,
-        ftpRange,
-        ...(ftpRange.min !== ftpRange.max
-          ? {
-              note:
-                `The week spans an FTP change (${ftpRange.min}-${ftpRange.max} W); ` +
-                "each ride was measured against its own FTP.",
-            }
-          : {}),
-        excludedNoFtp,
-        seconds: bandSeconds,
-        hours: round1(bandSeconds / 3600),
-        fractionOfPowerTime: powerSeconds
-          ? Math.round((bandSeconds / powerSeconds) * 1000) / 1000
-          : null,
+        ...band,
       },
     };
   }
-}
-
-interface RideBand {
-  seconds: number | null;
-  powerSeconds: number;
-  ftp: number | null;
-  lowW: number | null;
-  highW: number | null;
-  /** Recorded power but no FTP from any source. */
-  noFtp: boolean;
-}
-
-const NO_BAND: RideBand = {
-  seconds: null,
-  powerSeconds: 0,
-  ftp: null,
-  lowW: null,
-  highW: null,
-  noFtp: false,
-};
-
-function sum(values: number[]): number {
-  return values.reduce((total, v) => total + v, 0);
 }
 
 function computeTotals(activities: Activity[]) {

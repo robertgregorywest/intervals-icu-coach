@@ -118,6 +118,9 @@
       "name": "get_training_week_summary"
     },
     {
+      "name": "get_middle_band_trend"
+    },
+    {
       "name": "get_coaching_context"
     },
     {
