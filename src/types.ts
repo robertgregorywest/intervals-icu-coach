@@ -8,18 +8,22 @@ export type EventCategory =
   | "SICK"
   | "INJURED";
 
-export type SportType =
-  | "Ride"
-  | "Run"
-  | "Swim"
-  | "VirtualRide"
-  | "MountainBikeRide"
-  | "GravelRide"
-  | "TrailRun"
-  | "WeightTraining"
-  | "Yoga"
-  | "Hike"
-  | "OpenWaterSwim";
+/** Every sport a workout or proposed session may carry — the schemas' enum. */
+export const SPORT_TYPES = [
+  "Ride",
+  "Run",
+  "Swim",
+  "VirtualRide",
+  "MountainBikeRide",
+  "GravelRide",
+  "TrailRun",
+  "WeightTraining",
+  "Yoga",
+  "Hike",
+  "OpenWaterSwim",
+] as const;
+
+export type SportType = (typeof SPORT_TYPES)[number];
 
 /**
  * A power target on a planned step. Intervals.icu emits either a point value

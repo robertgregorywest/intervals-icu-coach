@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SPORT_TYPES } from "../types.js";
 import { defineTool, MUTATING, READ_ONLY } from "./define.js";
 import {
   applyLimit,
@@ -19,19 +20,7 @@ const eventCategoryEnum = z.enum([
   "INJURED",
 ]);
 
-const sportTypeEnum = z.enum([
-  "Ride",
-  "Run",
-  "Swim",
-  "VirtualRide",
-  "MountainBikeRide",
-  "GravelRide",
-  "TrailRun",
-  "WeightTraining",
-  "Yoga",
-  "Hike",
-  "OpenWaterSwim",
-]);
+const sportTypeEnum = z.enum(SPORT_TYPES);
 
 const getEventsSchema = z.object({
   oldest: dateString.describe("Start date in YYYY-MM-DD format"),

@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   buildPowerStream,
   deriveLoad,
-} from "../../../src/services/training-load-forecast/load.js";
+} from "../../../src/services/training-load/forecast/load.js";
 import {
   plannedStep as step,
   readPlannedSteps,

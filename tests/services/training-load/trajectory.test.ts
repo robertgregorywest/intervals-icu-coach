@@ -9,7 +9,7 @@ import {
   form,
   project,
   shiftDate,
-} from "../../../src/services/training-load-forecast/trajectory.js";
+} from "../../../src/services/training-load/forecast/trajectory.js";
 
 const WELLNESS = JSON.parse(
   readFileSync(

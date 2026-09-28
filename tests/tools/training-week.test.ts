@@ -18,8 +18,8 @@ describe("getTrainingWeekSummary tool handler", () => {
       events: [],
     };
     const services = {
-      trainingWeek: {
-        getTrainingWeekSummary: vi.fn().mockResolvedValue(summary),
+      trainingLoad: {
+        summarizeWeek: vi.fn().mockResolvedValue(summary),
       },
     } as unknown as IServices;
 
@@ -28,15 +28,15 @@ describe("getTrainingWeekSummary tool handler", () => {
     });
 
     expect(result).toBe(summary);
-    expect(services.trainingWeek.getTrainingWeekSummary).toHaveBeenCalledWith(
+    expect(services.trainingLoad.summarizeWeek).toHaveBeenCalledWith(
       "2026-04-27"
     );
   });
 
   it("passes undefined through when weekStart is omitted", async () => {
     const services = {
-      trainingWeek: {
-        getTrainingWeekSummary: vi.fn().mockResolvedValue({
+      trainingLoad: {
+        summarizeWeek: vi.fn().mockResolvedValue({
           week: { start: "2026-04-27", end: "2026-05-03" },
           totals: {
             activityCount: 0,
@@ -54,8 +54,6 @@ describe("getTrainingWeekSummary tool handler", () => {
 
     await getTrainingWeekSummaryTool.handler(services, {});
 
-    expect(services.trainingWeek.getTrainingWeekSummary).toHaveBeenCalledWith(
-      undefined
-    );
+    expect(services.trainingLoad.summarizeWeek).toHaveBeenCalledWith(undefined);
   });
 });

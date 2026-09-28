@@ -6,8 +6,11 @@ import { HttpClient } from "../../../src/client.js";
 import { createEventsApi } from "../../../src/services/events/index.js";
 import { createWellnessApi } from "../../../src/services/wellness/index.js";
 import { createAthleteApi } from "../../../src/services/athlete/index.js";
-import { TrainingLoadForecast } from "../../../src/services/training-load-forecast/forecast.js";
-import type { ForecastOptions } from "../../../src/services/training-load-forecast/index.js";
+import {
+  MAX_FORECAST_DAYS,
+  createTrainingLoad,
+} from "../../../src/services/training-load/index.js";
+import type { ForecastOptions } from "../../../src/services/training-load/index.js";
 import { createAthleteAnchors } from "../../../src/services/athlete-anchors/index.js";
 import { createMap } from "../../../src/services/map/index.js";
 import type { IActivitiesApi } from "../../../src/services/activities/index.js";
@@ -95,7 +98,8 @@ function build(stub: StubOptions = {}) {
   });
 
   const httpClient = new HttpClient(config, fetchFn as never);
-  const service = new TrainingLoadForecast({
+  const service = createTrainingLoad({
+    activitiesApi: {} as IActivitiesApi,
     eventsApi: createEventsApi(httpClient, config.athleteId),
     wellnessApi: createWellnessApi(httpClient, config.athleteId),
     anchors: createAthleteAnchors({
@@ -111,7 +115,7 @@ function build(stub: StubOptions = {}) {
 function run(options: Partial<ForecastOptions> = {}, stub: StubOptions = {}) {
   const { service, fetchFn } = build(stub);
   return service
-    .forecastTrainingLoad({ oldest: OLDEST, newest: NEWEST, ...options })
+    .forecast({ oldest: OLDEST, newest: NEWEST, ...options })
     .then((result) => ({ result, fetchFn }));
 }
 
@@ -432,17 +436,41 @@ describe("forecast — refusals and read-only behaviour", () => {
   it("refuses a backwards window rather than returning an empty one", async () => {
     const { service } = build();
     await expect(
-      service.forecastTrainingLoad({
+      service.forecast({
         oldest: "2026-08-16",
         newest: "2026-08-10",
       })
     ).rejects.toThrow(/must be on or after/);
   });
 
+  it("accepts a window exactly at the cap", async () => {
+    const newest = new Date(`${OLDEST}T00:00:00Z`);
+    newest.setUTCDate(newest.getUTCDate() + MAX_FORECAST_DAYS - 1);
+    const { result } = await run({
+      newest: newest.toISOString().slice(0, 10),
+    });
+    expect(result.days).toHaveLength(MAX_FORECAST_DAYS);
+  });
+
+  it("refuses a window past the cap rather than truncating it", async () => {
+    const { service, fetchFn } = build();
+    const newest = new Date(`${OLDEST}T00:00:00Z`);
+    newest.setUTCDate(newest.getUTCDate() + MAX_FORECAST_DAYS);
+    await expect(
+      service.forecast({
+        oldest: OLDEST,
+        newest: newest.toISOString().slice(0, 10),
+      })
+    ).rejects.toThrow(
+      new RegExp(`too long: ${MAX_FORECAST_DAYS + 1} days.*model compounds`)
+    );
+    expect(fetchFn).not.toHaveBeenCalled();
+  });
+
   it("refuses rather than guessing when there is no seed to start from", async () => {
     const { service } = build({ wellness: [] });
     await expect(
-      service.forecastTrainingLoad({ oldest: OLDEST, newest: NEWEST })
+      service.forecast({ oldest: OLDEST, newest: NEWEST })
     ).rejects.toThrow(/wellness record/i);
   });
 
@@ -451,7 +479,7 @@ describe("forecast — refusals and read-only behaviour", () => {
       sportSettings: [{ types: ["Ride"], ftp: null }],
     });
     await expect(
-      service.forecastTrainingLoad({ oldest: OLDEST, newest: NEWEST })
+      service.forecast({ oldest: OLDEST, newest: NEWEST })
     ).rejects.toThrow(/No FTP/i);
   });
 });

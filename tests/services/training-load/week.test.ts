@@ -4,10 +4,10 @@ import {
   bucketDelivered,
   middleBandBounds,
 } from "../../../src/services/execution-review/index.js";
-import { createTrainingWeek } from "../../../src/services/training-week/index.js";
-import type { TrainingWeekDeps } from "../../../src/services/training-week/index.js";
+import { createTrainingLoad } from "../../../src/services/training-load/index.js";
+import type { TrainingLoadDeps } from "../../../src/services/training-load/index.js";
 
-function createDeps(): TrainingWeekDeps {
+function createDeps(): TrainingLoadDeps {
   return {
     activitiesApi: {
       getActivities: vi.fn().mockResolvedValue([
@@ -52,14 +52,14 @@ function createDeps(): TrainingWeekDeps {
         },
       ]),
     },
-  } as unknown as TrainingWeekDeps;
+  } as unknown as TrainingLoadDeps;
 }
 
-describe("TrainingWeek.getTrainingWeekSummary", () => {
+describe("TrainingLoad.summarizeWeek", () => {
   it("composes activities + wellness + events into a summary", async () => {
     const deps = createDeps();
-    const trainingWeek = createTrainingWeek(deps);
-    const result = await trainingWeek.getTrainingWeekSummary("2026-04-27");
+    const trainingWeek = createTrainingLoad(deps);
+    const result = await trainingWeek.summarizeWeek("2026-04-27");
 
     expect(result.week).toEqual({ start: "2026-04-27", end: "2026-05-03" });
     expect(result.totals.activityCount).toBe(2);
@@ -89,8 +89,8 @@ describe("TrainingWeek.getTrainingWeekSummary", () => {
 
   it("defaults weekStart to current Monday when omitted", async () => {
     const deps = createDeps();
-    const trainingWeek = createTrainingWeek(deps);
-    await trainingWeek.getTrainingWeekSummary();
+    const trainingWeek = createTrainingLoad(deps);
+    await trainingWeek.summarizeWeek();
 
     const [oldest, newest] = (
       deps.activitiesApi.getActivities as ReturnType<typeof vi.fn>
@@ -110,7 +110,7 @@ describe("TrainingWeek.getTrainingWeekSummary", () => {
     "starts the week on the Monday of a pinned today (%s, %s)",
     async (today, _day, monday) => {
       const deps = { ...createDeps(), today: () => today };
-      const result = await createTrainingWeek(deps).getTrainingWeekSummary();
+      const result = await createTrainingLoad(deps).summarizeWeek();
 
       expect(result.week.start).toBe(monday);
       expect(deps.activitiesApi.getActivities).toHaveBeenCalledWith(
@@ -122,8 +122,7 @@ describe("TrainingWeek.getTrainingWeekSummary", () => {
 
   it("prefers an explicit weekStart over the pinned today", async () => {
     const deps = { ...createDeps(), today: () => "2026-09-13" };
-    const result =
-      await createTrainingWeek(deps).getTrainingWeekSummary("2026-04-27");
+    const result = await createTrainingLoad(deps).summarizeWeek("2026-04-27");
     expect(result.week.start).toBe("2026-04-27");
   });
 
@@ -132,9 +131,9 @@ describe("TrainingWeek.getTrainingWeekSummary", () => {
     (
       deps.wellnessApi.getWellness as ReturnType<typeof vi.fn>
     ).mockResolvedValueOnce([]);
-    const trainingWeek = createTrainingWeek(deps);
+    const trainingWeek = createTrainingLoad(deps);
 
-    const result = await trainingWeek.getTrainingWeekSummary("2026-04-27");
+    const result = await trainingWeek.summarizeWeek("2026-04-27");
 
     expect(result.fitness).toBeNull();
   });
@@ -151,8 +150,7 @@ describe("TrainingWeek.getTrainingWeekSummary", () => {
         .fn()
         .mockResolvedValue({ watts });
 
-      const result =
-        await createTrainingWeek(deps).getTrainingWeekSummary("2026-04-27");
+      const result = await createTrainingLoad(deps).summarizeWeek("2026-04-27");
 
       expect(result.middleBand).toMatchObject({
         lowPctFtp: 76,
@@ -181,8 +179,7 @@ describe("TrainingWeek.getTrainingWeekSummary", () => {
       });
       deps.activitiesApi.getActivityStreams = vi.fn();
 
-      const result =
-        await createTrainingWeek(deps).getTrainingWeekSummary("2026-04-27");
+      const result = await createTrainingLoad(deps).summarizeWeek("2026-04-27");
 
       expect(result.middleBand).toBeNull();
       expect(deps.activitiesApi.getActivityStreams).not.toHaveBeenCalled();
@@ -194,7 +191,7 @@ describe("TrainingWeek.getTrainingWeekSummary", () => {
       ).toBe(true);
     });
 
-    function twoRides(deps: TrainingWeekDeps, ftps: [unknown, unknown]) {
+    function twoRides(deps: TrainingLoadDeps, ftps: [unknown, unknown]) {
       const ride = (id: string, icu_ftp: unknown) => ({
         id,
         start_date_local: "2026-04-27T07:00:00",
@@ -215,8 +212,7 @@ describe("TrainingWeek.getTrainingWeekSummary", () => {
       deps.anchors = pinnedAnchors({ athlete: async () => ({ ftp: 250 }) });
       twoRides(deps, [200, 250]);
 
-      const result =
-        await createTrainingWeek(deps).getTrainingWeekSummary("2026-04-27");
+      const result = await createTrainingLoad(deps).summarizeWeek("2026-04-27");
 
       const [a, b] = result.completedActivities;
       // 152..212 W at FTP 200 keeps 152, 180, 212; 190..265 W at 250 keeps 190+.
@@ -237,8 +233,7 @@ describe("TrainingWeek.getTrainingWeekSummary", () => {
       deps.anchors = pinnedAnchors({ athlete: async () => ({ ftp: 250 }) });
       twoRides(deps, [200, 250]);
 
-      const result =
-        await createTrainingWeek(deps).getTrainingWeekSummary("2026-04-27");
+      const result = await createTrainingLoad(deps).summarizeWeek("2026-04-27");
 
       const lens = (ftp: number) =>
         bucketDelivered(watts, [], middleBandBounds(ftp)).middleBandSeconds;
@@ -252,8 +247,7 @@ describe("TrainingWeek.getTrainingWeekSummary", () => {
       deps.anchors = pinnedAnchors({ athlete: async () => ({ ftp: null }) });
       twoRides(deps, [200, undefined]);
 
-      const result =
-        await createTrainingWeek(deps).getTrainingWeekSummary("2026-04-27");
+      const result = await createTrainingLoad(deps).summarizeWeek("2026-04-27");
 
       expect(result.middleBand).toMatchObject({
         ftpRange: { min: 200, max: 200 },

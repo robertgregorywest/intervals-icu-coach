@@ -109,5 +109,5 @@ export const getTrainingWeekSummaryTool = defineTool({
   annotations: READ_ONLY,
   outputSchema: getTrainingWeekSummaryOutputSchema,
   handler: (services, args) =>
-    services.trainingWeek.getTrainingWeekSummary(args.weekStart),
+    services.trainingLoad.summarizeWeek(args.weekStart),
 });

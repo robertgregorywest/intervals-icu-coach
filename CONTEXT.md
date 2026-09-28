@@ -26,7 +26,7 @@ The Adapter at `src/cli/` that projects Tools as Bash subcommands. The agent's z
 A single Tool as exposed by one Adapter. An **MCP tool** and a **CLI command** are two Projections of the same Tool.
 
 **Services**:
-The composition root (`src/index.ts`): `createServices(options)` builds every service once, over one `HttpClient`, and returns them as `IServices` — the one object every Tool handler receives, as `services`. It wires; it forwards nothing and holds no logic. Most of what hangs off it is domain logic computed here over Intervals.icu data (**Athlete anchors**, the **Prescription module**, the **Execution review module**, the **Forecast**), beside five thin API wrappers (events, activities, athlete, wellness, power curves).
+The composition root (`src/index.ts`): `createServices(options)` builds every service once, over one `HttpClient`, and returns them as `IServices` — the one object every Tool handler receives, as `services`. It wires; it forwards nothing and holds no logic. Most of what hangs off it is domain logic computed here over Intervals.icu data (**Athlete anchors**, the **Prescription module**, the **Execution review module**, the **Training load module**), beside five thin API wrappers (events, activities, athlete, wellness, power curves).
 _Avoid_: "client" or `IntervalsClient` — the only clients are `HttpClient` and the API wrappers over it; calling the whole set a client reads computed results as though Intervals.icu returned them.
 
 **MAP zones**:
@@ -210,6 +210,10 @@ _Avoid_: momentary CTL/TSB and in-flight niggles (that's the coaching log); time
 **Coaching-context stack**:
 The four ordered tiers the coaching skills read at session-start, most-durable first: **Coaching philosophy** → **Steering** → **Season** → coaching log. Later tiers override earlier ones on conflict; facts promote _up_ the stack as they prove durable (log→season, steering→philosophy).
 _Avoid_: confusing this with `get_coaching_context`'s output — that is live **athlete state** (FTP/MAP/zones/CTL), a separate input, not a tier in the stack.
+
+**Training load module**:
+`src/services/training-load/` — the one service behind `get_training_week_summary` and `forecast_training_load`, exposed as `ITrainingLoad`: `summarizeWeek` (what a Monday-to-Sunday week delivered, with its **Middle-band dose**) and `forecast` (the **Forecast** of proposed sessions over already-planned work). Both rest on the same knowledge — Monday-based weeks, CTL/ATL read from wellness, FTP from the **Athlete anchors** — so they live together; the week summary (`week/`) and the forecast model (`forecast/`) are internal. The forecast window cap (`MAX_FORECAST_DAYS`) is enforced here and nowhere else: the model compounds, so a longer projection reflects the assumed sessions more than the athlete.
+_Avoid_: checking the forecast window in a Tool; building a week summary or a trajectory outside the module.
 
 **Forecast**:
 The fitness/fatigue/form trajectory a set of _proposed_ sessions would produce, carried forward from the athlete's delivered state under the platform's own load model — computed without writing anything to the calendar. Previews the numbers Intervals.icu will show once the sessions are written; it is not a second opinion on them.

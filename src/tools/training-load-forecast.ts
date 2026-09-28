@@ -1,12 +1,8 @@
 import { z } from "zod";
-import { dateString, spanDays } from "./common.js";
+import { dateString } from "./common.js";
 import { defineTool, READ_ONLY } from "./define.js";
-
-/**
- * A forecast window is a block, not a season. Long enough for a build block
- * and its taper; short enough that the day-by-day series stays readable.
- */
-export const MAX_FORECAST_DAYS = 120;
+import { SPORT_TYPES } from "../types.js";
+import { MAX_FORECAST_DAYS } from "../services/training-load/index.js";
 
 const proposedSessionSchema = z.object({
   date: dateString.describe("Date of the session, YYYY-MM-DD."),
@@ -36,7 +32,7 @@ const proposedSessionSchema = z.object({
       "Duration for a load-only session, so weekly hours stay meaningful."
     ),
   type: z
-    .string()
+    .enum(SPORT_TYPES)
     .optional()
     .describe(
       "Sport, default Ride. WeightTraining contributes no load, matching " +
@@ -45,8 +41,16 @@ const proposedSessionSchema = z.object({
 });
 
 const forecastTrainingLoadSchema = z.object({
-  oldest: dateString.describe("First day of the forecast window, YYYY-MM-DD."),
-  newest: dateString.describe("Last day of the forecast window, YYYY-MM-DD."),
+  oldest: dateString.describe(
+    "First day of the forecast window, YYYY-MM-DD. The window, oldest to " +
+      `newest inclusive, spans at most ${MAX_FORECAST_DAYS} days.`
+  ),
+  newest: dateString.describe(
+    "Last day of the forecast window, YYYY-MM-DD, on or after oldest and at " +
+      `most ${MAX_FORECAST_DAYS} days in from it (inclusive). Forecast a block ` +
+      "at a time — the model compounds, so a longer projection reflects the " +
+      "assumed sessions more than the athlete."
+  ),
   sessions: z
     .array(proposedSessionSchema)
     .optional()
@@ -178,15 +182,10 @@ export const forecastTrainingLoadTool = defineTool({
   annotations: READ_ONLY,
   outputSchema: forecastTrainingLoadOutputSchema,
   async handler(services, args) {
-    assertForecastWindow(args.oldest, args.newest);
-
-    const result = await services.trainingLoadForecast.forecastTrainingLoad({
+    const result = await services.trainingLoad.forecast({
       oldest: args.oldest,
       newest: args.newest,
-      sessions: args.sessions?.map((s) => ({
-        ...s,
-        type: s.type as never,
-      })),
+      sessions: args.sessions,
       seed: args.seed,
       ftp: args.ftp,
     });
@@ -228,17 +227,6 @@ export const forecastTrainingLoadTool = defineTool({
     };
   },
 });
-
-export function assertForecastWindow(oldest: string, newest: string): void {
-  const days = spanDays(oldest, newest) + 1;
-  if (days > MAX_FORECAST_DAYS) {
-    throw new Error(
-      `Forecast window too long: ${Math.round(days)} days (max ${MAX_FORECAST_DAYS}). ` +
-        "Forecast a block at a time — the model compounds, and a projection " +
-        "four months out says more about the assumed sessions than about the athlete."
-    );
-  }
-}
 
 function round(value: number, places: number): number {
   const factor = 10 ** places;

@@ -1,26 +1,25 @@
-import { isoToday } from "../../clock.js";
-import { mondayOf, shiftDate } from "../../dates.js";
-import type { Activity } from "../activities/index.js";
-import type { WellnessRecord } from "../wellness/index.js";
-import type { IntervalsEvent } from "../../types.js";
+import { isoToday } from "../../../clock.js";
+import { mondayOf, shiftDate } from "../../../dates.js";
+import type { Activity } from "../../activities/index.js";
+import type { WellnessRecord } from "../../wellness/index.js";
+import type { IntervalsEvent } from "../../../types.js";
 import {
   MIDDLE_BAND_HIGH_PCT_FTP,
   MIDDLE_BAND_LOW_PCT_FTP,
   bucketDelivered,
   middleBandBounds,
-} from "../execution-review/index.js";
+} from "../../execution-review/index.js";
 import type {
   ActivitySummary,
   EventSummary,
   FitnessDelta,
-  ITrainingWeek,
   SportTotals,
   TrainingWeekDeps,
   TrainingWeekSummary,
   WeekMiddleBand,
 } from "./types.js";
 
-export class TrainingWeek implements ITrainingWeek {
+export class TrainingWeek {
   constructor(private deps: TrainingWeekDeps) {}
 
   async getTrainingWeekSummary(
@@ -136,10 +135,6 @@ const NO_BAND: RideBand = {
 
 function sum(values: number[]): number {
   return values.reduce((total, v) => total + v, 0);
-}
-
-export function createTrainingWeek(deps: TrainingWeekDeps): TrainingWeek {
-  return new TrainingWeek(deps);
 }
 
 function computeTotals(activities: Activity[]) {

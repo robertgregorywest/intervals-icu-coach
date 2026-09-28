@@ -1,7 +1,7 @@
-import type { IActivitiesApi } from "../activities/index.js";
-import type { IEventsApi } from "../events/index.js";
-import type { IWellnessApi } from "../wellness/index.js";
-import type { IAthleteAnchors } from "../athlete-anchors/index.js";
+import type { IActivitiesApi } from "../../activities/index.js";
+import type { IEventsApi } from "../../events/index.js";
+import type { IWellnessApi } from "../../wellness/index.js";
+import type { IAthleteAnchors } from "../../athlete-anchors/index.js";
 
 export interface TrainingWeekDeps {
   activitiesApi: IActivitiesApi;
@@ -91,8 +91,4 @@ export interface TrainingWeekSummary {
   fitness: FitnessDelta | null;
   completedActivities: ActivitySummary[];
   events: EventSummary[];
-}
-
-export interface ITrainingWeek {
-  getTrainingWeekSummary(weekStart?: string): Promise<TrainingWeekSummary>;
 }

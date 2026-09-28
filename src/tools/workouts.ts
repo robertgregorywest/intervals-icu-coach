@@ -1,22 +1,11 @@
 import { z } from "zod";
+import { SPORT_TYPES } from "../types.js";
 import { defineTool, UPSERT } from "./define.js";
 import type { ScheduledWorkouts } from "../index.js";
 import { dateString } from "./common.js";
 import { WORK_WORDS } from "../work-words.js";
 
-const sportTypeEnum = z.enum([
-  "Ride",
-  "Run",
-  "Swim",
-  "VirtualRide",
-  "MountainBikeRide",
-  "GravelRide",
-  "TrailRun",
-  "WeightTraining",
-  "Yoga",
-  "Hike",
-  "OpenWaterSwim",
-]);
+const sportTypeEnum = z.enum(SPORT_TYPES);
 
 export const workoutStepSchema = z.object({
   label: z

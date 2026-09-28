@@ -269,8 +269,7 @@ describe("createServices with eval seams", () => {
 
   it("starts the default training week on the pinned day's Monday", async () => {
     const fetchFn = vi.fn().mockImplementation(async () => okJson([]));
-    const summary =
-      await services(fetchFn).trainingWeek.getTrainingWeekSummary();
+    const summary = await services(fetchFn).trainingLoad.summarizeWeek();
     // 2026-09-06 is a Sunday.
     expect(summary.week).toEqual({ start: "2026-08-31", end: "2026-09-06" });
   });

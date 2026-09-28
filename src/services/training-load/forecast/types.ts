@@ -1,4 +1,4 @@
-import type { IntervalsEvent, SportType } from "../../types.js";
+import type { IntervalsEvent, SportType } from "../../../types.js";
 import type { StreamGap } from "./load.js";
 import type { TrajectoryDay } from "./trajectory.js";
 
@@ -106,10 +106,6 @@ export interface ForecastOptions {
   seed?: { ctl: number; atl: number };
   /** Threshold to resolve targets against, instead of the athlete's own. */
   ftp?: number;
-}
-
-export interface ITrainingLoadForecast {
-  forecastTrainingLoad(options: ForecastOptions): Promise<ForecastResult>;
 }
 
 export type { StreamGap, TrajectoryDay, IntervalsEvent };

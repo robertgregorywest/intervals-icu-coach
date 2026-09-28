@@ -1,5 +1,5 @@
-import type { PlannedStep } from "../prescription/index.js";
-import { normalizedPower } from "../analysis/index.js";
+import type { PlannedStep } from "../../prescription/index.js";
+import { normalizedPower } from "../../analysis/index.js";
 
 /**
  * The synthetic power stream a prescription implies, and the figures

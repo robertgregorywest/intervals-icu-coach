@@ -1,9 +1,9 @@
-import type { IEventsApi } from "../events/index.js";
-import type { IWellnessApi } from "../wellness/index.js";
-import type { SportSetting } from "../athlete/index.js";
-import type { IPrescription } from "../prescription/index.js";
-import type { IAthleteAnchors } from "../athlete-anchors/index.js";
-import type { IntervalsEvent, WorkoutDoc } from "../../types.js";
+import type { IEventsApi } from "../../events/index.js";
+import type { IWellnessApi } from "../../wellness/index.js";
+import type { SportSetting } from "../../athlete/index.js";
+import type { IPrescription } from "../../prescription/index.js";
+import type { IAthleteAnchors } from "../../athlete-anchors/index.js";
+import type { IntervalsEvent, WorkoutDoc } from "../../../types.js";
 import { deriveLoad } from "./load.js";
 import {
   DEFAULT_ATL_DAYS,
@@ -13,14 +13,13 @@ import {
   project,
   shiftDate,
 } from "./trajectory.js";
-import { mondayOf } from "../../dates.js";
+import { mondayOf } from "../../../dates.js";
 import type {
   ForecastBasis,
   ForecastOptions,
   ForecastResult,
   ForecastSession,
   ForecastWeek,
-  ITrainingLoadForecast,
   ProposedSession,
 } from "./types.js";
 
@@ -45,7 +44,15 @@ export interface ForecastDeps {
   prescription: IPrescription;
 }
 
-export class TrainingLoadForecast implements ITrainingLoadForecast {
+/**
+ * A forecast window is a block, not a season. Long enough for a build block
+ * and its taper; short enough that the day-by-day series stays readable — and
+ * the model compounds, so a projection further out reflects the assumed
+ * sessions more than the athlete.
+ */
+export const MAX_FORECAST_DAYS = 120;
+
+export class TrainingLoadForecast {
   private deps: ForecastDeps;
 
   constructor(deps: ForecastDeps) {
@@ -56,11 +63,7 @@ export class TrainingLoadForecast implements ITrainingLoadForecast {
     options: ForecastOptions
   ): Promise<ForecastResult> {
     const { oldest, newest } = options;
-    if (newest < oldest) {
-      throw new Error(
-        `newest (${newest}) must be on or after oldest (${oldest})`
-      );
-    }
+    assertForecastWindow(oldest, newest);
 
     // The seed is the last delivered day before the window; ramp needs a week
     // of fitness behind that again.
@@ -319,10 +322,26 @@ export class TrainingLoadForecast implements ITrainingLoadForecast {
   }
 }
 
-export function createTrainingLoadForecast(
-  deps: ForecastDeps
-): TrainingLoadForecast {
-  return new TrainingLoadForecast(deps);
+/** Refuses a backwards window, and one past the cap rather than truncating it. */
+function assertForecastWindow(oldest: string, newest: string): void {
+  const start = Date.parse(oldest);
+  const end = Date.parse(newest);
+  if (Number.isNaN(start) || Number.isNaN(end)) {
+    throw new Error("Invalid date — must be YYYY-MM-DD");
+  }
+  if (end < start) {
+    throw new Error(
+      `newest (${newest}) must be on or after oldest (${oldest})`
+    );
+  }
+  const days = (end - start) / 86_400_000 + 1;
+  if (days > MAX_FORECAST_DAYS) {
+    throw new Error(
+      `Forecast window too long: ${Math.round(days)} days (max ${MAX_FORECAST_DAYS}). ` +
+        "Forecast a block at a time — the model compounds, and a projection " +
+        "four months out says more about the assumed sessions than about the athlete."
+    );
+  }
 }
 
 /**

@@ -1,11 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
-import {
-  MAX_FORECAST_DAYS,
-  assertForecastWindow,
-  forecastTrainingLoadTool,
-} from "../../src/tools/training-load-forecast.js";
+import { forecastTrainingLoadTool } from "../../src/tools/training-load-forecast.js";
 import type { IServices } from "../../src/index.js";
-import type { ForecastResult } from "../../src/services/training-load-forecast/index.js";
+import type { ForecastResult } from "../../src/services/training-load/index.js";
 
 const RESULT: ForecastResult = {
   oldest: "2026-08-10",
@@ -66,10 +62,10 @@ const forecastTrainingLoadSchema = forecastTrainingLoadTool.schema;
 const forecastTrainingLoadOutputSchema = forecastTrainingLoadTool.outputSchema;
 
 function stubClient() {
-  const forecast = { forecastTrainingLoad: vi.fn(async () => RESULT) };
+  const trainingLoad = { forecast: vi.fn(async () => RESULT) };
   return {
-    trainingLoadForecast: forecast,
-  } as unknown as IServices & { trainingLoadForecast: typeof forecast };
+    trainingLoad,
+  } as unknown as IServices & { trainingLoad: typeof trainingLoad };
 }
 
 describe("forecast_training_load tool", () => {
@@ -82,9 +78,7 @@ describe("forecast_training_load tool", () => {
       seed: { ctl: 50, atl: 40 },
       ftp: 300,
     });
-    expect(
-      services.trainingLoadForecast.forecastTrainingLoad
-    ).toHaveBeenCalledWith({
+    expect(services.trainingLoad.forecast).toHaveBeenCalledWith({
       oldest: "2026-08-10",
       newest: "2026-08-16",
       sessions: [{ date: "2026-08-11", description: "- 60m 200w" }],
@@ -129,34 +123,39 @@ describe("forecast_training_load tool", () => {
   });
 });
 
-describe("forecast_training_load window", () => {
-  it("accepts a window exactly at the cap", () => {
-    const start = new Date("2026-01-01T00:00:00Z");
-    const end = new Date(start);
-    end.setUTCDate(end.getUTCDate() + MAX_FORECAST_DAYS - 1);
-    expect(() =>
-      assertForecastWindow("2026-01-01", end.toISOString().slice(0, 10))
-    ).not.toThrow();
-  });
-
-  it("refuses a window past the cap rather than truncating it", () => {
-    expect(() => assertForecastWindow("2026-01-01", "2026-12-31")).toThrow(
-      /too long/i
-    );
-  });
-
-  it("refuses a backwards window", () => {
-    expect(() => assertForecastWindow("2026-08-16", "2026-08-10")).toThrow(
-      /must be on or after/
-    );
-  });
-
-  it("rejects a malformed date at the schema", () => {
+describe("forecast_training_load schema", () => {
+  it("rejects a malformed date", () => {
     expect(() =>
       forecastTrainingLoadSchema.parse({
         oldest: "10-08-2026",
         newest: "2026-08-16",
       })
     ).toThrow();
+  });
+
+  it("rejects a sport type the platform does not know", () => {
+    expect(() =>
+      forecastTrainingLoadSchema.parse({
+        oldest: "2026-08-10",
+        newest: "2026-08-16",
+        sessions: [{ date: "2026-08-11", load: 80, type: "Cycling" }],
+      })
+    ).toThrow();
+  });
+
+  it("accepts a known sport type", () => {
+    expect(() =>
+      forecastTrainingLoadSchema.parse({
+        oldest: "2026-08-10",
+        newest: "2026-08-16",
+        sessions: [{ date: "2026-08-11", type: "WeightTraining" }],
+      })
+    ).not.toThrow();
+  });
+
+  it("states the window cap in the schema", () => {
+    expect(forecastTrainingLoadSchema.shape.newest.description).toMatch(
+      /at most 120 days/
+    );
   });
 });

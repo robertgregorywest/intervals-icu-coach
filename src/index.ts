@@ -26,10 +26,8 @@ import type { IExecutionReview } from "./services/execution-review/index.js";
 import { createTrack } from "./services/track/index.js";
 import { createFitCodec } from "./services/fit/index.js";
 import type { ITrack } from "./services/track/index.js";
-import { createTrainingWeek } from "./services/training-week/index.js";
-import type { ITrainingWeek } from "./services/training-week/index.js";
-import { createTrainingLoadForecast } from "./services/training-load-forecast/index.js";
-import type { ITrainingLoadForecast } from "./services/training-load-forecast/index.js";
+import { createTrainingLoad } from "./services/training-load/index.js";
+import type { ITrainingLoad } from "./services/training-load/index.js";
 import { createCoachingContext } from "./services/coaching-context/index.js";
 import type { ICoachingContext } from "./services/coaching-context/index.js";
 import { createMap } from "./services/map/index.js";
@@ -60,8 +58,8 @@ export interface IServices {
   readonly executionReview: IExecutionReview;
   /** Track session records, and the alignment of their splits to a ride. */
   readonly track: ITrack;
-  readonly trainingWeek: ITrainingWeek;
-  readonly trainingLoadForecast: ITrainingLoadForecast;
+  /** The delivered week summary and the load forecast, over Monday-based weeks. */
+  readonly trainingLoad: ITrainingLoad;
   readonly coachingContext: ICoachingContext;
   readonly powerProfile: IPowerProfile;
   /** "Today" as YYYY-MM-DD — pinned by the eval harness. */
@@ -129,17 +127,12 @@ export function createServices(options: ServicesOptions = {}): IServices {
   // The records are tracked files, not Intervals.icu; only aligning a
   // record's splits to a ride reaches the activities API.
   const track = createTrack({ activitiesApi: activities, fit });
-  const trainingLoadForecast = createTrainingLoadForecast({
-    eventsApi: events,
-    wellnessApi: wellness,
-    anchors,
-    prescription,
-  });
-  const trainingWeek = createTrainingWeek({
+  const trainingLoad = createTrainingLoad({
     activitiesApi: activities,
     wellnessApi: wellness,
     eventsApi: events,
     anchors,
+    prescription,
     today,
   });
   const coachingContext = createCoachingContext({
@@ -165,8 +158,7 @@ export function createServices(options: ServicesOptions = {}): IServices {
     analysis,
     executionReview,
     track,
-    trainingWeek,
-    trainingLoadForecast,
+    trainingLoad,
     coachingContext,
     powerProfile,
     today,
@@ -265,7 +257,7 @@ export type {
   WriteMode,
 } from "./services/track/index.js";
 export type {
-  ITrainingLoadForecast,
+  ITrainingLoad,
   ForecastOptions,
   ForecastResult,
   ForecastBasis,
@@ -275,7 +267,8 @@ export type {
   LoadSource,
   TrajectoryDay,
   StreamGap,
-} from "./services/training-load-forecast/index.js";
+  TrainingWeekSummary,
+} from "./services/training-load/index.js";
 export type {
   CoachingContext,
   CoachingContextOptions,
@@ -324,5 +317,4 @@ export type {
 export type { IActivityAnalysis } from "./services/analysis/index.js";
 export type { ICoachingContext } from "./services/coaching-context/index.js";
 export type { IPowerProfile } from "./services/power-profile/index.js";
-export type { ITrainingWeek } from "./services/training-week/index.js";
 export type { Tool, ToolDef } from "./tools/define.js";
