@@ -12,19 +12,19 @@ import { describe, it, expect } from "vitest";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { createTrack } from "../../../src/services/track/index.js";
-import type { IActivitiesApi } from "../../../src/services/activities/index.js";
-import { loadTrackSessionRecords } from "../../../src/services/track/records/loader.js";
-import { parseTrackSessionRecord } from "../../../src/services/track/records/record.js";
-import { TrackComparisonError } from "../../../src/services/track/records/compare.js";
-import type { ComparisonSummaryRow } from "../../../src/services/track/records/types.js";
-import { createFitCodec } from "../../../src/services/fit/index.js";
+import { createTrack } from "../../../../src/services/track/index.js";
+import type { IActivitiesApi } from "../../../../src/services/activities/index.js";
+import { loadTrackSessionRecords } from "../../../../src/services/track/records/loader.js";
+import { parseTrackSessionRecord } from "../../../../src/services/track/records/record.js";
+import { TrackComparisonError } from "../../../../src/services/track/records/compare.js";
+import type { ComparisonSummaryRow } from "../../../../src/services/track/records/types.js";
+import { createFitCodec } from "../../../../src/services/fit/index.js";
 
 /** The record operations read files only; nothing here reaches the API. */
 const NO_API = {} as IActivitiesApi;
 
 const FIXTURES = fileURLToPath(
-  new URL("../../fixtures/track-sessions", import.meta.url)
+  new URL("../../../fixtures/track-sessions", import.meta.url)
 );
 
 const service = createTrack({
