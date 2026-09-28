@@ -28,6 +28,10 @@ directly.
 
 ## Session-start moves
 
+Read `docs/agents/icu-cli.md` (from the project root) before your first CLI call — working
+directory, piping, `describe`. You run at its **Read-only** tier: the build is
+`compose-strength-session`'s.
+
 **Reuse, don't repeat.** If you arrived from a `coaching-session` (or already gathered these this
 turn), the `get_coaching_context` snapshot and the personal files are already in context — reuse them,
 don't re-fetch. Re-fetch only what's missing. Invoked cold, gather 1–2 in parallel:

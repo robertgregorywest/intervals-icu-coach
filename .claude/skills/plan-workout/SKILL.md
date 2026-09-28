@@ -18,6 +18,9 @@ whether you arrived from a `coaching-session` or the athlete asked you directly.
 
 ## Session-start moves
 
+Read `docs/agents/icu-cli.md` (from the project root) before your first CLI call — working
+directory, piping, `describe`. You run at its **Read-only** tier: the build is `compose-workout`'s.
+
 **Reuse, don't repeat.** If you arrived from a `coaching-session` (or already pulled them this turn), the `get_coaching_context` snapshot and the personal files (`steering.md`, `season.md`) are already in context — reuse them, don't re-fetch. `list_workout_library` is _not_ usually among them, so run it regardless. Invoked cold, do both calls in parallel:
 
 1. **`get_coaching_context`** — pulls today's snapshot: athlete profile (FTP, LTHR, max HR, weight, HR/pace zones), **MAP** (`map.watts`, with `map.computedFrom` naming the source test) and the **MAP-anchored power zones** derived from it (`mapZones` — REC / L1–L7 / NMP watt bands, the canonical coaching zones), today's CTL/ATL/TSB and ramp rate, and a 7-day wellness trend with subjective metrics (fatigue, soreness, motivation, sleep). Default 7-day window; pass `days` up to 30 when planning a longer block. Don't ask the athlete for FTP, MAP, zones, or current fitness — read them. If `map` is null, follow `mapWarning` — ask the athlete for a current MAP estimate before prescribing %MAP-anchored work.
