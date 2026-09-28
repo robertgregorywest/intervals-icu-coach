@@ -1,4 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { createPrescription } from "../../src/services/prescription/index.js";
 import {
   createWorkoutTool,
@@ -223,6 +225,86 @@ describe("scheduleLibraryWorkout", () => {
         external_id: "mcp-2026-09-20-recovery-spin",
       },
     ]);
+  });
+});
+
+/**
+ * Round trip through Intervals.icu's server-side reparse (#42).
+ *
+ * `tests/fixtures/events/scheduled-library-workout.json` is a real capture: the
+ * library item "Sweet Spot 3×12" scheduled with `schedule_library_workout`, then
+ * re-read with `get_event`. Its `capture` block records the date and event id.
+ * The mocked-fetch test above only sees the POST body; this sees what the
+ * platform kept.
+ *
+ * To refresh (writes to the live calendar, so by hand):
+ *   1. ./bin/icu get_workout_library_item --json '{"id":12}'   # libraryDescription
+ *   2. ./bin/icu schedule_library_workout --json '{"id":12,"date":"<spare future date>"}' --yes
+ *   3. ./bin/icu get_event --json '{"id":<event id>}'          # event
+ *   4. ./bin/icu delete_events --json '{"ids":[{"id":<event id>}]}' --yes
+ *   5. Keep only id, start_date_local, type, category, name, description,
+ *      moving_time, external_id and workout_doc.{steps,duration,distance};
+ *      update `capture`. If a test fails after recapturing, the platform's
+ *      parsing changed.
+ */
+describe("scheduleLibraryWorkout — round trip through Intervals.icu", () => {
+  const { libraryDescription, event } = JSON.parse(
+    readFileSync(
+      fileURLToPath(
+        new URL(
+          "../fixtures/events/scheduled-library-workout.json",
+          import.meta.url
+        )
+      ),
+      "utf8"
+    )
+  );
+
+  it("keeps the description — notes, steps and trailer — verbatim", () => {
+    expect(event.description).toBe(libraryDescription);
+    expect(event.description).toContain("Hold cadence ≥ 85 on the reps.");
+    expect(event.description).toContain("<!-- template: sweet-spot-3x12 -->");
+  });
+
+  it("parses workout_doc.steps to the expected labels, durations and targets", () => {
+    const [warmup, block, cooldown] = event.workout_doc.steps;
+    expect(event.workout_doc.steps).toHaveLength(3);
+    expect(event.workout_doc.duration).toBe(4200);
+    expect(warmup).toMatchObject({
+      text: "Warm-up",
+      duration: 720,
+      power: { start: 155, end: 200, units: "w" },
+    });
+    expect(block.reps).toBe(3);
+    expect(block.steps).toMatchObject([
+      {
+        text: "SST",
+        duration: 720,
+        power: { start: 88, end: 94, units: "%ftp" },
+      },
+      { text: "Recovery", duration: 240, power: { value: 155, units: "w" } },
+    ]);
+    expect(cooldown).toMatchObject({
+      text: "Cooldown",
+      duration: 600,
+      power: { value: 145, units: "w" },
+    });
+  });
+
+  it("reads back through the prescription with every label intact", () => {
+    const prescription = createPrescription({ workoutParser });
+    const read = prescription.read(event.workout_doc, { ftp: 300 });
+    expect(read.steps.map((s) => s.label)).toEqual([
+      "Warm-up",
+      "SST",
+      "Recovery",
+      "SST",
+      "Recovery",
+      "SST",
+      "Recovery",
+      "Cooldown",
+    ]);
+    expect(read.totalSeconds).toBe(4200);
   });
 });
 
