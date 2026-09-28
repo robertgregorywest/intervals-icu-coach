@@ -1,6 +1,6 @@
 {
   "name": "intervals-icu-coach",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "MCP server, CLI and coaching skills for Intervals.icu",
   "type": "module",
   "scripts": {

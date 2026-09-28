@@ -1,6 +1,6 @@
 {
   "manifest_version": "0.4",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "name": "intervals-icu-coach",
   "display_name": "Intervals.icu",
   "description": "Access your Intervals.icu training data — activities, calendar, fitness metrics, power curves, workout planning, and a managed library of saved workouts that can act as a coaching template store.",
