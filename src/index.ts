@@ -36,6 +36,7 @@ import { createMap } from "./services/map/index.js";
 import { createAthleteAnchors } from "./services/athlete-anchors/index.js";
 import type { IAthleteAnchors } from "./services/athlete-anchors/index.js";
 import { createPowerProfile } from "./services/power-profile/index.js";
+import { createPrescription } from "./services/prescription/index.js";
 import type { IPowerProfile } from "./services/power-profile/index.js";
 
 /**
@@ -93,8 +94,11 @@ export function createServices(options: ServicesOptions = {}): IServices {
   const activities = createActivitiesApi(httpClient, athleteId, { fit });
   const wellness = createWellnessApi(httpClient, athleteId);
   const powerCurves = createPowerCurvesApi(httpClient, athleteId);
+  // The one reader of every prescription, so no two lenses disagree on a plan.
+  const prescription = createPrescription();
   const workoutLibrary = createWorkoutLibrary(
-    createWorkoutLibraryApi(httpClient, athleteId)
+    createWorkoutLibraryApi(httpClient, athleteId),
+    { prescription }
   );
   const analysis = createActivityAnalysis({ activitiesApi: activities });
   // One source for every FTP and MAP-zone reader, so nothing builds the
@@ -109,11 +113,13 @@ export function createServices(options: ServicesOptions = {}): IServices {
     eventsApi: events,
     workoutLibrary,
     anchors,
+    prescription,
   });
   const executionReview = createExecutionReview({
     activitiesApi: activities,
     eventsApi: events,
     anchors,
+    prescription,
   });
   // The records are tracked files, not Intervals.icu; only aligning a
   // record's splits to a ride reaches the activities API.
@@ -122,6 +128,7 @@ export function createServices(options: ServicesOptions = {}): IServices {
     eventsApi: events,
     wellnessApi: wellness,
     anchors,
+    prescription,
   });
   const trainingWeek = createTrainingWeek({
     activitiesApi: activities,
@@ -219,7 +226,7 @@ export type {
   ReviewReason,
   SessionRollup,
   UnplannedInterval,
-  FlatPlannedStep,
+  PlannedStep,
   DeliveredInterval,
   PowerTarget,
   ExecutionDigestResult,

@@ -1,6 +1,6 @@
 import type { WorkoutSummary } from "./types.js";
 import { matchRepeatHeader } from "../workout-parser/index.js";
-import { prescriptionShape } from "../prescription/index.js";
+import type { IPrescription } from "../prescription/index.js";
 
 /** Provenance marker written by sync. */
 const TEMPLATE_MARKER_RE = /<!--\s*template:\s*[a-z0-9][a-z0-9-]*\s*-->/i;
@@ -66,9 +66,10 @@ export function hasTemplateMarker(description: string): boolean {
  * step the platform would drop is not listed here either.
  */
 export function parseDescriptionSummary(
-  description: string
+  description: string,
+  prescription: IPrescription
 ): Omit<WorkoutSummary, "id" | "name" | "folder_id"> {
-  const { stepCount, totalSeconds, hasDistance } = prescriptionShape(
+  const { stepCount, totalSeconds, hasDistance } = prescription.shape(
     stripMarkers(description)
   );
 

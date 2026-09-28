@@ -1,4 +1,5 @@
 import type { IWorkoutLibraryApi } from "./api.js";
+import type { IPrescription } from "../prescription/index.js";
 import type {
   LibraryFolder,
   LibraryNode,
@@ -36,11 +37,18 @@ export interface IWorkoutLibrary {
   delete(workoutId: number): Promise<void>;
 }
 
+export interface WorkoutLibraryDeps {
+  /** Counts each workout's steps and time for its summary. */
+  prescription: IPrescription;
+}
+
 export class WorkoutLibrary implements IWorkoutLibrary {
   private api: IWorkoutLibraryApi;
+  private deps: WorkoutLibraryDeps;
 
-  constructor(api: IWorkoutLibraryApi) {
+  constructor(api: IWorkoutLibraryApi, deps: WorkoutLibraryDeps) {
     this.api = api;
+    this.deps = deps;
   }
 
   async sync(opts: SyncOptions = {}): Promise<SyncReport> {
@@ -77,7 +85,7 @@ export class WorkoutLibrary implements IWorkoutLibrary {
           type: w.type,
           folder_id: folder.id,
           folder_name: folder.name,
-          ...parseDescriptionSummary(description),
+          ...parseDescriptionSummary(description, this.deps.prescription),
           ...(purpose ? { purpose } : {}),
         });
       }
@@ -93,7 +101,7 @@ export class WorkoutLibrary implements IWorkoutLibrary {
       workout,
       description_text: stripMarkers(description),
       seedId: extractSeedId(description),
-      summary: parseDescriptionSummary(description),
+      summary: parseDescriptionSummary(description, this.deps.prescription),
     };
   }
 }
@@ -111,8 +119,11 @@ function collectWorkouts(
   }
 }
 
-export function createWorkoutLibrary(api: IWorkoutLibraryApi): WorkoutLibrary {
-  return new WorkoutLibrary(api);
+export function createWorkoutLibrary(
+  api: IWorkoutLibraryApi,
+  deps: WorkoutLibraryDeps
+): WorkoutLibrary {
+  return new WorkoutLibrary(api, deps);
 }
 
 export type { LibraryFolder };

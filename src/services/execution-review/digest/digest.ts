@@ -6,10 +6,7 @@ import type {
   IntensityDistributionRangeResult,
   RangeSessionRow,
 } from "../bands/types.js";
-import {
-  readPrescription,
-  type PlannedStep,
-} from "../../prescription/index.js";
+import type { IPrescription, PlannedStep } from "../../prescription/index.js";
 import type { IAthleteAnchors } from "../../athlete-anchors/index.js";
 import type { LoadedWindow } from "../paired/types.js";
 import type {
@@ -18,15 +15,6 @@ import type {
   ExecutionDigestResult,
   FlaggedStep,
 } from "./types.js";
-
-/**
- * A session counts as key when it prescribes a work step at or above this.
- *
- * Anchored on FTP rather than on the MAP zones, to sit in the same frame as the
- * middle band the dose is judged in — the sweet-spot floor is the bottom of the
- * work the philosophy treats as a build week's substance.
- */
-export const KEY_SESSION_FLOOR_PCT_FTP = 88;
 
 /**
  * Power miss on a range target smaller than this is noise, not a finding: the
@@ -49,13 +37,14 @@ const COASTING_WORTH_REPORTING = 0.05;
  * thread that has the athlete's context loaded. See
  * `docs/adr/0010-work-steps-declared-in-the-label.md`.
  *
- * `anchors` is the call's snapshot, and `distribution` the band lens over the
- * same window — read only when a session is key, so a skipped window fetches no
- * streams.
+ * `anchors` is the call's snapshot, `prescription` reads each plan, and
+ * `distribution` the band lens over the same window — read only when a session
+ * is key, so a skipped window fetches no streams.
  */
 export async function digestWindow(
   loaded: LoadedWindow,
   anchors: IAthleteAnchors,
+  prescription: IPrescription,
   distribution: () => Promise<IntensityDistributionRangeResult>
 ): Promise<ExecutionDigestResult> {
   const { oldest, newest } = loaded.window;
@@ -69,6 +58,7 @@ export async function digestWindow(
       .filter((e) => e.category === "WORKOUT")
       .map(async (event) =>
         plannedSummary(
+          prescription,
           event,
           await anchors.planFtp(event, rideFor(loaded, event))
         )
@@ -83,7 +73,7 @@ export async function digestWindow(
       status: "skipped",
       message:
         `No key session in ${oldest}..${newest}: no planned work step at or ` +
-        `above ${KEY_SESSION_FLOOR_PCT_FTP}% FTP. The watermark stays where ` +
+        `above ${prescription.keySessionFloorPctFtp}% FTP. The watermark stays where ` +
         "it is.",
       sessions: [],
       excluded: [],
@@ -100,6 +90,7 @@ export async function digestWindow(
           ? reviewPairedSession(found.session, {
               tolerance: DEFAULT_TOLERANCE,
               anchors,
+              prescription,
             })
           : unpairedReview(found, DEFAULT_TOLERANCE);
       })
@@ -143,30 +134,21 @@ interface PlannedSummary {
 }
 
 /**
- * Flatten one planned event and decide whether it is a key session: a work step
+ * Read one planned event and decide whether it is a key session: a work step
  * — declared as such by its label — prescribed at or above the sweet-spot floor.
+ * The Prescription module holds that rule; an event with no id cannot be
+ * paired, so it is never selected.
  *
  * Intensity alone would select on any step, which is how a warm-up ramp topping
  * out at threshold used to pull an endurance ride into the review.
  */
 function plannedSummary(
+  prescription: IPrescription,
   event: IntervalsEvent,
   ftp: number | null
 ): PlannedSummary {
-  const steps = readPrescription(event.workout_doc, { ftp }).steps;
-  const floor = ftp ? (ftp * KEY_SESSION_FLOOR_PCT_FTP) / 100 : undefined;
-
-  const isKey =
-    event.id !== undefined &&
-    floor !== undefined &&
-    steps.some(
-      (s) =>
-        s.role === "work" &&
-        s.midpointWatts !== undefined &&
-        s.midpointWatts >= floor
-    );
-
-  return { event, steps, isKey };
+  const { steps, keySession } = prescription.read(event.workout_doc, { ftp });
+  return { event, steps, isKey: event.id !== undefined && keySession };
 }
 
 /**

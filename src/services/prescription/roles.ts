@@ -15,65 +15,7 @@
  * all fall out the same way, so nothing is ever guessed into a finding.
  */
 
-/**
- * The first word of a step label that declares the step as work.
- *
- * A closed list. Every entry earns its place from a label this athlete's
- * templates or calendar already uses — adding a word is a deliberate edit, and
- * an unrecognised word costs a step's verdict rather than inventing one.
- *
- * Deliberately absent: `endurance` and `steady`. A Z2 or steady block is the
- * session's volume, and judging it rep-style against its band would report a
- * ride that sat mid-band as a miss. The band lens is what reads those.
- */
-export const WORK_WORDS: ReadonlySet<string> = new Set([
-  // Generic
-  "work",
-  "effort",
-  "interval",
-  "rep",
-  "set",
-  "block",
-  // Zone / physiology
-  "tempo",
-  "sweet",
-  "sweetspot",
-  "sst",
-  "threshold",
-  "miet",
-  "map",
-  "vo2",
-  "anaerobic",
-  "neuromuscular",
-  // Race-specific
-  "sprint",
-  "start",
-  "standing",
-  "pursuit",
-  "race",
-  "kilo",
-  "run",
-  "lap",
-  // Rep-internal shape — the under and the float of an over-under are the
-  // prescription, not recovery between reps, and `on` is the on of an on/off.
-  "on",
-  "over",
-  "under",
-  "float",
-  "settle",
-  "hold",
-  "surge",
-  "preload",
-  // Priming
-  "opener",
-  "openers",
-  "activation",
-  "primer",
-  // Test
-  "test",
-  "max",
-  "peak",
-]);
+import { WORK_WORDS } from "../../work-words.js";
 
 export type StepRole = "work" | "unclassified";
 

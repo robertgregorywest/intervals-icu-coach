@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
+import { createPrescription } from "../../src/services/prescription/index.js";
 import {
   createWorkoutTool,
   createStrengthWorkoutTool,
@@ -18,6 +19,7 @@ function createMockServices(
     eventsApi: { createEvents: vi.fn().mockResolvedValue(returnEvents) },
     workoutLibrary: { get: vi.fn() },
     anchors: { getAthleteAnchors: vi.fn().mockResolvedValue({ ftp: null }) },
+    prescription: createPrescription(),
     ...deps,
   } as unknown as WorkoutSchedulingDeps;
   return {

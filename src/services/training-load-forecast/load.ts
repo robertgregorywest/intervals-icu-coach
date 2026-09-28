@@ -1,4 +1,4 @@
-import { targetMidpoint, type FlatPlannedStep } from "../prescription/index.js";
+import type { PlannedStep } from "../prescription/index.js";
 import { normalizedPower } from "../analysis/index.js";
 
 /**
@@ -39,7 +39,7 @@ export interface PowerStream {
  * samples and is reported: shortening the session is visible in the result,
  * where filling it with a guessed wattage would not be.
  */
-export function buildPowerStream(steps: FlatPlannedStep[]): PowerStream {
+export function buildPowerStream(steps: PlannedStep[]): PowerStream {
   const watts: number[] = [];
   const gaps: StreamGap[] = [];
 
@@ -82,7 +82,7 @@ export function buildPowerStream(steps: FlatPlannedStep[]): PowerStream {
       }
       return;
     }
-    const midpoint = targetMidpoint(target)!;
+    const midpoint = step.midpointWatts!;
     for (let i = 0; i < seconds; i++) watts.push(midpoint);
   });
 
@@ -108,7 +108,7 @@ export interface DerivedLoad {
  * indistinguishable from a real figure.
  */
 export function deriveLoad(
-  steps: FlatPlannedStep[],
+  steps: PlannedStep[],
   ftp: number
 ): DerivedLoad | undefined {
   const { watts, gaps } = buildPowerStream(steps);

@@ -1,8 +1,4 @@
-import {
-  targetMidpoint,
-  type FlatPlannedStep,
-  type PowerTarget,
-} from "../../prescription/index.js";
+import type { PlannedStep, PowerTarget } from "../../prescription/index.js";
 import { bandFor } from "./zones.js";
 import type {
   BoundarySpanningStep,
@@ -27,20 +23,6 @@ export interface PlannedBuckets extends BucketedSeconds {
 export interface MiddleBandBounds {
   lowW: number;
   highW: number;
-}
-
-/**
- * The wattage a step is bucketed at.
- *
- * A range is taken at its **midpoint**, matching how `session-review` judges a
- * progression — so a step that lens scores against 265 W is bucketed here at
- * 265 W too, and the two lenses stay coherent. The athlete prescribes ranges as
- * acceptable spreads rather than as progressions to be traversed, so spreading
- * the seconds across the bands a range touches would invent a time-at-intensity
- * pattern the prescription never asked for.
- */
-export function bucketWattsFor(target: PowerTarget): number | undefined {
-  return targetMidpoint(target);
 }
 
 /**
@@ -79,9 +61,16 @@ export function middleBandFraction(
  * Bucket the prescription. Each step contributes its whole prescribed duration
  * at its prescribed absolute power — the workout as written, not the platform's
  * rendering of it at authoring time.
+ *
+ * A range is bucketed at the step's **midpoint**, matching how `session-review`
+ * judges a progression — so a step that lens scores against 265 W is bucketed
+ * here at 265 W too, and the two lenses stay coherent. The athlete prescribes
+ * ranges as acceptable spreads rather than as progressions to be traversed, so
+ * spreading the seconds across the bands a range touches would invent a
+ * time-at-intensity pattern the prescription never asked for.
  */
 export function bucketPlanned(
-  steps: FlatPlannedStep[],
+  steps: PlannedStep[],
   partition: PartitionBand[],
   middle: MiddleBandBounds | undefined
 ): PlannedBuckets {
@@ -95,7 +84,7 @@ export function bucketPlanned(
     const seconds = step.durationSeconds;
     if (!seconds || seconds <= 0) continue;
 
-    const watts = step.target ? bucketWattsFor(step.target) : undefined;
+    const watts = step.target ? step.midpointWatts : undefined;
     if (watts === undefined) {
       // Never assigned by guesswork: a step with no resolvable target leaves the
       // distribution rather than landing somewhere plausible.

@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { createExecutionReview } from "../../../../src/services/execution-review/index.js";
 import { pinnedAnchors } from "../../../helpers/anchors.js";
 import { digestSession } from "../../../../src/services/execution-review/digest/digest.js";
-import { readPrescription } from "../../../../src/services/prescription/index.js";
+import { readPlannedSteps } from "../../../helpers/planned-steps.js";
 import type {
   PlannedVsActualResult,
   AlignedStep,
@@ -423,7 +423,7 @@ describe("digestSession — the mechanical filter", () => {
     step("Threshold", FLOOR + 10, 600, 90),
     step("Recovery", 150, 300),
   ]);
-  const planned = readPrescription(key.workout_doc, { ftp: FTP }).steps;
+  const planned = readPlannedSteps(key.workout_doc, { ftp: FTP });
 
   function aligned(
     over: Partial<AlignedStep> & { index: number }

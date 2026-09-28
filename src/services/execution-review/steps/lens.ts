@@ -1,6 +1,6 @@
 import type { Activity } from "../../activities/index.js";
 import type { IntervalsEvent } from "../../../types.js";
-import { plannedDuration, readPrescription } from "../../prescription/index.js";
+import type { IPrescription } from "../../prescription/index.js";
 import type { IAthleteAnchors } from "../../athlete-anchors/index.js";
 import type { PairedSession, Unpaired } from "../paired/types.js";
 import { reviewSession, type RawPowerStream } from "./review.js";
@@ -15,6 +15,8 @@ export interface ReviewOptions {
   tolerance: number;
   /** Resolves the FTP the plan is read at. */
   anchors: IAthleteAnchors;
+  /** Reads the plan into the steps that are judged. */
+  prescription: IPrescription;
 }
 
 /**
@@ -30,7 +32,10 @@ export async function reviewPairedSession(
   const { tolerance } = options;
 
   const ftp = await options.anchors.planFtp(event, activity);
-  const planned = readPrescription(event.workout_doc, { ftp }).steps;
+  const { steps: planned, totalSeconds } = options.prescription.read(
+    event.workout_doc,
+    { ftp }
+  );
 
   if (planned.length === 0) {
     return refuse(
@@ -58,14 +63,14 @@ export async function reviewPairedSession(
       `Activity ${ride.id} has neither recorded laps nor detected ` +
         "intervals, so per-step delivery cannot be read. Whole-activity " +
         "averages are not a substitute.",
-      plannedDuration(planned)
+      totalSeconds
     );
   }
 
   const rollupInputs = {
     plannedLoad: event.icu_training_load,
     actualLoad: numberOrUndefined(ride.icu_training_load),
-    plannedDurationSeconds: plannedDuration(planned),
+    plannedDurationSeconds: totalSeconds,
     actualDurationSeconds: numberOrUndefined(ride.moving_time),
     platformCompliance: numberOrUndefined(ride.compliance),
   };

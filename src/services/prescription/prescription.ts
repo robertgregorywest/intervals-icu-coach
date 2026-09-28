@@ -5,9 +5,12 @@ import {
   type ParseAnchors,
 } from "../workout-parser/index.js";
 import type { WorkoutDoc } from "../../types.js";
-import { flattenPlannedSteps } from "./planned.js";
+import { flattenPlannedSteps, plannedDuration } from "./planned.js";
 import { stepRole } from "./roles.js";
+import { unreviewableWorkSteps } from "./authoring.js";
 import type {
+  IPrescription,
+  PlannedStep,
   PowerTarget,
   Prescription,
   PrescriptionBasis,
@@ -17,25 +20,39 @@ import type {
 const parser = createWorkoutParser();
 
 /**
+ * A session counts as key when it prescribes a work step at or above this.
+ *
+ * Anchored on FTP rather than on the MAP zones, to sit in the same frame as the
+ * middle band the dose is judged in — the sweet-spot floor is the bottom of the
+ * work the philosophy treats as a build week's substance.
+ */
+const KEY_SESSION_FLOOR_PCT_FTP = 88;
+
+export function createPrescription(): IPrescription {
+  return {
+    read: readPrescription,
+    shape: prescriptionShape,
+    keySessionFloorPctFtp: KEY_SESSION_FLOOR_PCT_FTP,
+  };
+}
+
+/**
  * Read a prescription into resolved **Planned steps** — the one pipeline every
  * planned-side lens runs, so they cannot disagree about what was prescribed.
- *
- * A `WorkoutDoc` is the platform's own parse of a written event and wins over
- * any local reading of the same text (ADR 0007); a string is workout text that
- * may never have been written, parsed locally. Either way, zone targets resolve
- * to watt bands, repeats expand, percentages resolve against FTP, each step's
- * **Work step** role is read from its label, and its midpoint is taken once.
- *
- * A target the anchors cannot resolve is named on the step, never defaulted.
+ * Zone targets resolve to watt bands, repeats expand, percentages resolve
+ * against FTP, each step's **Work step** role is read from its label, and its
+ * midpoint is taken once; the facts derived from the steps are taken here too.
  */
-export function readPrescription(
+function readPrescription(
   source: WorkoutDoc | string | undefined,
   anchors: ParseAnchors = {}
 ): Prescription {
   const read = readSource(source, anchors);
   const doc = read.doc ? resolveZoneTargets(read.doc, anchors) : undefined;
 
-  const steps = flattenPlannedSteps(doc, { ftp: anchors.ftp }).map((step) => {
+  const steps: PlannedStep[] = flattenPlannedSteps(doc, {
+    ftp: anchors.ftp,
+  }).map((step) => {
     const midpointWatts = targetMidpoint(step.target);
     return {
       ...step,
@@ -44,7 +61,27 @@ export function readPrescription(
     };
   });
 
-  return { steps, basis: read.basis, discarded: read.discarded };
+  const { ftp } = anchors;
+  const keyFloorWatts = ftp
+    ? (ftp * KEY_SESSION_FLOOR_PCT_FTP) / 100
+    : undefined;
+
+  return {
+    steps,
+    basis: read.basis,
+    discarded: read.discarded,
+    totalSeconds: plannedDuration(steps),
+    ...(keyFloorWatts !== undefined ? { keyFloorWatts } : {}),
+    keySession:
+      keyFloorWatts !== undefined &&
+      steps.some(
+        (s) =>
+          s.role === "work" &&
+          s.midpointWatts !== undefined &&
+          s.midpointWatts >= keyFloorWatts
+      ),
+    unreviewable: unreviewableWorkSteps(steps, keyFloorWatts),
+  };
 }
 
 function readSource(
@@ -69,9 +106,7 @@ function readSource(
  * figure only with the half watt kept. Undefined when there is no resolved
  * target.
  */
-export function targetMidpoint(
-  target: PowerTarget | undefined
-): number | undefined {
+function targetMidpoint(target: PowerTarget | undefined): number | undefined {
   if (!target) return undefined;
   if (typeof target.watts === "number") return target.watts;
   if (typeof target.low === "number" && typeof target.high === "number") {
@@ -89,15 +124,15 @@ export function targetMidpoint(
  * it, but it is a real step (a run's `- 2km Z2`), so it counts and is flagged
  * rather than vanishing.
  */
-export function prescriptionShape(text: string): PrescriptionShape {
-  const { steps, discarded } = readPrescription(text);
+function prescriptionShape(text: string): PrescriptionShape {
+  const { steps, discarded, totalSeconds } = readPrescription(text);
   const distanceSteps = discarded
     .filter((d) => d.reason === DISTANCE_STEP_DISCARDED)
     .reduce((sum, d) => sum + (d.reps ?? 1), 0);
 
   return {
     stepCount: steps.length + distanceSteps,
-    totalSeconds: steps.reduce((sum, s) => sum + (s.durationSeconds ?? 0), 0),
+    totalSeconds,
     hasDistance: distanceSteps > 0,
   };
 }

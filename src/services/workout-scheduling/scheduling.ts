@@ -1,11 +1,7 @@
 import type { IEventsApi } from "../events/index.js";
 import type { IWorkoutLibrary } from "../workout-library/index.js";
 import type { IAthleteAnchors } from "../athlete-anchors/index.js";
-import { KEY_SESSION_FLOOR_PCT_FTP } from "../execution-review/index.js";
-import {
-  unreviewableWorkSteps,
-  type UnreviewableStep,
-} from "../prescription/index.js";
+import type { IPrescription, UnreviewableStep } from "../prescription/index.js";
 import type { IntervalsEvent, SportType } from "../../types.js";
 import { buildEvent, workoutEvent } from "./builder.js";
 import { updateEvent } from "./update.js";
@@ -23,6 +19,8 @@ export interface WorkoutSchedulingDeps {
   workoutLibrary: IWorkoutLibrary;
   /** FTP and the power zones the unreviewable-step warning is judged at. */
   anchors: IAthleteAnchors;
+  /** Reads the written text back, for the update guard and the warning. */
+  prescription: IPrescription;
 }
 
 export class WorkoutScheduling implements IWorkoutScheduling {
@@ -56,7 +54,12 @@ export class WorkoutScheduling implements IWorkoutScheduling {
   }
 
   updateEvent(id: number, changes: EventChanges): Promise<IntervalsEvent> {
-    return updateEvent(this.deps.eventsApi, id, changes);
+    return updateEvent(
+      this.deps.eventsApi,
+      this.deps.prescription,
+      id,
+      changes
+    );
   }
 
   private async write(
@@ -85,9 +88,7 @@ export class WorkoutScheduling implements IWorkoutScheduling {
       return [];
     }
 
-    const { ftp } = anchors;
-    const floor = ftp ? (ftp * KEY_SESSION_FLOOR_PCT_FTP) / 100 : undefined;
-    return unreviewableWorkSteps(description, floor, anchors);
+    return this.deps.prescription.read(description, anchors).unreviewable;
   }
 }
 

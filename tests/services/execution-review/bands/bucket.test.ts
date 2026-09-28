@@ -6,7 +6,8 @@ import {
   middleBandFraction,
 } from "../../../../src/services/execution-review/bands/bucket.js";
 import { derivePartition } from "../../../../src/services/execution-review/bands/zones.js";
-import type { FlatPlannedStep } from "../../../../src/services/execution-review/steps/types.js";
+import type { PlannedStep } from "../../../../src/services/prescription/index.js";
+import { plannedStep } from "../../../helpers/planned-steps.js";
 import type { ZoneRow } from "../../../../src/services/athlete-anchors/index.js";
 
 const FRAME = JSON.parse(
@@ -26,9 +27,9 @@ const PARTITION = derivePartition(FRAME.mapZones);
 const MIDDLE = { lowW: 220, highW: 307 };
 
 function step(
-  partial: Partial<FlatPlannedStep> & { durationSeconds: number }
-): FlatPlannedStep {
-  return { index: 0, sourceIndex: 0, ...partial };
+  partial: Partial<PlannedStep> & { durationSeconds: number }
+): PlannedStep {
+  return plannedStep(partial);
 }
 
 describe("middleBandFraction", () => {

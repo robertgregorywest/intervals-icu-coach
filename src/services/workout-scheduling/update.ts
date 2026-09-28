@@ -1,5 +1,5 @@
 import type { IEventsApi } from "../events/index.js";
-import { prescriptionShape } from "../prescription/index.js";
+import type { IPrescription } from "../prescription/index.js";
 import type { IntervalsEvent } from "../../types.js";
 import { startOfDay, toDescription } from "./builder.js";
 import type { EventChanges } from "./types.js";
@@ -7,6 +7,7 @@ import type { EventChanges } from "./types.js";
 /** Refuses any change that would silently destroy a workout's structure. */
 export async function updateEvent(
   eventsApi: IEventsApi,
+  prescription: IPrescription,
   id: number,
   changes: EventChanges
 ): Promise<IntervalsEvent> {
@@ -38,7 +39,7 @@ export async function updateEvent(
     if (
       existing.category === "WORKOUT" &&
       hasSteps &&
-      prescriptionShape(description).stepCount === 0
+      prescription.shape(description).stepCount === 0
     ) {
       throw new Error(
         "update_event: refusing to update 'description' on a WORKOUT event — " +

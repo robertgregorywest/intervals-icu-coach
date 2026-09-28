@@ -1,11 +1,11 @@
 import type { Activity, ActivityInterval } from "../../activities/index.js";
 import type {
   CadenceRange,
-  FlatPlannedStep,
+  PlannedStep,
   PowerTarget,
 } from "../../prescription/index.js";
 
-export type { CadenceRange, FlatPlannedStep, PowerTarget };
+export type { CadenceRange, PlannedStep, PowerTarget };
 
 /**
  * How the planned steps were paired to the recorded intervals.

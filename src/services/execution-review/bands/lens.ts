@@ -1,6 +1,6 @@
 import type { Activity } from "../../activities/index.js";
 import type { IntervalsEvent } from "../../../types.js";
-import { readPrescription } from "../../prescription/index.js";
+import type { IPrescription } from "../../prescription/index.js";
 import type { IAthleteAnchors } from "../../athlete-anchors/index.js";
 import type { LoadedWindow, PairedSession, Unpaired } from "../paired/types.js";
 import {
@@ -31,7 +31,8 @@ import type {
  * snapshot, so each session's plan FTP falls back on the athlete read here.
  */
 export async function distributionFrame(
-  anchors: IAthleteAnchors
+  anchors: IAthleteAnchors,
+  prescription: IPrescription
 ): Promise<DistributionFrame> {
   const [{ mapZones }, { ftp }] = await Promise.all([
     anchors.getMapAnchors(),
@@ -41,6 +42,7 @@ export async function distributionFrame(
     partition: mapZones ? derivePartition(mapZones) : [],
     middle: ftp && ftp > 0 ? middleBandBounds(ftp) : undefined,
     anchors,
+    prescription,
   };
 }
 
@@ -146,7 +148,7 @@ export async function distributeSession(
 ): Promise<IntensityDistributionResult> {
   const { activity, event } = session;
   const ftp = await frame.anchors.planFtp(event, activity);
-  const planned = readPrescription(event.workout_doc, { ftp }).steps;
+  const planned = frame.prescription.read(event.workout_doc, { ftp }).steps;
 
   if (planned.length === 0) {
     return refuse(
@@ -230,6 +232,8 @@ export interface DistributionFrame {
   middle?: MiddleBandBounds;
   /** Resolves each session's plan FTP, the athlete's as the last resort. */
   anchors: IAthleteAnchors;
+  /** Reads each session's plan into the steps that are bucketed. */
+  prescription: IPrescription;
 }
 
 function toRows(

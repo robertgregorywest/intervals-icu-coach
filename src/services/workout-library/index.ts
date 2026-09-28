@@ -6,6 +6,7 @@ export type {
   LibraryItem,
 } from "./library.js";
 export { WorkoutLibrary, createWorkoutLibrary } from "./library.js";
+export type { WorkoutLibraryDeps } from "./library.js";
 export type {
   LibraryFolder,
   LibraryWorkout,
@@ -19,7 +20,6 @@ export {
   extractProse,
   extractPurpose,
   hasTemplateMarker,
-  parseDescriptionSummary,
 } from "./parser.js";
 export type {
   WorkoutTemplate,

@@ -1,7 +1,7 @@
 import type { IEventsApi } from "../events/index.js";
 import type { IWellnessApi } from "../wellness/index.js";
 import type { SportSetting } from "../athlete/index.js";
-import { readPrescription } from "../prescription/index.js";
+import type { IPrescription } from "../prescription/index.js";
 import type { IAthleteAnchors } from "../athlete-anchors/index.js";
 import type { IntervalsEvent, WorkoutDoc } from "../../types.js";
 import { deriveLoad } from "./load.js";
@@ -41,6 +41,8 @@ export interface ForecastDeps {
   eventsApi: IEventsApi;
   wellnessApi: IWellnessApi;
   anchors: IAthleteAnchors;
+  /** Reads each prescription into the steps its load is derived from. */
+  prescription: IPrescription;
 }
 
 export class TrainingLoadForecast implements ITrainingLoadForecast {
@@ -299,7 +301,7 @@ export class TrainingLoadForecast implements ITrainingLoadForecast {
     const source = doc ?? description;
     if (!source) return undefined;
 
-    const { steps } = readPrescription(source, anchors);
+    const { steps } = this.deps.prescription.read(source, anchors);
     const derived = deriveLoad(steps, anchors.ftp);
     if (!derived) return undefined;
 

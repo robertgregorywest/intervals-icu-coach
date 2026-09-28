@@ -3,8 +3,10 @@ import {
   buildPowerStream,
   deriveLoad,
 } from "../../../src/services/training-load-forecast/load.js";
-import { flattenPlannedSteps } from "../../../src/services/prescription/index.js";
-import type { FlatPlannedStep } from "../../../src/services/execution-review/index.js";
+import {
+  plannedStep as step,
+  readPlannedSteps,
+} from "../../helpers/planned-steps.js";
 import { EVENTS } from "../workout-parser/fixture.js";
 
 /**
@@ -27,7 +29,7 @@ describe("load derivation — fidelity against the platform's own figures", () =
   it.each(THRESHOLD_FREE.map((e) => [`${e.date} ${e.name}`, e] as const))(
     "reproduces normalised power exactly for %s",
     (_label, entry) => {
-      const steps = flattenPlannedSteps(entry.workout_doc, {
+      const steps = readPlannedSteps(entry.workout_doc, {
         ftp: entry.ftpUsed,
       });
       const derived = deriveLoad(steps, entry.ftpUsed!);
@@ -44,7 +46,7 @@ describe("load derivation — fidelity against the platform's own figures", () =
       (e) => e.icu_training_load !== undefined && e.ftpUsed
     ).map((e) => [`${e.date} ${e.name}`, e] as const)
   )("reproduces training load within a point for %s", (_label, entry) => {
-    const steps = flattenPlannedSteps(entry.workout_doc, {
+    const steps = readPlannedSteps(entry.workout_doc, {
       ftp: entry.ftpUsed,
     });
     const derived = deriveLoad(steps, entry.ftpUsed!)!;
@@ -62,7 +64,7 @@ describe("load derivation — fidelity against the platform's own figures", () =
     // Measured directly: a throwaway `- 60m ramp 100w-300w` event came back
     // with average_watts 200 and normalized_power 221. A midpoint-collapsed
     // ramp would report 200 for both.
-    const steps = flattenPlannedSteps(
+    const steps = readPlannedSteps(
       {
         steps: [
           {
@@ -80,10 +82,6 @@ describe("load derivation — fidelity against the platform's own figures", () =
     expect(round(watts.reduce((a, b) => a + b, 0) / watts.length)).toBe(200);
   });
 });
-
-function step(partial: Partial<FlatPlannedStep>): FlatPlannedStep {
-  return { index: 0, sourceIndex: 0, ...partial };
-}
 
 describe("load derivation — the stream", () => {
   it("takes a band at its midpoint rather than sweeping it", () => {

@@ -1,6 +1,7 @@
 import type { IActivitiesApi } from "../activities/index.js";
 import type { IEventsApi } from "../events/index.js";
 import type { IAthleteAnchors } from "../athlete-anchors/index.js";
+import type { IPrescription } from "../prescription/index.js";
 import { PairedSessionLoader } from "./paired/loader.js";
 import { DEFAULT_TOLERANCE } from "./steps/review.js";
 import { reviewPairedSession, unpairedReview } from "./steps/lens.js";
@@ -33,6 +34,8 @@ export interface ExecutionReviewDeps {
    * whose expected seconds move with it is testing nothing.
    */
   anchors: IAthleteAnchors;
+  /** Reads every plan the lenses judge, so they cannot disagree about it. */
+  prescription: IPrescription;
 }
 
 export class ExecutionReview implements IExecutionReview {
@@ -51,6 +54,7 @@ export class ExecutionReview implements IExecutionReview {
       ? reviewPairedSession(found.session, {
           tolerance,
           anchors: this.deps.anchors.snapshot(),
+          prescription: this.deps.prescription,
         })
       : unpairedReview(found, tolerance);
   }
@@ -61,7 +65,10 @@ export class ExecutionReview implements IExecutionReview {
     const found = await this.loader.find(options);
     if (!found.session) return unpairedDistribution(found);
 
-    const frame = await distributionFrame(this.deps.anchors.snapshot());
+    const frame = await distributionFrame(
+      this.deps.anchors.snapshot(),
+      this.deps.prescription
+    );
     return distributeSession(found.session, frame);
   }
 
@@ -69,7 +76,10 @@ export class ExecutionReview implements IExecutionReview {
     options: WindowRef
   ): Promise<IntensityDistributionRangeResult> {
     const loaded = await this.loader.loadWindow(options);
-    const frame = await distributionFrame(this.deps.anchors.snapshot());
+    const frame = await distributionFrame(
+      this.deps.anchors.snapshot(),
+      this.deps.prescription
+    );
     return distributeWindow(loaded, frame);
   }
 
@@ -78,8 +88,9 @@ export class ExecutionReview implements IExecutionReview {
     // One snapshot for the call: the athlete is read at most once however
     // many plans fall back on its FTP, and both lenses share its frame.
     const anchors = this.deps.anchors.snapshot();
-    return digestWindow(loaded, anchors, async () =>
-      distributeWindow(loaded, await distributionFrame(anchors))
+    const { prescription } = this.deps;
+    return digestWindow(loaded, anchors, prescription, async () =>
+      distributeWindow(loaded, await distributionFrame(anchors, prescription))
     );
   }
 }

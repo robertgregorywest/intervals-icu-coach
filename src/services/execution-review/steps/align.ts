@@ -1,7 +1,7 @@
 import type {
   AlignmentBasis,
   DeliveredInterval,
-  FlatPlannedStep,
+  PlannedStep,
 } from "./types.js";
 
 /**
@@ -61,7 +61,7 @@ export interface AlignmentResult {
  * comparison exists to prevent.
  */
 export function matchScore(
-  planned: FlatPlannedStep,
+  planned: PlannedStep,
   interval: DeliveredInterval
 ): number | null {
   const p = planned.durationSeconds;
@@ -85,7 +85,7 @@ export function matchScore(
  * duration floor to be offered at all.
  */
 export function alignSteps(
-  planned: FlatPlannedStep[],
+  planned: PlannedStep[],
   intervals: DeliveredInterval[]
 ): AlignmentResult {
   const n = planned.length;
@@ -167,7 +167,7 @@ export function alignSteps(
  * inside the window bounded by the neighbouring matches.
  */
 function findAmbiguous(
-  planned: FlatPlannedStep[],
+  planned: PlannedStep[],
   intervals: DeliveredInterval[],
   pairs: AlignmentPair[]
 ): number[] {

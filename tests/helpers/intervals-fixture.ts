@@ -4,6 +4,7 @@ import { createActivitiesApi } from "../../src/services/activities/index.js";
 import { createEventsApi } from "../../src/services/events/index.js";
 import { pinnedAnchors } from "./anchors.js";
 import { createFitCodec } from "../../src/services/fit/index.js";
+import { createPrescription } from "../../src/services/prescription/index.js";
 
 /**
  * The one fixture harness for the execution-review lenses: a fetch routed by
@@ -78,8 +79,8 @@ export function routedFetch(routes: Route[]) {
 export type RoutedFetch = ReturnType<typeof routedFetch>;
 
 /**
- * The real API wrappers over a routed fetch, and anchors carrying no FTP and no
- * MAP — a test that needs either pins its own.
+ * The real API wrappers over a routed fetch, the real prescription reader, and
+ * anchors carrying no FTP and no MAP — a test that needs either pins its own.
  */
 export function intervalsApis(fetchFn: RoutedFetch) {
   const httpClient = new HttpClient(config, fetchFn as never);
@@ -89,6 +90,7 @@ export function intervalsApis(fetchFn: RoutedFetch) {
     }),
     eventsApi: createEventsApi(httpClient, config.athleteId),
     anchors: pinnedAnchors({}),
+    prescription: createPrescription(),
   };
 }
 

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
+import { createPrescription } from "../../src/services/prescription/index.js";
 import {
   getEventsTool,
   getEventTool,
@@ -42,6 +43,7 @@ function createMockServices(overrides: Partial<IEventsApi> = {}): IServices {
       eventsApi: events,
       workoutLibrary: {} as IWorkoutLibrary,
       anchors: {} as IAthleteAnchors,
+      prescription: createPrescription(),
     }),
   } as unknown as IServices;
 }

@@ -1,5 +1,12 @@
-import type { DiscardedLine, ParseBasis } from "../workout-parser/index.js";
+import type {
+  DiscardedLine,
+  ParseAnchors,
+  ParseBasis,
+} from "../workout-parser/index.js";
+import type { WorkoutDoc } from "../../types.js";
 import type { StepRole } from "./roles.js";
+
+export type { StepRole };
 
 /** A prescribed cadence band, e.g. `85-95rpm`. Both ends inclusive. */
 export interface CadenceRange {
@@ -69,12 +76,48 @@ export interface PlannedStep extends FlatPlannedStep {
  */
 export type PrescriptionBasis = { source: "platform" } | ParseBasis;
 
-/** What a prescription reads as, once, for every lens that consumes it. */
+/**
+ * A step hard enough to be the session's intent whose label declares no work
+ * role. The execution review will never judge it, which is the one way a real
+ * miss goes unreported — so the workout's author hears about it at the write,
+ * not three weeks later in a digest that is quietly missing a rep.
+ */
+export interface UnreviewableStep {
+  index: number;
+  label?: string;
+  /** Prescribed watts — a point target, or the midpoint of a band. */
+  watts: number;
+}
+
+/**
+ * What a prescription reads as, once, for every lens that consumes it. Every
+ * fact derived from the steps is computed here, so no caller re-derives it.
+ */
 export interface Prescription {
+  /** Each carries its **Work step** role and the midpoint a band is taken at. */
   steps: PlannedStep[];
   basis: PrescriptionBasis;
   /** Step lines a local parse dropped, with the reason. Empty for a platform doc. */
   discarded: DiscardedLine[];
+  /** Total prescribed seconds across the steps. */
+  totalSeconds: number;
+  /**
+   * The key-session floor in watts, at the anchors' FTP. Absent when no FTP was
+   * given: without one there is no floor, and nothing is judged against it.
+   */
+  keyFloorWatts?: number;
+  /**
+   * Whether some work step's midpoint sits at or above `keyFloorWatts` — the
+   * one definition of a **Key session**. False when there is no floor.
+   */
+  keySession: boolean;
+  /**
+   * Steps at or above `keyFloorWatts` whose label carries no work word: the
+   * `create_workout` warning. A warning, never a refusal — a ramp test's
+   * unlabelled steps and a warm-up's build are both meant to go unjudged, and
+   * the author is the one who knows which. Empty when there is no floor.
+   */
+  unreviewable: UnreviewableStep[];
 }
 
 /** Step count and prescribed time of workout text, repeats expanded. */
@@ -84,4 +127,30 @@ export interface PrescriptionShape {
   totalSeconds: number;
   /** True when any step is prescribed by distance rather than time. */
   hasDistance: boolean;
+}
+
+/**
+ * The **Prescription module**: the one pipeline from a platform doc or workout
+ * text, plus anchors, to resolved **Planned steps** — so no two planned-side
+ * readers can disagree about what was prescribed.
+ */
+export interface IPrescription {
+  /**
+   * The one pipeline: a platform doc or workout text, plus anchors, to resolved
+   * Planned steps, with everything derived from them computed once.
+   *
+   * A `WorkoutDoc` is the platform's own parse of a written event and wins over
+   * any local reading of the same text (ADR 0007); a string is workout text that
+   * may never have been written, parsed locally. Zone targets resolve only when
+   * `anchors` carries the power zones, percentages only when it carries FTP, and
+   * a target the anchors cannot resolve is named on the step, never defaulted.
+   */
+  read(
+    source: WorkoutDoc | string | undefined,
+    anchors?: ParseAnchors
+  ): Prescription;
+  /** Step count and time of workout text; distance steps are counted and flagged. */
+  shape(text: string): PrescriptionShape;
+  /** The key-session floor as a percentage of FTP, for messages that quote it. */
+  readonly keySessionFloorPctFtp: number;
 }

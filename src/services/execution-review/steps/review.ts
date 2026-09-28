@@ -1,5 +1,4 @@
 import { alignSteps } from "./align.js";
-import { targetMidpoint } from "../../prescription/index.js";
 import {
   ROLLING_WINDOW_SECONDS,
   normalizedPower,
@@ -9,7 +8,7 @@ import type {
   AlignedStep,
   CadenceVerdict,
   DeliveredInterval,
-  FlatPlannedStep,
+  PlannedStep,
   PlannedVsActualResult,
   PowerTarget,
   SessionRollup,
@@ -74,7 +73,7 @@ function coastingFraction(window: number[]): number {
 }
 
 /** Whether a step's target/duration calls for a normalized-power verdict. */
-function wantsNormalizedPower(planned: FlatPlannedStep): boolean {
+function wantsNormalizedPower(planned: PlannedStep): boolean {
   const target = planned.target;
   return (
     !!target &&
@@ -137,7 +136,7 @@ function positiveOrUndefined(v: unknown): number | undefined {
  * power comparison, so a caller always knows what the rule would have judged.
  */
 export function judgeStep(
-  planned: FlatPlannedStep,
+  planned: PlannedStep,
   delivered: DeliveredInterval,
   tolerance: number,
   normalizedWatts?: number
@@ -198,6 +197,7 @@ export function judgeStep(
 
   const { verdict, delta, reference } = compareToTarget(
     planned.target,
+    planned.midpointWatts,
     actual,
     tolerance
   );
@@ -217,7 +217,7 @@ export function judgeStep(
  * satisfied anywhere inside it; outside, the delta is from the crossed edge.
  */
 export function judgeCadence(
-  planned: FlatPlannedStep,
+  planned: PlannedStep,
   delivered: DeliveredInterval
 ): { verdict: CadenceVerdict; delta: number } | undefined {
   const actual = delivered.averageCadence;
@@ -262,6 +262,7 @@ export function judgeCadence(
  */
 function compareToTarget(
   target: PowerTarget,
+  midpointWatts: number | undefined,
   actual: number,
   tolerance: number
 ): { verdict: StepVerdict; delta: number; reference?: number } {
@@ -270,7 +271,7 @@ function compareToTarget(
     // bottom of a 130->220 W ramp is "in range" but is not what was asked for.
     // Judge it against the midpoint, which is the average the ramp prescribes.
     if (target.ramp) {
-      return comparePoint(targetMidpoint(target)!, actual, tolerance);
+      return comparePoint(midpointWatts!, actual, tolerance);
     }
     if (actual >= target.low && actual <= target.high) {
       return { verdict: "on-target", delta: 0, reference: target.high };
@@ -311,7 +312,7 @@ function comparePoint(
 }
 
 export interface ReviewInputs {
-  planned: FlatPlannedStep[];
+  planned: PlannedStep[];
   intervals: DeliveredInterval[];
   tolerance: number;
   plannedLoad?: number;

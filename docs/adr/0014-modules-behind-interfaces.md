@@ -45,5 +45,6 @@ The check is a regex over relative import specifiers, not a compiler pass. It ca
 this repo writes (`from`, `export … from`, `import "…"`, `import("…")`), and refuses to pass having
 scanned nothing.
 
-`fit`, `map`, `prescription` and `workout-parser` migrate to the pattern in follow-up issues; until
-then some indexes still export more than the rule allows. The import check already holds.
+`workout-parser` migrates to the pattern in a follow-up issue (`fit`, `map` and `prescription` have
+done so); until then some indexes still export more than the rule allows. The import check already
+holds.

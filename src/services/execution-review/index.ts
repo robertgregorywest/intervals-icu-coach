@@ -6,7 +6,6 @@ export type {
   WindowRef,
   ComparePlannedVsActualOptions,
 } from "./types.js";
-export { KEY_SESSION_FLOOR_PCT_FTP } from "./digest/digest.js";
 export {
   MIDDLE_BAND_LOW_PCT_FTP,
   MIDDLE_BAND_HIGH_PCT_FTP,
@@ -22,7 +21,7 @@ export type {
   ReviewReason,
   SessionRollup,
   UnplannedInterval,
-  FlatPlannedStep,
+  PlannedStep,
   DeliveredInterval,
   PowerTarget,
 } from "./steps/types.js";

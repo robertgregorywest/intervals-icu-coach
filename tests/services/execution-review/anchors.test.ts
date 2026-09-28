@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { createPrescription } from "../../../src/services/prescription/index.js";
 import { createExecutionReview } from "../../../src/services/execution-review/index.js";
 import { pinnedAnchors } from "../../helpers/anchors.js";
 import type {
@@ -74,7 +75,12 @@ function lenses(ride: Activity | null) {
   } as unknown as IEventsApi;
 
   return {
-    review: createExecutionReview({ activitiesApi, eventsApi, anchors }),
+    review: createExecutionReview({
+      activitiesApi,
+      eventsApi,
+      anchors,
+      prescription: createPrescription(),
+    }),
     athleteFtpReads,
   };
 }

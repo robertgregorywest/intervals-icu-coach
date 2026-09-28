@@ -2,7 +2,7 @@ import { z } from "zod";
 import { defineTool, UPSERT } from "./define.js";
 import type { ScheduledWorkouts } from "../index.js";
 import { dateString } from "./common.js";
-import { WORK_WORDS } from "../services/prescription/index.js";
+import { WORK_WORDS } from "../work-words.js";
 
 const sportTypeEnum = z.enum([
   "Ride",

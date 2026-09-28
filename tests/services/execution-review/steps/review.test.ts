@@ -11,11 +11,12 @@ import {
   type RawPowerStream,
 } from "../../../../src/services/execution-review/steps/review.js";
 import { normalizedPower } from "../../../../src/services/analysis/index.js";
-import { flattenPlannedSteps } from "../../../../src/services/prescription/index.js";
-import type {
-  DeliveredInterval,
-  FlatPlannedStep,
-} from "../../../../src/services/execution-review/steps/types.js";
+import {
+  plannedStep,
+  readPlannedSteps,
+} from "../../../helpers/planned-steps.js";
+import type { DeliveredInterval } from "../../../../src/services/execution-review/steps/types.js";
+import type { PlannedStep } from "../../../../src/services/prescription/index.js";
 
 function fixture(name: string) {
   const path = fileURLToPath(
@@ -24,8 +25,8 @@ function fixture(name: string) {
   return JSON.parse(readFileSync(path, "utf8"));
 }
 
-function step(over: Partial<FlatPlannedStep> = {}): FlatPlannedStep {
-  return { index: 0, sourceIndex: 0, durationSeconds: 300, ...over };
+function step(over: Partial<PlannedStep> = {}): PlannedStep {
+  return plannedStep({ durationSeconds: 300, ...over });
 }
 
 function delivered(over: Partial<DeliveredInterval> = {}): DeliveredInterval {
@@ -422,7 +423,7 @@ describe("reviewSession", () => {
   function loadPair(name: string) {
     const { event, activity } = fixture(name);
     return {
-      planned: flattenPlannedSteps(event?.workout_doc),
+      planned: readPlannedSteps(event?.workout_doc),
       intervals: toDeliveredIntervals(activity?.icu_intervals ?? []),
       event,
       activity,
@@ -537,7 +538,7 @@ describe("reviewSession", () => {
   });
 
   it("omits delivered fields entirely on an unmatched step", () => {
-    const planned = flattenPlannedSteps({
+    const planned = readPlannedSteps({
       steps: [
         { duration: 600, power: { units: "w", value: 160 } },
         { duration: 300, power: { units: "w", value: 280 } },
@@ -567,7 +568,7 @@ describe("reviewSession", () => {
   });
 
   it("reports recorded work that maps to no planned step", () => {
-    const planned = flattenPlannedSteps({
+    const planned = readPlannedSteps({
       steps: [
         { duration: 600, power: { units: "w", value: 160 } },
         { duration: 300, power: { units: "w", value: 280 } },
@@ -611,7 +612,7 @@ describe("reviewSession", () => {
     }
 
     function longBandPlan() {
-      return flattenPlannedSteps({
+      return readPlannedSteps({
         steps: [{ duration: 600, power: { units: "w", start: 300, end: 350 } }],
       });
     }
@@ -651,7 +652,7 @@ describe("reviewSession", () => {
       const expectedNP = Math.round(normalizedPower(window)!);
 
       // A point target — always judged on average watts, regardless of duration.
-      const planned = flattenPlannedSteps({
+      const planned = readPlannedSteps({
         steps: [{ duration: 600, power: { units: "w", value: 200 } }],
       });
       const intervals: DeliveredInterval[] = [

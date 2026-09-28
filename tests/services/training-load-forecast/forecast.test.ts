@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
+import { createPrescription } from "../../../src/services/prescription/index.js";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { HttpClient } from "../../../src/client.js";
@@ -101,6 +102,7 @@ function build(stub: StubOptions = {}) {
       map: createMap({ activitiesApi: {} as IActivitiesApi }),
       powerCurvesApi: {} as IPowerCurvesApi,
     }),
+    prescription: createPrescription(),
   });
   return { service, fetchFn };
 }

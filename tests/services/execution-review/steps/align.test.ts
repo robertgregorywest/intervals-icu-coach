@@ -7,7 +7,7 @@ import {
   MAX_RELATIVE_DURATION_DIFF,
   CONFIDENCE_FLOOR,
 } from "../../../../src/services/execution-review/steps/align.js";
-import { flattenPlannedSteps } from "../../../../src/services/prescription/index.js";
+import { readPlannedSteps } from "../../../helpers/planned-steps.js";
 import { toDeliveredIntervals } from "../../../../src/services/execution-review/steps/review.js";
 import type { DeliveredInterval } from "../../../../src/services/execution-review/steps/types.js";
 
@@ -21,7 +21,7 @@ function fixture(name: string) {
 function load(name: string) {
   const { event, activity } = fixture(name);
   return {
-    planned: flattenPlannedSteps(event?.workout_doc),
+    planned: readPlannedSteps(event?.workout_doc),
     intervals: toDeliveredIntervals(activity?.icu_intervals ?? []),
     event,
     activity,
@@ -112,7 +112,7 @@ describe("alignSteps", () => {
   });
 
   it("reports `duration` when most steps match but structure differs", () => {
-    const planned = flattenPlannedSteps({
+    const planned = readPlannedSteps({
       steps: [
         { duration: 600, power: { units: "w", value: 160 } },
         { duration: 300, power: { units: "w", value: 280 } },
@@ -140,7 +140,7 @@ describe("alignSteps", () => {
   });
 
   it("returns `none` when nothing corresponds", () => {
-    const planned = flattenPlannedSteps({
+    const planned = readPlannedSteps({
       steps: [
         { duration: 600, power: { units: "w", value: 160 } },
         { duration: 720, power: { units: "w", value: 280 } },
@@ -156,7 +156,7 @@ describe("alignSteps", () => {
   });
 
   it("preserves order — it never crosses pairings", () => {
-    const planned = flattenPlannedSteps({
+    const planned = readPlannedSteps({
       steps: [{ duration: 300 }, { duration: 600 }],
     });
     // The 600s lap comes first, so only one of the two can legally pair.
@@ -178,7 +178,7 @@ describe("alignSteps", () => {
     // Two identical 300s laps sit where one 300s step is prescribed. Order
     // cannot separate them and the alignment is not complete, so the step is
     // reported unmatched rather than pinned to an arbitrary one.
-    const planned = flattenPlannedSteps({
+    const planned = readPlannedSteps({
       steps: [{ duration: 900 }, { duration: 300 }, { duration: 900 }],
     });
     const intervals = [
@@ -199,7 +199,7 @@ describe("alignSteps", () => {
   it("does not demote identical steps in a complete alignment", () => {
     // A 30/30 block: every work lap is identical and every recovery is
     // identical, but a gapless 1:1 alignment is pinned by order alone.
-    const planned = flattenPlannedSteps({
+    const planned = readPlannedSteps({
       steps: [
         {
           reps: 4,
@@ -227,7 +227,7 @@ describe("alignSteps", () => {
     // this a refusal: the 3600s block alone is 80% of planned time, so a
     // duration-weighted floor would clear 0.5 and report the main block as
     // delivered by the 2485s chunk.
-    const planned = flattenPlannedSteps({
+    const planned = readPlannedSteps({
       steps: [{ duration: 600 }, { duration: 3600 }, { duration: 300 }],
     });
     const intervals = [interval(0, 1728), interval(1, 264), interval(2, 2485)];
