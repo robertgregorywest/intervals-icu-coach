@@ -1,4 +1,4 @@
-import type { Activity } from "../../activities/types.js";
+import type { Activity } from "../../activities/index.js";
 import type { IntervalsEvent } from "../../../types.js";
 import { plannedDuration, readPrescription } from "../../prescription/index.js";
 import type { IAthleteAnchors } from "../../athlete-anchors/index.js";

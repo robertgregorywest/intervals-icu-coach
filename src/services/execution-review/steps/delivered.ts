@@ -1,4 +1,5 @@
-import type { Activity, FitLap } from "../../activities/index.js";
+import type { Activity } from "../../activities/index.js";
+import type { FitLap } from "../../fit/index.js";
 import { toDeliveredIntervals } from "./review.js";
 import type { DeliveredInterval, ExecutionRecord } from "./types.js";
 

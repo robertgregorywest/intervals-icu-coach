@@ -4,7 +4,7 @@ import {
   deriveLoad,
 } from "../../../src/services/training-load-forecast/load.js";
 import { flattenPlannedSteps } from "../../../src/services/prescription/index.js";
-import type { FlatPlannedStep } from "../../../src/services/execution-review/steps/types.js";
+import type { FlatPlannedStep } from "../../../src/services/execution-review/index.js";
 import { EVENTS } from "../workout-parser/fixture.js";
 
 /**

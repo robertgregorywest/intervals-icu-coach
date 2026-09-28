@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { createExecutionReview } from "../../../../src/services/execution-review/index.js";
-import { createAthleteAnchorsFrom } from "../../../../src/services/athlete-anchors/index.js";
+import { pinnedAnchors } from "../../../helpers/anchors.js";
 import { digestSession } from "../../../../src/services/execution-review/digest/digest.js";
 import { readPrescription } from "../../../../src/services/prescription/index.js";
 import type {
@@ -153,7 +153,7 @@ function digest(world: World) {
   const athleteFtp = world.ftp === undefined ? FTP : world.ftp;
   const service = createExecutionReview({
     ...intervalsApis(fetchFn),
-    anchors: createAthleteAnchorsFrom({
+    anchors: pinnedAnchors({
       athlete: async () => {
         athleteFtpReads++;
         return { ftp: athleteFtp };

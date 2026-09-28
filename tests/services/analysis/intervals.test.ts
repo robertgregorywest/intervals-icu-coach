@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { compareIntervals } from "../../../src/services/analysis/intervals.js";
-import type { Activity } from "../../../src/services/activities/types.js";
+import type { Activity } from "../../../src/services/activities/index.js";
 
 function makeActivity(
   id: string,

@@ -29,7 +29,7 @@ export interface ExecutionReviewDeps {
   eventsApi: IEventsApi;
   /**
    * FTP and the MAP zones — the frame every lens judges against. A test pins
-   * them with `createAthleteAnchorsFrom`: the athlete's MAP moves, and a test
+   * them with a fake through these deps: the athlete's MAP moves, and a test
    * whose expected seconds move with it is testing nothing.
    */
   anchors: IAthleteAnchors;

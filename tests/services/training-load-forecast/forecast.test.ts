@@ -2,9 +2,9 @@ import { describe, it, expect, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { HttpClient } from "../../../src/client.js";
-import { EventsApi } from "../../../src/services/events/events.js";
-import { WellnessApi } from "../../../src/services/wellness/wellness.js";
-import { AthleteApi } from "../../../src/services/athlete/athlete.js";
+import { createEventsApi } from "../../../src/services/events/index.js";
+import { createWellnessApi } from "../../../src/services/wellness/index.js";
+import { createAthleteApi } from "../../../src/services/athlete/index.js";
 import { TrainingLoadForecast } from "../../../src/services/training-load-forecast/forecast.js";
 import type { ForecastOptions } from "../../../src/services/training-load-forecast/index.js";
 import { createAthleteAnchors } from "../../../src/services/athlete-anchors/index.js";
@@ -93,10 +93,10 @@ function build(stub: StubOptions = {}) {
 
   const httpClient = new HttpClient(config, fetchFn as never);
   const service = new TrainingLoadForecast({
-    eventsApi: new EventsApi(httpClient, config.athleteId),
-    wellnessApi: new WellnessApi(httpClient, config.athleteId),
+    eventsApi: createEventsApi(httpClient, config.athleteId),
+    wellnessApi: createWellnessApi(httpClient, config.athleteId),
     anchors: createAthleteAnchors({
-      athleteApi: new AthleteApi(httpClient, config.athleteId),
+      athleteApi: createAthleteApi(httpClient, config.athleteId),
       activitiesApi: {} as IActivitiesApi,
       powerCurvesApi: {} as IPowerCurvesApi,
     }),

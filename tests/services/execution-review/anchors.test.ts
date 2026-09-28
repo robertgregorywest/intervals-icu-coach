@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createExecutionReview } from "../../../src/services/execution-review/index.js";
-import { createAthleteAnchorsFrom } from "../../../src/services/athlete-anchors/index.js";
+import { pinnedAnchors } from "../../helpers/anchors.js";
 import type {
   Activity,
   FitLap,
@@ -56,7 +56,7 @@ const LAPS: FitLap[] = [
 function lenses(ride: Activity | null) {
   const athleteFtpReads: string[] = [];
   // No MAP zones: only the FTP-anchored middle band is under test.
-  const anchors = createAthleteAnchorsFrom({
+  const anchors = pinnedAnchors({
     athlete: async () => {
       athleteFtpReads.push("athlete");
       return { ftp: ATHLETE_FTP };

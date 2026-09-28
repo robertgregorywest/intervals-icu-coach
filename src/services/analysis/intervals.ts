@@ -1,4 +1,4 @@
-import type { Activity, ActivityInterval } from "../activities/types.js";
+import type { Activity, ActivityInterval } from "../activities/index.js";
 
 export interface IntervalComparison {
   lapNumber: number;

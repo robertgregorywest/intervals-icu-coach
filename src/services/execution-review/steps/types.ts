@@ -1,9 +1,9 @@
-import type { Activity, ActivityInterval } from "../../activities/types.js";
+import type { Activity, ActivityInterval } from "../../activities/index.js";
 import type {
   CadenceRange,
   FlatPlannedStep,
   PowerTarget,
-} from "../../prescription/types.js";
+} from "../../prescription/index.js";
 
 export type { CadenceRange, FlatPlannedStep, PowerTarget };
 

@@ -4,7 +4,7 @@ MCP server and CLI tool for the Intervals.icu API plus tools and skills to suppo
 
 ## Architecture
 
-- **Service modules** (`src/services/`) — business logic behind interfaces (`IWorkoutScheduling`, `IEventsApi`, `IWorkoutLibrary`). Each service has `types.ts`, implementation, and `index.ts` re-exporting the interface + factory. Larger services (`workout-library/`) split into multiple files (api/parser/template/render/loader/sync/library) — same pattern, more surface.
+- **Service modules** (`src/services/`) — every module, pure or Intervals.icu-backed, exposes an `IX` interface and a `createX()` factory returning it, is built in `createServices`, and reaches consumers through `deps`. Its `index.ts` exports only the interface, the factory and the types the interface uses; code outside the module imports nothing else (`npm run check:imports`, in the pre-commit hook). A module's own tests may reach its internals; other tests substitute it through `deps`. Larger modules (`workout-library/`, `track/`) split into multiple files or folders behind the same index. See `docs/adr/0014-modules-behind-interfaces.md`.
 - **Client** (`src/client.ts`) — `HttpClient` with Basic auth, rate limiting, injectable `fetchFn` for testing.
 - **Services** (`src/index.ts`) — the composition root: `createServices()` builds every service once and returns them as `IServices`, which every handler receives as `services`. It forwards nothing.
 - **Tool registry** (`src/registry.ts`) — the list of all Tools (`ToolDef[]`), one line each. Both adapters iterate it — see `docs/adr/0001-cli-adapter-and-tool-registry.md`.
@@ -15,14 +15,14 @@ MCP server and CLI tool for the Intervals.icu API plus tools and skills to suppo
 - **Tests** (`tests/`) — mirror `src/` structure. Use injectable fetch (not global mocks).
 - **Skill evals** (`evals/skills/`) — `npm run eval:skills` scores the coaching skills against recorded scenarios in the private `docs/personal/evals/`. **Manual only, and every run costs money** — never add it to `npm test`, the hook or the release, and don't run it unasked. See `docs/evals.md` and `docs/adr/0009-skill-evals.md`.
 
-New tools: `defineTool` in `src/tools/` → one line in `src/registry.ts` → both adapters pick it up. New behaviour gets a service with an interface, built in `createServices`.
+New tools: `defineTool` in `src/tools/` → one line in `src/registry.ts` → both adapters pick it up. New behaviour gets a module with an interface and factory, built in `createServices`.
 
 Domain vocabulary is defined once in `CONTEXT.md` — read it before naming something new.
 
 ## Ways of working
 
 - **Probe live before typing.** Before designing or implementing changes that touch Intervals.icu request bodies, response parsing, or query params, call a real endpoint and inspect the JSON — don't invent shapes from memory. The `intervals-api-research` skill holds the workflow and endpoint index.
-- **Commit straight to `main`.** Single-maintainer repo — no feature branches, no PRs; a husky pre-commit hook runs prettier, `tsc --noEmit`, and the full suite on every commit, so a commit that lands is already green.
+- **Commit straight to `main`.** Single-maintainer repo — no feature branches, no PRs; a husky pre-commit hook runs prettier, the import check, `tsc --noEmit`, and the full suite on every commit, so a commit that lands is already green.
 
 ## Config
 

@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import {
   computeMapZones,
   createAthleteAnchors,
-  createAthleteAnchorsFrom,
 } from "../../../src/services/athlete-anchors/index.js";
+import { createAthleteAnchorsFrom } from "../../../src/services/athlete-anchors/anchors.js";
 import type { IAthleteApi } from "../../../src/services/athlete/index.js";
 import type {
   Activity,

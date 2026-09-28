@@ -1,4 +1,4 @@
-export { Track, createTrack } from "./track.js";
+export { createTrack } from "./track.js";
 export type { TrackDeps } from "./track.js";
 export type { ITrack, TrackInput, TrackWriteInput } from "./types.js";
 export { TrackInputError } from "./input.js";

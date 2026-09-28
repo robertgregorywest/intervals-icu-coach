@@ -1,8 +1,8 @@
 import { vi } from "vitest";
 import { HttpClient } from "../../src/client.js";
-import { ActivitiesApi } from "../../src/services/activities/activities.js";
-import { EventsApi } from "../../src/services/events/events.js";
-import { createAthleteAnchorsFrom } from "../../src/services/athlete-anchors/index.js";
+import { createActivitiesApi } from "../../src/services/activities/index.js";
+import { createEventsApi } from "../../src/services/events/index.js";
+import { pinnedAnchors } from "./anchors.js";
 
 /**
  * The one fixture harness for the execution-review lenses: a fetch routed by
@@ -83,9 +83,9 @@ export type RoutedFetch = ReturnType<typeof routedFetch>;
 export function intervalsApis(fetchFn: RoutedFetch) {
   const httpClient = new HttpClient(config, fetchFn as never);
   return {
-    activitiesApi: new ActivitiesApi(httpClient, config.athleteId),
-    eventsApi: new EventsApi(httpClient, config.athleteId),
-    anchors: createAthleteAnchorsFrom({}),
+    activitiesApi: createActivitiesApi(httpClient, config.athleteId),
+    eventsApi: createEventsApi(httpClient, config.athleteId),
+    anchors: pinnedAnchors({}),
   };
 }
 

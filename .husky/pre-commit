@@ -1,3 +1,4 @@
 npx lint-staged
+npm run check:imports
 npm run typecheck
 npm run test

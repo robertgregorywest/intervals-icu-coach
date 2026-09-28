@@ -9,7 +9,7 @@ import {
 import { ExecutionReview } from "../../../../src/services/execution-review/execution-review.js";
 import { MAX_WINDOW_DAYS } from "../../../../src/services/execution-review/paired/window.js";
 import type { ZoneRow } from "../../../../src/services/athlete-anchors/index.js";
-import { createAthleteAnchorsFrom } from "../../../../src/services/athlete-anchors/index.js";
+import { pinnedAnchors } from "../../../helpers/anchors.js";
 
 function fixture(name: string) {
   const path = fileURLToPath(
@@ -33,7 +33,7 @@ function build(
 ) {
   return new ExecutionReview({
     ...intervalsApis(fetchFn),
-    anchors: createAthleteAnchorsFrom({
+    anchors: pinnedAnchors({
       athlete: async () => ({
         ftp: zones.ftp !== undefined ? zones.ftp : FRAME.ftp,
       }),

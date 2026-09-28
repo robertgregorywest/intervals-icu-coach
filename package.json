@@ -10,6 +10,7 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "check:manifest": "tsx scripts/check-manifest.ts",
+    "check:imports": "tsx scripts/check-imports.ts",
     "mcpb:pack": "mcpb pack",
     "prepare": "husky",
     "sandcastle": "npx tsx .sandcastle/main.ts",

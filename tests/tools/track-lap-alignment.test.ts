@@ -5,7 +5,7 @@ import { computeTrackLapPowerTool } from "../../src/tools/track-lap-alignment.js
 import { createTrack } from "../../src/services/track/index.js";
 import type { IServices } from "../../src/index.js";
 import type { IActivitiesApi } from "../../src/services/activities/index.js";
-import type { ActivityStreams } from "../../src/services/activities/types.js";
+import type { ActivityStreams } from "../../src/services/activities/index.js";
 
 function read(name: string) {
   return readFileSync(

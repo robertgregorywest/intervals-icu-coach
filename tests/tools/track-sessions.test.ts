@@ -6,7 +6,6 @@ import {
   compareTrackSessionsTool,
 } from "../../src/tools/track-sessions.js";
 import { createTrack } from "../../src/services/track/index.js";
-import { loadTrackSessionRecords } from "../../src/services/track/records/loader.js";
 import type { IActivitiesApi } from "../../src/services/activities/index.js";
 import type { IServices } from "../../src/index.js";
 
@@ -18,7 +17,7 @@ const FIXTURES = fileURLToPath(
 function fixtureServices(): IServices {
   const service = createTrack({
     activitiesApi: {} as IActivitiesApi,
-    load: () => loadTrackSessionRecords(FIXTURES),
+    recordsDir: FIXTURES,
   });
   return {
     track: {

@@ -17,7 +17,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { createTrack } from "../../../../src/services/track/index.js";
 import type { IActivitiesApi } from "../../../../src/services/activities/index.js";
-import type { ActivityStreams } from "../../../../src/services/activities/types.js";
+import type { ActivityStreams } from "../../../../src/services/activities/index.js";
 import type { TrackLapAlignmentResult } from "../../../../src/services/track/index.js";
 
 function read(name: string) {

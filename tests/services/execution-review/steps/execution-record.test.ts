@@ -11,7 +11,7 @@ import {
   executionCandidates,
   lapsToDeliveredIntervals,
 } from "../../../../src/services/execution-review/steps/delivered.js";
-import type { Activity } from "../../../../src/services/activities/types.js";
+import type { Activity } from "../../../../src/services/activities/index.js";
 import type { FitLap } from "../../../../src/services/fit/index.js";
 
 function fixturePath(name: string) {

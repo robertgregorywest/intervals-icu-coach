@@ -34,6 +34,8 @@ export interface TrackDeps {
   activitiesApi: IActivitiesApi;
   /** Overridden in tests; production reads the records directory. */
   load?: () => LoadedRecords;
+  /** Where `load` reads the records by default; overridden in tests. */
+  recordsDir?: string;
   /** Overridden in tests; production writes the file, creating its directory. */
   writeFile?: (path: string, bytes: Uint8Array) => Promise<void>;
 }
@@ -50,7 +52,7 @@ export class Track implements ITrack {
 
   constructor(deps: TrackDeps) {
     this.activitiesApi = deps.activitiesApi;
-    this.load = deps.load ?? (() => loadTrackSessionRecords());
+    this.load = deps.load ?? (() => loadTrackSessionRecords(deps.recordsDir));
     this.writeFile =
       deps.writeFile ??
       (async (path, bytes) => {
@@ -113,6 +115,6 @@ export class Track implements ITrack {
   }
 }
 
-export function createTrack(deps: TrackDeps): Track {
+export function createTrack(deps: TrackDeps): ITrack {
   return new Track(deps);
 }

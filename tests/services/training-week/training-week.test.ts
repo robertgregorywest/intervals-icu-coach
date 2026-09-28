@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { createAthleteAnchorsFrom } from "../../../src/services/athlete-anchors/index.js";
+import { pinnedAnchors } from "../../helpers/anchors.js";
 import { createTrainingWeek } from "../../../src/services/training-week/index.js";
 import type { TrainingWeekDeps } from "../../../src/services/training-week/index.js";
 
@@ -140,7 +140,7 @@ describe("TrainingWeek.getTrainingWeekSummary", () => {
 
     it("sums delivered seconds in 76-106% FTP from the power stream", async () => {
       const deps = createDeps();
-      deps.anchors = createAthleteAnchorsFrom({
+      deps.anchors = pinnedAnchors({
         athlete: async () => ({ ftp: 200 }),
       });
       deps.activitiesApi.getActivityStreams = vi
@@ -166,7 +166,7 @@ describe("TrainingWeek.getTrainingWeekSummary", () => {
 
     it("reports no middle band when FTP is unavailable", async () => {
       const deps = createDeps();
-      deps.anchors = createAthleteAnchorsFrom({
+      deps.anchors = pinnedAnchors({
         athlete: async () => ({ ftp: null }),
       });
       deps.activitiesApi.getActivityStreams = vi.fn();
