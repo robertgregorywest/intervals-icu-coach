@@ -1,5 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
 import { pinnedAnchors } from "../../helpers/anchors.js";
+import {
+  bucketDelivered,
+  middleBandBounds,
+} from "../../../src/services/execution-review/index.js";
 import { createTrainingWeek } from "../../../src/services/training-week/index.js";
 import type { TrainingWeekDeps } from "../../../src/services/training-week/index.js";
 
@@ -153,10 +157,16 @@ describe("TrainingWeek.getTrainingWeekSummary", () => {
       expect(result.middleBand).toMatchObject({
         lowPctFtp: 76,
         highPctFtp: 106,
-        lowW: 152,
-        highW: 212,
+        ftpRange: { min: 200, max: 200 },
+        excludedNoFtp: 0,
         seconds: 3,
         fractionOfPowerTime: 0.6,
+      });
+      expect(result.middleBand).not.toHaveProperty("note");
+      expect(result.completedActivities[0]).toMatchObject({
+        ftp: 200,
+        lowW: 152,
+        highW: 212,
       });
       // Only the ride carries power; the run is not fetched.
       expect(deps.activitiesApi.getActivityStreams).toHaveBeenCalledTimes(1);
@@ -177,8 +187,84 @@ describe("TrainingWeek.getTrainingWeekSummary", () => {
       expect(result.middleBand).toBeNull();
       expect(deps.activitiesApi.getActivityStreams).not.toHaveBeenCalled();
       expect(
-        result.completedActivities.every((a) => a.middleBandSeconds === null)
+        result.completedActivities.every(
+          (a) =>
+            a.middleBandSeconds === null && a.ftp === null && a.lowW === null
+        )
       ).toBe(true);
+    });
+
+    function twoRides(deps: TrainingWeekDeps, ftps: [unknown, unknown]) {
+      const ride = (id: string, icu_ftp: unknown) => ({
+        id,
+        start_date_local: "2026-04-27T07:00:00",
+        type: "Ride",
+        icu_average_watts: 180,
+        icu_ftp,
+      });
+      deps.activitiesApi.getActivities = vi
+        .fn()
+        .mockResolvedValue([ride("a", ftps[0]), ride("b", ftps[1])]);
+      deps.activitiesApi.getActivityStreams = vi
+        .fn()
+        .mockResolvedValue({ watts });
+    }
+
+    it("measures each ride against its own FTP across an FTP change", async () => {
+      const deps = createDeps();
+      deps.anchors = pinnedAnchors({ athlete: async () => ({ ftp: 250 }) });
+      twoRides(deps, [200, 250]);
+
+      const result =
+        await createTrainingWeek(deps).getTrainingWeekSummary("2026-04-27");
+
+      const [a, b] = result.completedActivities;
+      // 152..212 W at FTP 200 keeps 152, 180, 212; 190..265 W at 250 keeps 190+.
+      expect(a).toMatchObject({ ftp: 200, lowW: 152, highW: 212 });
+      expect(a.middleBandSeconds).toBe(3);
+      expect(b).toMatchObject({ ftp: 250, lowW: 190, highW: 265 });
+      expect(b.middleBandSeconds).toBe(2);
+      expect(result.middleBand).toMatchObject({
+        ftpRange: { min: 200, max: 250 },
+        seconds: 5,
+        excludedNoFtp: 0,
+      });
+      expect(result.middleBand?.note).toMatch(/FTP change/);
+    });
+
+    it("matches what the band lens computes for the same ride", async () => {
+      const deps = createDeps();
+      deps.anchors = pinnedAnchors({ athlete: async () => ({ ftp: 250 }) });
+      twoRides(deps, [200, 250]);
+
+      const result =
+        await createTrainingWeek(deps).getTrainingWeekSummary("2026-04-27");
+
+      const lens = (ftp: number) =>
+        bucketDelivered(watts, [], middleBandBounds(ftp)).middleBandSeconds;
+      expect(
+        result.completedActivities.map((a) => a.middleBandSeconds)
+      ).toEqual([lens(200), lens(250)]);
+    });
+
+    it("counts a power ride with no FTP instead of dropping it", async () => {
+      const deps = createDeps();
+      deps.anchors = pinnedAnchors({ athlete: async () => ({ ftp: null }) });
+      twoRides(deps, [200, undefined]);
+
+      const result =
+        await createTrainingWeek(deps).getTrainingWeekSummary("2026-04-27");
+
+      expect(result.middleBand).toMatchObject({
+        ftpRange: { min: 200, max: 200 },
+        excludedNoFtp: 1,
+        seconds: 3,
+      });
+      expect(result.completedActivities[1]).toMatchObject({
+        middleBandSeconds: null,
+        ftp: null,
+      });
+      expect(deps.activitiesApi.getActivityStreams).toHaveBeenCalledTimes(1);
     });
   });
 });

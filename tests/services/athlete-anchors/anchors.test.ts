@@ -235,6 +235,13 @@ describe("planFtp — the one event → ride → athlete order", () => {
     expect(await anchors.planFtp({ icu_ftp: 0 }, { icu_ftp: 0 })).toBe(286);
   });
 
+  it("skips the event term for a ride with no paired event", async () => {
+    const { anchors, reads } = anchorsAt(286);
+    expect(await anchors.planFtp(null, { icu_ftp: 320 })).toBe(320);
+    expect(reads()).toBe(0);
+    expect(await anchors.planFtp(null, null)).toBe(286);
+  });
+
   it("answers null rather than guessing", async () => {
     expect(await anchorsAt(null).anchors.planFtp({}, null)).toBeNull();
   });

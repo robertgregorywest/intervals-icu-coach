@@ -58,9 +58,12 @@ export interface IAthleteAnchors {
    * differently would judge a step against a different target than its
    * neighbour selected it by. The athlete is read only when neither half
    * carries one.
+   *
+   * A ride with no paired event passes `null`, which skips the event term —
+   * the ride's own FTP, then the athlete's.
    */
   planFtp(
-    event: Pick<IntervalsEvent, "icu_ftp">,
+    event: Pick<IntervalsEvent, "icu_ftp"> | null,
     ride: { icu_ftp?: unknown } | null | undefined
   ): Promise<number | null>;
   /**
