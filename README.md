@@ -1,6 +1,6 @@
-# intervals-icu-mcp
+# intervals-icu-coach
 
-An MCP (Model Context Protocol) server for accessing your [Intervals.icu](https://intervals.icu) training data. Works with Claude Desktop and other MCP-compatible clients.
+An MCP server, CLI and set of coaching skills for your [Intervals.icu](https://intervals.icu) training data. The MCP server works with Claude Desktop and other MCP-compatible clients; the CLI and skills power a coach mode in Claude Code.
 
 ## Features
 
@@ -14,7 +14,7 @@ An MCP (Model Context Protocol) server for accessing your [Intervals.icu](https:
 
 ### One-Click Install (Claude Desktop)
 
-1. Download the latest `.mcpb` file from [Releases](https://github.com/robertgregorywest/intervals-icu-mcp/releases)
+1. Download the latest `.mcpb` file from [Releases](https://github.com/robertgregorywest/intervals-icu-coach/releases)
 2. Double-click the `.mcpb` file — Claude Desktop will open and prompt you to install
 3. Enter your Intervals.icu API key when prompted (find it under **Settings → API**)
 
@@ -27,8 +27,8 @@ Requires **Node.js 20+**.
 1. Clone and build:
 
    ```bash
-   git clone https://github.com/robertgregorywest/intervals-icu-mcp.git
-   cd intervals-icu-mcp
+   git clone https://github.com/robertgregorywest/intervals-icu-coach.git
+   cd intervals-icu-coach
    npm install
    npm run build
    ```
@@ -40,7 +40,7 @@ Requires **Node.js 20+**.
      "mcpServers": {
        "intervals-icu": {
          "command": "node",
-         "args": ["/absolute/path/to/intervals-icu-mcp/dist/mcp/stdio.js"],
+         "args": ["/absolute/path/to/intervals-icu-coach/dist/mcp/stdio.js"],
          "env": {
            "INTERVALS_API_KEY": "your-api-key"
          }
@@ -95,8 +95,8 @@ Requires **Node.js 20+**.
 The MCP server covers the Intervals.icu interaction — the tools above, in any MCP client. Coach mode is the layer above it: Claude Code skills (`coaching-session`, `plan-workout`, `plan-strength-training` and the forked skills they delegate to) that reach Intervals.icu through the repo's `./bin/icu` CLI and read and write your personal files in `docs/personal/`. They need the repo itself, so coach mode means working from a clone:
 
 ```bash
-git clone https://github.com/robertgregorywest/intervals-icu-mcp.git
-cd intervals-icu-mcp
+git clone https://github.com/robertgregorywest/intervals-icu-coach.git
+cd intervals-icu-coach
 npm install
 cp .env.example .env   # then set INTERVALS_API_KEY — ./bin/icu loads it
 claude                 # run Claude Code from the repo root
@@ -119,7 +119,7 @@ The durable coaching **philosophy is tracked in git** as the `coaching-philosoph
 
 ## Workout library
 
-`intervals-icu-mcp` treats your Intervals.icu library (the saved-workouts feature) as a first-class template store the LLM can read and write:
+`intervals-icu-coach` treats your Intervals.icu library (the saved-workouts feature) as a first-class template store the LLM can read and write:
 
 - **Browse**: `list_workout_library` returns folders plus, for each workout, a one-line summary, a `purpose` saying what it is _for_, and `hasTemplate` marking the ones sync maintains. `get_workout_library_item` returns the full body and its `seedId`.
 - **Author**: write a Markdown file in [`templates/workouts/`](templates/workouts/) — frontmatter (`seedId`, `name`, `folder`, `purpose`, optional `basis`) plus a body in Intervals.icu step syntax. A bare `%` is resolved against `basis` at render; literal watts, zones, `% LTHR` and cadence pass through untouched. Repeats may nest by indentation.

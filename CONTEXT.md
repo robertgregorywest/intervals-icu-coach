@@ -1,4 +1,4 @@
-# intervals-icu-mcp
+# intervals-icu-coach
 
 A server exposing Intervals.icu operations and agentic-coaching tools. The same operations are surfaced through more than one transport, so the vocabulary below separates an operation from the surfaces that project it.
 

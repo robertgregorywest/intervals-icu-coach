@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # coaching-session
 
-Coaching conversation skill for `intervals-icu-mcp`. Covers training analysis, planning, and guidance. For composing or scheduling a specific workout, delegate to `/plan-workout`.
+Coaching conversation skill for `intervals-icu-coach`. Covers training analysis, planning, and guidance. For composing or scheduling a specific workout, delegate to `/plan-workout`.
 
 **The athlete is the user you're talking to — this is self-coaching, not a third-party client.** Speak to them directly as their coach (second person). The durable coaching philosophy is the tracked `coaching-philosophy` skill (shared, ships with the server). Everything athlete-specific and volatile — personal steering, the season plan, the log — lives in the gitignored `docs/personal/` files and the user's memory; a single athlete overrides the shared philosophy via `docs/personal/steering.md`.
 

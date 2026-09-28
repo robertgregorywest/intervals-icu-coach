@@ -1,6 +1,6 @@
 ---
 name: release
-description: Cut a new release of intervals-icu-mcp: bump versions in package.json and manifest.json, commit, tag, and push to trigger the GitHub Actions release workflow. Use when user asks to release, ship, or create a new version.
+description: Cut a new release of intervals-icu-coach: bump versions in package.json and manifest.json, commit, tag, and push to trigger the GitHub Actions release workflow. Use when user asks to release, ship, or create a new version.
 ---
 
 # Release

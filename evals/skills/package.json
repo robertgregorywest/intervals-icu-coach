@@ -1,5 +1,5 @@
 {
-  "name": "intervals-icu-mcp-skill-evals",
+  "name": "intervals-icu-coach-skill-evals",
   "private": true,
   "description": "Manual skill evals for the coaching skills (issue #20). Kept out of the server's dependencies, build and release.",
   "type": "module",

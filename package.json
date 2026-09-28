@@ -1,7 +1,7 @@
 {
-  "name": "intervals-icu-mcp",
+  "name": "intervals-icu-coach",
   "version": "0.7.0",
-  "description": "MCP server for the Intervals.icu API",
+  "description": "MCP server, CLI and coaching skills for Intervals.icu",
   "type": "module",
   "scripts": {
     "build": "tsc",
@@ -32,7 +32,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/robertgregorywest/intervals-icu-mcp.git"
+    "url": "git+https://github.com/robertgregorywest/intervals-icu-coach.git"
   },
   "engines": {
     "node": ">=20.0.0"

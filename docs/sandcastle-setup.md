@@ -91,7 +91,7 @@ worse by giving the Linux volume parser a malformed spec:
 
 ```
 docker: Error response from daemon: invalid volume specification:
-'C:/GitHub/.../intervals-icu-mcp:/home/agent/workspace:z'
+'C:/GitHub/.../intervals-icu-coach:/home/agent/workspace:z'
 ```
 
 Run from inside WSL and `process.cwd()` becomes a native Linux path the daemon
@@ -101,13 +101,13 @@ SELinux). **No code change is needed** — leave `selinuxLabel` at its default i
 
 Reference layout for that machine:
 
-| Thing          | Value                                                      |
-| -------------- | ---------------------------------------------------------- |
-| WSL distro     | `aurora_wsl` (hostname `AER-OXF-DEV-RWE`)                  |
-| Repo (primary) | `~/personal/intervals-icu-mcp` on the distro's native ext4 |
-| Docker         | Linux daemon in `aurora_wsl`, reached via local socket     |
-| `DOCKER_HOST`  | unset inside the distro (uses the socket — leave it unset) |
-| Node           | v22 at `~/.local/node` (per-user, no sudo)                 |
+| Thing          | Value                                                        |
+| -------------- | ------------------------------------------------------------ |
+| WSL distro     | `aurora_wsl` (hostname `AER-OXF-DEV-RWE`)                    |
+| Repo (primary) | `~/personal/intervals-icu-coach` on the distro's native ext4 |
+| Docker         | Linux daemon in `aurora_wsl`, reached via local socket       |
+| `DOCKER_HOST`  | unset inside the distro (uses the socket — leave it unset)   |
+| Node           | v22 at `~/.local/node` (per-user, no sudo)                   |
 
 `~/.local/node/bin` is prepended to `PATH` in both `~/.bashrc` and `~/.profile`,
 so login terminals use this Node rather than the Windows `fnm`/`nvm` install
@@ -119,7 +119,7 @@ Use the **WSL** extension (`ms-vscode-remote.remote-wsl`) so VS Code edits the
 native Linux files directly:
 
 ```bash
-cd ~/personal/intervals-icu-mcp
+cd ~/personal/intervals-icu-coach
 code .             # opens a "[WSL: aurora_wsl]" window
 ```
 
@@ -167,9 +167,9 @@ Windows-side over 9p (slow, and the terminal isn't in the distro).
    haven't set that up.
    ```bash
    mkdir -p ~/personal
-   git clone git@github.com-personal:robertgregorywest/intervals-icu-mcp.git \
-     ~/personal/intervals-icu-mcp
-   cd ~/personal/intervals-icu-mcp && npm install
+   git clone git@github.com-personal:robertgregorywest/intervals-icu-coach.git \
+     ~/personal/intervals-icu-coach
+   cd ~/personal/intervals-icu-coach && npm install
    ```
 3. Create `.sandcastle/.env` from the example and fill in the tokens.
 4. **Verify** the daemon is reachable from the distro:
@@ -181,7 +181,7 @@ Windows-side over 9p (slow, and the terminal isn't in the distro).
 
 - **`invalid volume specification ... :z`** — you're running from a host whose
   path format the Docker daemon doesn't understand. On WSL with a Linux-hosted
-  daemon, `cd ~/personal/intervals-icu-mcp` inside the distro and re-run. On
+  daemon, `cd ~/personal/intervals-icu-coach` inside the distro and re-run. On
   macOS / native Linux this shouldn't happen with the default config.
 - **`npm` resolves to a Windows version (wrong number)** _(WSL only)_ — your
   shell picked up the leaked Windows Node via `/mnt/c`. Confirm

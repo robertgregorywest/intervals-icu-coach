@@ -5,7 +5,7 @@ description: Plan a single cycling/running workout on Intervals.icu — decide t
 
 # plan-workout
 
-Workout-planning skill for the `intervals-icu-mcp` server. Activates when the user asks for a workout — planning, building, scheduling, designing intervals — for Intervals.icu.
+Workout-planning skill for the `intervals-icu-coach` project. Activates when the user asks for a workout — planning, building, scheduling, designing intervals — for Intervals.icu.
 
 ## Decide here, build in the fork
 

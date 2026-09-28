@@ -35,7 +35,7 @@ jobs:
         run: npm install -g @anthropic-ai/mcpb
 
       - name: Pack MCPB bundle
-        run: mcpb pack && mcpb clean intervals-icu-mcp.mcpb
+        run: mcpb pack . intervals-icu-coach.mcpb && mcpb clean intervals-icu-coach.mcpb
 
       - name: Get bundle filename
         id: bundle

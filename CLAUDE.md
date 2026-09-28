@@ -1,4 +1,4 @@
-# intervals-icu-mcp
+# intervals-icu-coach
 
 MCP server and CLI tool for the Intervals.icu API plus tools and skills to support agentic coaching.
 
@@ -35,7 +35,7 @@ Domain vocabulary is defined once in `CONTEXT.md` — read it before naming some
 
 ### Issue tracker
 
-Issues live in GitHub Issues for `robertgregorywest/intervals-icu-mcp` (use the `gh` CLI). See `docs/agents/issue-tracker.md`.
+Issues live in GitHub Issues for `robertgregorywest/intervals-icu-coach` (use the `gh` CLI). See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 

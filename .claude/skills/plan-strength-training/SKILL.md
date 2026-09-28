@@ -5,7 +5,7 @@ description: Plan a gym / strength session on Intervals.icu — decide block dos
 
 # plan-strength-training
 
-Strength-and-conditioning skill for the `intervals-icu-mcp` server. Decides the gym session and
+Strength-and-conditioning skill for the `intervals-icu-coach` project. Decides the gym session and
 hands the build to the forked **`compose-strength-session`** skill, which schedules it as a
 `WeightTraining` event. It is the strength sibling of `plan-workout` (which handles bike/run
 workouts).

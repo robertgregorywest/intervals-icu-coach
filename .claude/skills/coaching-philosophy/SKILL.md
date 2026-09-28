@@ -5,7 +5,7 @@ description: The athlete's durable cycling coaching philosophy — foundational 
 
 # coaching-philosophy
 
-Timeless coaching principles for `intervals-icu-mcp`. Edit this skill when beliefs about
+Timeless coaching principles for `intervals-icu-coach`. Edit this skill when beliefs about
 _training itself_ change — not every season. It is the **base truth**; a personal override layer
 in `docs/personal/steering.md` adjusts or supersedes it per-athlete and **wins on conflict**, and
 `docs/personal/season.md` carries the current block. Durable insight proven in steering graduates
