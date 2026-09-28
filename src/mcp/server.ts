@@ -24,7 +24,7 @@ const INSTRUCTIONS =
 export function createMcpServer(services: IServices): McpServer {
   const server = new McpServer(
     {
-      name: "intervals-icu-mcp",
+      name: "intervals-icu-coach",
       version,
     },
     { instructions: INSTRUCTIONS }

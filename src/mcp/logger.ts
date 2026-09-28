@@ -6,7 +6,7 @@ export function logResponse(
   const preview =
     content.length > 200 ? content.slice(0, 200) + "..." : content;
   console.error(
-    `[intervals-icu-mcp] ${toolName} (${durationMs}ms): ${preview}`
+    `[intervals-icu-coach] ${toolName} (${durationMs}ms): ${preview}`
   );
 }
 
@@ -16,6 +16,6 @@ export function logError(
   durationMs: number
 ): void {
   console.error(
-    `[intervals-icu-mcp] ${toolName} FAILED (${durationMs}ms): ${error.message}`
+    `[intervals-icu-coach] ${toolName} FAILED (${durationMs}ms): ${error.message}`
   );
 }

@@ -9,7 +9,7 @@ async function main() {
   try {
     services = createServices();
   } catch (error) {
-    console.error("[intervals-icu-mcp] Failed to create services:", error);
+    console.error("[intervals-icu-coach] Failed to create services:", error);
     process.exit(1);
   }
 
@@ -28,6 +28,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error("[intervals-icu-mcp] Fatal:", error);
+  console.error("[intervals-icu-coach] Fatal:", error);
   process.exit(1);
 });
