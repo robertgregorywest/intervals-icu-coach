@@ -15,6 +15,7 @@ import type {
   IPowerCurvesApi,
   PeakSet,
 } from "../../../src/services/power-curves/index.js";
+import { stubActivitiesApi } from "../../helpers/stub-activities-api.js";
 
 const ATHLETE: Partial<AthleteProfile> = {
   id: "i1",
@@ -44,10 +45,10 @@ function fakeAthlete(profile: Partial<AthleteProfile> = ATHLETE): IAthleteApi {
 }
 
 function fakeActivities(): IActivitiesApi {
-  return {
+  return stubActivitiesApi({
     getActivities: async () => [
       {
-        id: 1,
+        id: "1",
         name: "MAP ramp test",
         start_date_local: "2026-04-01T10:00:00",
       } as Activity,
@@ -58,7 +59,7 @@ function fakeActivities(): IActivitiesApi {
       for (let i = 700; i < 760; i++) watts[i] = 380;
       return { watts } as ActivityStreams;
     },
-  };
+  });
 }
 
 function fakePowerCurves(peaks: PeakSet): IPowerCurvesApi {
@@ -136,11 +137,11 @@ describe("resolveInputs", () => {
   });
 
   it("warns when MAP cannot be derived and no override given", async () => {
-    const noActivities: IActivitiesApi = {
+    const noActivities = stubActivitiesApi({
       getActivities: async () => [],
       getActivity: async () => ({}) as Activity,
       getActivityStreams: async () => ({}) as ActivityStreams,
-    };
+    });
 
     const inputs = await resolveInputs(
       {

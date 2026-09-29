@@ -4,9 +4,9 @@ import { createExecutionReview } from "../../../src/services/execution-review/in
 import { pinnedAnchors } from "../../helpers/anchors.js";
 import type {
   Activity,
-  FitLap,
   IActivitiesApi,
 } from "../../../src/services/activities/index.js";
+import type { FitLap } from "../../../src/services/fit/index.js";
 import type { IEventsApi } from "../../../src/services/events/index.js";
 import type { IntervalsEvent, PlannedDocStep } from "../../../src/types.js";
 import { createWorkoutParser } from "../../../src/services/workout-parser/index.js";

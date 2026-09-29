@@ -1,5 +1,5 @@
 import { parseArgs } from "node:util";
-import { zodToJsonSchema } from "zod-to-json-schema";
+import { z } from "zod";
 import type { IServices } from "../index.js";
 import { TOOLS } from "../registry.js";
 import { formatToolError } from "../errors.js";
@@ -75,7 +75,7 @@ export async function runCli(
       name: t.name,
       description: t.description,
       annotations: t.annotations,
-      inputSchema: zodToJsonSchema(t.schema),
+      inputSchema: z.toJSONSchema(t.schema, { io: "input" }),
     }));
 
     io.stdout(serialize({ tools }, io.isTTY));

@@ -23,7 +23,7 @@ Domain vocabulary is defined once in `CONTEXT.md` — read it before naming some
 ## Ways of working
 
 - **Probe live before typing.** Before designing or implementing changes that touch Intervals.icu request bodies, response parsing, or query params, call a real endpoint and inspect the JSON — don't invent shapes from memory. The `intervals-api-research` skill holds the workflow and endpoint index.
-- **Commit straight to `main`.** Single-maintainer repo — no feature branches, no PRs; a husky pre-commit hook runs prettier, the import check, `tsc --noEmit`, and the full suite on every commit, so a commit that lands is already green.
+- **Commit straight to `main`.** Single-maintainer repo — no feature branches, no PRs; a husky pre-commit hook runs prettier, the import check, `npm run typecheck` (`src/`, then `tests/` and `evals/` via `tsconfig.test.json`), and the full suite on every commit, so a commit that lands is already green.
 
 ## Config
 

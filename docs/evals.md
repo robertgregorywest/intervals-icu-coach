@@ -61,8 +61,9 @@ docs/personal/evals/scenarios/plan-workout/pw-replace-sat-19/
 ## Setup
 
 - **Claude login.** The Agent SDK uses your Claude Code login, so no API key is needed.
-- **Eval dependencies.** They have their own `package.json` so they stay out of the server's
-  dependencies. Install them once with `npm install --prefix evals/skills`.
+- **Eval dependencies.** `@anthropic-ai/claude-agent-sdk` and `yaml` are root devDependencies, so
+  `npm install` brings them and `npm run typecheck` checks `evals/` with the rest. `mcpb clean`
+  strips devDependencies from the bundle, so they never ship.
 - **`.env`.** Recording needs `INTERVALS_API_KEY` in `.env`. Replay reads only
   `INTERVALS_ATHLETE_ID`, because cassette keys contain the athlete id.
 

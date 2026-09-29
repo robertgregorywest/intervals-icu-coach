@@ -166,10 +166,13 @@ describe("deriveRun — Nationals 2026, the prose oracle", () => {
 
   // track-context.md §5: Σv² 1707.29, RMS 15.617, flat 112.06, gain 0.15 s.
   it("reproduces the Σv² pacing figures", () => {
-    expect(run.summary.pacing.sumSquaredSpeed).toBeCloseTo(1707.29, 2);
-    expect(run.summary.pacing.rmsSpeedMetersPerSecond).toBeCloseTo(15.617, 3);
-    expect(run.summary.pacing.flatEquivalentTimeSeconds).toBeCloseTo(112.06, 2);
-    expect(run.summary.pacing.gainSeconds).toBeCloseTo(0.15, 2);
+    expect(run.summary.pacing?.sumSquaredSpeed).toBeCloseTo(1707.29, 2);
+    expect(run.summary.pacing?.rmsSpeedMetersPerSecond).toBeCloseTo(15.617, 3);
+    expect(run.summary.pacing?.flatEquivalentTimeSeconds).toBeCloseTo(
+      112.06,
+      2
+    );
+    expect(run.summary.pacing?.gainSeconds).toBeCloseTo(0.15, 2);
   });
 
   it("keeps rounding out of the aggregates it feeds", () => {
@@ -193,7 +196,7 @@ describe("deriveRun — Nationals 2025", () => {
     expect(run.summary.opening?.timeSeconds).toBeCloseTo(46.72, 2);
     expect(run.summary.closing?.timeSeconds).toBeCloseTo(48.84, 2);
     expect(run.summary.declineRatio).toBeCloseTo(-0.125, 3);
-    expect(run.summary.pacing.gainSeconds).toBeCloseTo(0.08, 2);
+    expect(run.summary.pacing?.gainSeconds).toBeCloseTo(0.08, 2);
   });
 });
 

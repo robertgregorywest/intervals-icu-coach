@@ -34,10 +34,14 @@ function makeActivity(
     max_watts: 600,
     icu_intervals: intervals.map((i, idx) => ({
       id: idx,
+      type: "WORK",
       label: `Interval ${idx + 1}`,
+      group_id: null,
       start_index: 0,
       end_index: 100,
+      start_time: 0,
       distance: 1000,
+      max_heartrate: i.average_heartrate,
       ...i,
     })),
   };

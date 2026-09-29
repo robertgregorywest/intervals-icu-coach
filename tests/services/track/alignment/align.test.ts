@@ -6,6 +6,7 @@ import { TrackAlignmentError } from "../../../../src/services/track/alignment/al
 import type { IActivitiesApi } from "../../../../src/services/activities/index.js";
 import type { ActivityStreams } from "../../../../src/services/activities/index.js";
 import { createFitCodec } from "../../../../src/services/fit/index.js";
+import { stubActivitiesApi } from "../../../helpers/stub-activities-api.js";
 
 function read(name: string) {
   return readFileSync(
@@ -20,14 +21,11 @@ const SESSION = JSON.parse(read("track-session-2026-08-08.json"));
 const SPLITS = read("splits-2026-08-08.csv");
 
 function apiReturning(streams: Partial<ActivityStreams>): IActivitiesApi {
-  return {
+  return stubActivitiesApi({
     getActivities: async () => [],
-    getActivity: async () => {
-      throw new Error("not used");
-    },
     getActivityLaps: async () => null,
     getActivityStreams: async () => streams as ActivityStreams,
-  };
+  });
 }
 
 const fullStreams = {

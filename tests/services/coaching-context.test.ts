@@ -19,6 +19,7 @@ import type {
   IPowerCurvesApi,
   PeakSet,
 } from "../../src/services/power-curves/index.js";
+import { stubActivitiesApi } from "../helpers/stub-activities-api.js";
 
 function fakeAthleteApi(profile: Partial<AthleteProfile>): IAthleteApi {
   return {
@@ -33,11 +34,11 @@ function fakeWellnessApi(records: Partial<WellnessRecord>[]): IWellnessApi {
   };
 }
 
-const emptyActivitiesApi: IActivitiesApi = {
+const emptyActivitiesApi: IActivitiesApi = stubActivitiesApi({
   getActivities: async () => [],
   getActivity: async () => ({}) as Activity,
   getActivityStreams: async () => ({}) as ActivityStreams,
-};
+});
 
 const emptyPowerCurvesApi: IPowerCurvesApi = {
   getPowerCurve: async () => [],
@@ -52,11 +53,11 @@ function fakeActivitiesApi(
   activities: Partial<Activity>[],
   streams: Partial<ActivityStreams>
 ): IActivitiesApi {
-  return {
+  return stubActivitiesApi({
     getActivities: async () => activities as Activity[],
     getActivity: async () => activities[0] as Activity,
     getActivityStreams: async () => streams as ActivityStreams,
-  };
+  });
 }
 
 describe("buildCoachingContext", () => {
@@ -196,7 +197,7 @@ describe("buildCoachingContext", () => {
     const activitiesApi = fakeActivitiesApi(
       [
         {
-          id: 1,
+          id: "1",
           name: "MAP ramp test 2026-04-30",
           start_date_local: "2026-04-30T10:00:00",
         },

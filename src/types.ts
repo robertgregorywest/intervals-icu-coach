@@ -64,6 +64,9 @@ export interface PlannedDocStep {
   cadence?: PlannedCadence;
   reps?: number;
   steps?: PlannedDocStep[];
+  /** Set on the steps under a `Warmup` or `Cooldown` section header. */
+  warmup?: true;
+  cooldown?: true;
 }
 
 export interface WorkoutDoc {

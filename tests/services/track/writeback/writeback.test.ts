@@ -5,12 +5,14 @@ import { createTrack } from "../../../../src/services/track/index.js";
 import type { TrackLapAlignmentResult } from "../../../../src/services/track/index.js";
 import { writeTrackRuns } from "../../../../src/services/track/writeback/writeback.js";
 import type {
+  ActivityInterval,
   ActivityIntervalsDoc,
   ActivityStreams,
   IActivitiesApi,
   IntervalWrite,
 } from "../../../../src/services/activities/index.js";
 import { createFitCodec } from "../../../../src/services/fit/index.js";
+import { stubActivitiesApi } from "../../../helpers/stub-activities-api.js";
 
 function read(name: string) {
   return readFileSync(
@@ -32,6 +34,30 @@ const fullStreams: Partial<ActivityStreams> = {
   heartrate: SESSION.heartrate,
 };
 
+/** An interval as the platform reads it back; writeback only counts them. */
+function platformInterval(
+  start_index: number,
+  end_index: number,
+  label = ""
+): ActivityInterval {
+  return {
+    id: 0,
+    type: "WORK",
+    label,
+    group_id: null,
+    start_index,
+    end_index,
+    start_time: 0,
+    elapsed_time: end_index - start_index,
+    distance: 0,
+    average_watts: 300,
+    max_watts: 300,
+    average_heartrate: 0,
+    max_heartrate: 0,
+    average_cadence: 0,
+  };
+}
+
 /**
  * A stand-in for the platform that behaves as the live probe showed it does:
  * a write replaces the whole set, and every stretch left uncovered comes back
@@ -42,49 +68,44 @@ function fakeApi(
   startingIntervals = 18
 ) {
   let current = Array.from({ length: startingIntervals }, (_, i) => ({
+    ...platformInterval(i * 10, (i + 1) * 10),
     id: i,
-    label: null,
-    start_index: i * 10,
-    end_index: (i + 1) * 10,
   }));
 
   const replace = vi.fn(async (_id: string, intervals: IntervalWrite[]) => {
     const sampleCount = streams.time?.length ?? 0;
-    const backfilled: unknown[] = [];
+    const backfilled: ActivityInterval[] = [];
     let cursor = 0;
     for (const interval of intervals) {
       if (interval.start_index > cursor) {
-        backfilled.push({
-          label: null,
-          start_index: cursor,
-          end_index: interval.start_index,
-        });
+        backfilled.push(platformInterval(cursor, interval.start_index));
       }
-      backfilled.push({ ...interval, average_watts: 300 });
+      backfilled.push(
+        platformInterval(
+          interval.start_index,
+          interval.end_index,
+          interval.label
+        )
+      );
       cursor = interval.end_index;
     }
     if (cursor < sampleCount) {
-      backfilled.push({
-        label: null,
-        start_index: cursor,
-        end_index: sampleCount,
-      });
+      backfilled.push(platformInterval(cursor, sampleCount));
     }
-    current = backfilled as typeof current;
-    return { id: ACTIVITY, icu_intervals: current } as ActivityIntervalsDoc;
+    current = backfilled;
+    return { id: ACTIVITY, icu_intervals: current };
   });
 
-  const api: IActivitiesApi = {
+  const api = stubActivitiesApi({
     getActivities: async () => [],
-    getActivity: async () => {
-      throw new Error("not used");
-    },
     getActivityLaps: async () => null,
     getActivityStreams: async () => streams as ActivityStreams,
-    getActivityIntervals: async () =>
-      ({ id: ACTIVITY, icu_intervals: current }) as ActivityIntervalsDoc,
+    getActivityIntervals: async (): Promise<ActivityIntervalsDoc> => ({
+      id: ACTIVITY,
+      icu_intervals: current,
+    }),
     replaceActivityIntervals: replace,
-  };
+  });
 
   return { api, replace, written: () => current };
 }

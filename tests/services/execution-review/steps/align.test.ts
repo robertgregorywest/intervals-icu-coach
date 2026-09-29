@@ -10,6 +10,7 @@ import {
 import { readPlannedSteps } from "../../../helpers/planned-steps.js";
 import { toDeliveredIntervals } from "../../../../src/services/execution-review/steps/review.js";
 import type { DeliveredInterval } from "../../../../src/services/execution-review/steps/types.js";
+import type { PlannedStep } from "../../../../src/services/prescription/index.js";
 
 function fixture(name: string) {
   const path = fileURLToPath(
@@ -40,7 +41,7 @@ describe("matchScore", () => {
   it("scores an exact duration match at 1", () => {
     expect(
       matchScore(
-        { index: 0, sourceIndex: 0, durationSeconds: 300 },
+        { index: 0, sourceIndex: 0, role: "work", durationSeconds: 300 },
         interval(0, 300)
       )
     ).toBe(1);
@@ -50,7 +51,7 @@ describe("matchScore", () => {
     // 720s prescribed against a 240s lap — a third of the length.
     expect(
       matchScore(
-        { index: 0, sourceIndex: 0, durationSeconds: 720 },
+        { index: 0, sourceIndex: 0, role: "work", durationSeconds: 720 },
         interval(0, 240)
       )
     ).toBeNull();
@@ -58,12 +59,17 @@ describe("matchScore", () => {
 
   it("refuses a step with no duration to align on", () => {
     expect(
-      matchScore({ index: 0, sourceIndex: 0 }, interval(0, 300))
+      matchScore({ index: 0, sourceIndex: 0, role: "work" }, interval(0, 300))
     ).toBeNull();
   });
 
   it("falls to zero exactly at the floor", () => {
-    const planned = { index: 0, sourceIndex: 0, durationSeconds: 100 };
+    const planned: PlannedStep = {
+      index: 0,
+      sourceIndex: 0,
+      role: "work",
+      durationSeconds: 100,
+    };
     const atFloor = 100 * (1 - MAX_RELATIVE_DURATION_DIFF);
     expect(matchScore(planned, interval(0, atFloor))).toBeCloseTo(
       1 - (100 - atFloor) / 100 / MAX_RELATIVE_DURATION_DIFF,

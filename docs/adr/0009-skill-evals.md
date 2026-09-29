@@ -66,9 +66,10 @@ under a cost ceiling.
 
 ## Consequences
 
-- The eval dependencies (`evals/skills/package.json`) stay out of the server's dependency tree, so
-  `evals/skills` is type-checked by `npm run eval:typecheck`, not by the hook, which would fail on
-  a clone without them installed.
+- The eval dependencies are root devDependencies, so `npm run typecheck` (and so the hook) checks
+  `evals/` along with `src/` and `tests/`, and `mcpb clean` keeps them out of the bundle. They
+  began in their own `evals/skills/package.json`, type-checked only by hand; #48 folded them in,
+  which meant moving the server to zod 4, the Agent SDK's peer.
 - A skill that reaches Intervals.icu other than through `bin/icu` would escape replay.
 - Claude Code's own system prompt carries the real date; the appended scenario date and `ICU_NOW`
   dominate in practice, and the date-bearing graders would show it if they stopped doing so.

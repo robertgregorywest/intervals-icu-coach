@@ -16,10 +16,10 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { createTrack } from "../../../../src/services/track/index.js";
-import type { IActivitiesApi } from "../../../../src/services/activities/index.js";
 import type { ActivityStreams } from "../../../../src/services/activities/index.js";
 import type { TrackLapAlignmentResult } from "../../../../src/services/track/index.js";
 import { createFitCodec } from "../../../../src/services/fit/index.js";
+import { stubActivitiesApi } from "../../../helpers/stub-activities-api.js";
 
 function read(name: string) {
   return readFileSync(
@@ -47,11 +47,8 @@ let result: TrackLapAlignmentResult;
 
 async function align() {
   if (result) return result;
-  const activitiesApi: IActivitiesApi = {
+  const activitiesApi = stubActivitiesApi({
     getActivities: async () => [],
-    getActivity: async () => {
-      throw new Error("not used");
-    },
     getActivityLaps: async () => null,
     getActivityStreams: async () =>
       ({
@@ -60,7 +57,7 @@ async function align() {
         cadence: SESSION.cadence,
         heartrate: SESSION.heartrate,
       }) as ActivityStreams,
-  };
+  });
   result = await createTrack({ activitiesApi, fit: createFitCodec() }).align({
     activityId: "i164949895",
     splits: SPLITS,

@@ -52,6 +52,7 @@ const getTrainingWeekSummaryOutputSchema = z.object({
     })
     .nullable(),
   bySport: z.record(
+    z.string(),
     z.object({
       count: z.number(),
       tss: z.number(),

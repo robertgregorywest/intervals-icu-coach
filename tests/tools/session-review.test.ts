@@ -22,6 +22,7 @@ const result: PlannedVsActualResult = {
   tolerance: 0.05,
   alignmentBasis: "sequential",
   matchedFraction: 1,
+  executionRecord: "detected-intervals",
   steps: [],
   rollup: { unplannedIntervals: [] },
 };

@@ -73,7 +73,7 @@ function build(stub: StubOptions = {}) {
     }));
   const events = stub.events ?? [];
 
-  const fetchFn = vi.fn(async (url: string) => {
+  const fetchFn = vi.fn(async (url: string, _init?: RequestInit) => {
     const body = /\/wellness\?/.test(url)
       ? (wellness as unknown[]).filter((w) => {
           const record = w as { id: string };
@@ -428,8 +428,7 @@ describe("forecast — refusals and read-only behaviour", () => {
       sessions: [{ date: "2026-08-12", description: "- 60m 200w" }],
     });
     for (const call of fetchFn.mock.calls) {
-      const init = call[1] as { method?: string } | undefined;
-      expect(init?.method ?? "GET").toBe("GET");
+      expect(call[1]?.method ?? "GET").toBe("GET");
     }
   });
 

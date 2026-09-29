@@ -5,12 +5,13 @@ import type {
   ActivityStreams,
   IActivitiesApi,
 } from "../../src/services/activities/index.js";
+import { stubActivitiesApi } from "../helpers/stub-activities-api.js";
 
 function fakeActivitiesApi(
   activities: Partial<Activity>[] = [],
   streamsById: Record<string, Partial<ActivityStreams>> = {}
 ): IActivitiesApi {
-  return {
+  return stubActivitiesApi({
     getActivities: async () => activities as Activity[],
     getActivity: async (id) => {
       const found = activities.find((a) => String(a.id) === String(id));
@@ -18,7 +19,7 @@ function fakeActivitiesApi(
     },
     getActivityStreams: async (id) =>
       (streamsById[String(id)] ?? {}) as ActivityStreams,
-  };
+  });
 }
 
 function makeRampStream(secs: number, peakStartIdx: number): number[] {
@@ -206,13 +207,13 @@ describe("IMap.deriveLatest", () => {
   });
 
   it("returns null + warning when getActivities throws", async () => {
-    const activitiesApi: IActivitiesApi = {
+    const activitiesApi = stubActivitiesApi({
       getActivities: async () => {
         throw new Error("boom");
       },
       getActivity: async () => ({}) as Activity,
       getActivityStreams: async () => ({}) as ActivityStreams,
-    };
+    });
 
     const result = await createMap({ activitiesApi }).deriveLatest(
       "2026-05-09"

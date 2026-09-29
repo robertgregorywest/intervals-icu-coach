@@ -60,9 +60,8 @@ describe("getActivity tool handler", () => {
   it("returns single activity as JSON", async () => {
     const services = createMockServices();
     const result = await getActivity(services, { id: "i1" });
-    const parsed = result;
 
-    expect(parsed.name).toBe("Morning Ride");
+    expect(result).toMatchObject({ name: "Morning Ride" });
     expect(services.activities.getActivity).toHaveBeenCalledWith(
       "i1",
       undefined

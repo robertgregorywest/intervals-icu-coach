@@ -76,9 +76,8 @@ describe("getEvent tool handler", () => {
   it("returns single event as JSON", async () => {
     const services = createMockServices();
     const result = await getEvent(services, { id: 1 });
-    const parsed = result;
 
-    expect(parsed.description).toBe("- 10m 60%");
+    expect(result).toMatchObject({ description: "- 10m 60%" });
     expect(services.events.getEvent).toHaveBeenCalledWith(1);
   });
 });
@@ -90,9 +89,8 @@ describe("updateEvent tool handler", () => {
       id: 1,
       name: "Updated Workout",
     });
-    const parsed = result;
 
-    expect(parsed.name).toBe("Updated Workout");
+    expect(result).toMatchObject({ name: "Updated Workout" });
     expect(services.events.updateEvent).toHaveBeenCalledWith(1, {
       name: "Updated Workout",
     });

@@ -4,9 +4,9 @@ import { fileURLToPath } from "node:url";
 import { computeTrackLapPowerTool } from "../../src/tools/track-lap-alignment.js";
 import { createTrack } from "../../src/services/track/index.js";
 import type { IServices } from "../../src/index.js";
-import type { IActivitiesApi } from "../../src/services/activities/index.js";
 import type { ActivityStreams } from "../../src/services/activities/index.js";
 import { createFitCodec } from "../../src/services/fit/index.js";
+import { stubActivitiesApi } from "../helpers/stub-activities-api.js";
 
 function read(name: string) {
   return readFileSync(
@@ -25,11 +25,8 @@ function servicesWithStreams(): {
   requested: string[];
 } {
   const requested: string[] = [];
-  const activitiesApi: IActivitiesApi = {
+  const activitiesApi = stubActivitiesApi({
     getActivities: async () => [],
-    getActivity: async () => {
-      throw new Error("not used");
-    },
     getActivityLaps: async () => null,
     getActivityStreams: async (id) => {
       requested.push(id);
@@ -40,7 +37,7 @@ function servicesWithStreams(): {
         heartrate: SESSION.heartrate,
       } as ActivityStreams;
     },
-  };
+  });
   const services = {
     track: createTrack({ activitiesApi, fit: createFitCodec() }),
   } as unknown as IServices;
