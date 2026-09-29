@@ -1,5 +1,3 @@
-export { createWorkoutLibraryApi } from "./api.js";
-export type { IWorkoutLibraryApi } from "./api.js";
 export { createWorkoutLibrary } from "./library.js";
 export type {
   IWorkoutLibrary,

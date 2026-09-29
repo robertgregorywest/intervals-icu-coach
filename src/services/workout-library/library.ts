@@ -1,3 +1,5 @@
+import type { IHttpClient } from "../../client.js";
+import { createWorkoutLibraryApi } from "./api.js";
 import type { IWorkoutLibraryApi } from "./api.js";
 import type { IPrescription } from "../prescription/index.js";
 import type { IWorkoutParser } from "../workout-parser/index.js";
@@ -123,10 +125,14 @@ function collectWorkouts(
 }
 
 export function createWorkoutLibrary(
-  api: IWorkoutLibraryApi,
+  httpClient: IHttpClient,
+  athleteId: string,
   deps: WorkoutLibraryDeps
 ): IWorkoutLibrary {
-  return new WorkoutLibrary(api, deps);
+  return new WorkoutLibrary(
+    createWorkoutLibraryApi(httpClient, athleteId),
+    deps
+  );
 }
 
 export type { LibraryFolder };

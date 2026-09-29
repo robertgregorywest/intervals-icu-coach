@@ -14,10 +14,7 @@ import { createWellnessApi } from "./services/wellness/index.js";
 import type { IWellnessApi } from "./services/wellness/index.js";
 import { createPowerCurvesApi } from "./services/power-curves/index.js";
 import type { IPowerCurvesApi } from "./services/power-curves/index.js";
-import {
-  createWorkoutLibraryApi,
-  createWorkoutLibrary,
-} from "./services/workout-library/index.js";
+import { createWorkoutLibrary } from "./services/workout-library/index.js";
 import type { IWorkoutLibrary } from "./services/workout-library/index.js";
 import { createActivityAnalysis } from "./services/analysis/index.js";
 import type { IActivityAnalysis } from "./services/analysis/index.js";
@@ -98,10 +95,10 @@ export function createServices(options: ServicesOptions = {}): IServices {
   const workoutParser = createWorkoutParser();
   // The one reader of every prescription, so no two lenses disagree on a plan.
   const prescription = createPrescription({ workoutParser });
-  const workoutLibrary = createWorkoutLibrary(
-    createWorkoutLibraryApi(httpClient, athleteId),
-    { prescription, workoutParser }
-  );
+  const workoutLibrary = createWorkoutLibrary(httpClient, athleteId, {
+    prescription,
+    workoutParser,
+  });
   const analysis = createActivityAnalysis({ activitiesApi: activities });
   // One source for every FTP and MAP-zone reader, so nothing builds the
   // coaching context to get them.
