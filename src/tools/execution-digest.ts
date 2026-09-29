@@ -1,31 +1,16 @@
 import { z } from "zod";
+import { dateString, zoneName } from "./common.js";
 import { defineTool, READ_ONLY } from "./define.js";
 
 const getExecutionDigestSchema = z.object({
-  oldest: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .describe(
-      "Window start (YYYY-MM-DD). The coaching log's `reviewed-through` " +
-        "watermark, not a date derived from conversation history."
-    ),
-  newest: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .describe("Window end (YYYY-MM-DD), inclusive. Maximum 28 days."),
+  oldest: dateString.describe(
+    "Window start (YYYY-MM-DD). The coaching log's `reviewed-through` " +
+      "watermark, not a date derived from conversation history."
+  ),
+  newest: dateString.describe(
+    "Window end (YYYY-MM-DD), inclusive. Maximum 28 days."
+  ),
 });
-
-const zoneName = z.enum([
-  "REC",
-  "L1",
-  "L2",
-  "L3",
-  "L4",
-  "L5",
-  "L6",
-  "L7",
-  "NMP",
-]);
 
 const powerTarget = z.object({
   watts: z.number().optional(),

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { defineTool, READ_ONLY } from "./define.js";
+import { idOut } from "./common.js";
 import { DEFAULT_DAYS, MAX_DAYS } from "../services/coaching-context/index.js";
 
 const getCoachingContextSchema = z.object({
@@ -79,7 +80,7 @@ const getCoachingContextOutputSchema = z.object({
       watts: z.number(),
       computedFrom: z.object({
         metric: z.literal("best_60s"),
-        activityId: z.union([z.number(), z.string()]),
+        activityId: idOut,
         activityName: z.string(),
         activityDate: z.string(),
         daysAgo: z.number(),

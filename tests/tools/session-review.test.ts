@@ -78,7 +78,10 @@ describe("compare_planned_vs_actual handler", () => {
   it("prefixes a bare numeric activity ID", async () => {
     const { services, spy } = clientWith();
 
-    await comparePlannedVsActual(services, { activityId: 171371339 });
+    await comparePlannedVsActual(
+      services,
+      comparePlannedVsActualTool.schema.parse({ activityId: 171371339 })
+    );
 
     expect(spy).toHaveBeenCalledWith(
       expect.objectContaining({ activityId: "i171371339" })

@@ -1,13 +1,12 @@
 import { z } from "zod";
-import { normalizeActivityId } from "../services/activities/index.js";
+import { activityIdField, dateString, zoneName } from "./common.js";
 import { defineTool, READ_ONLY } from "./define.js";
 
 // Plain object rather than a `.refine()`d one, matching compare_planned_vs_actual:
 // the MCP adapter registers `schema.shape`, which a ZodEffects wrapper does not
 // expose. The single-session / range choice is enforced in the handler.
 const compareIntensityDistributionSchema = z.object({
-  activityId: z
-    .union([z.string(), z.number()])
+  activityId: activityIdField
     .optional()
     .describe(
       'Completed activity ID (e.g. "i171371339" from get_activities, or a bare ' +
@@ -21,32 +20,16 @@ const compareIntensityDistributionSchema = z.object({
       "Planned event ID. The completed activity is located by scanning a " +
         "narrow date window for the ride paired to this event."
     ),
-  oldest: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional()
+  oldest: dateString
     .describe(
       "Range form: start date (YYYY-MM-DD). Supply with `newest` and neither " +
         "identifier. Maximum 28 days."
-    ),
-  newest: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional()
-    .describe("Range form: end date (YYYY-MM-DD), inclusive."),
+    )
+    .optional(),
+  newest: dateString
+    .describe("Range form: end date (YYYY-MM-DD), inclusive.")
+    .optional(),
 });
-
-const zoneName = z.enum([
-  "REC",
-  "L1",
-  "L2",
-  "L3",
-  "L4",
-  "L5",
-  "L6",
-  "L7",
-  "NMP",
-]);
 
 const reasonCode = z.enum([
   "no-paired-event",
@@ -212,10 +195,7 @@ export const compareIntensityDistributionTool = defineTool({
     }
 
     return services.executionReview.compareIntensityDistribution({
-      activityId:
-        args.activityId === undefined
-          ? undefined
-          : normalizeActivityId(args.activityId),
+      activityId: args.activityId,
       eventId: args.eventId,
     });
   },

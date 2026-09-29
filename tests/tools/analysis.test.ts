@@ -41,7 +41,10 @@ describe("getAerobicDecoupling tool handler", () => {
 
   it("normalizes bare number to i-prefixed string", async () => {
     const services = createMockServices();
-    await getAerobicDecouplingTool.handler(services, { activityId: 42 });
+    await getAerobicDecouplingTool.handler(
+      services,
+      getAerobicDecouplingTool.schema.parse({ activityId: 42 })
+    );
     expect(services.analysis.getAerobicDecoupling).toHaveBeenCalledWith("i42");
   });
 });
@@ -69,7 +72,10 @@ describe("compare_intervals tool handler", () => {
 
   it("normalizes bare numbers in activityIds", async () => {
     const services = createMockServices();
-    await compareIntervalsTool.handler(services, { activityIds: [1, 2] });
+    await compareIntervalsTool.handler(
+      services,
+      compareIntervalsTool.schema.parse({ activityIds: [1, 2] })
+    );
     expect(services.analysis.compareIntervals).toHaveBeenCalledWith(
       ["i1", "i2"],
       expect.any(Object)

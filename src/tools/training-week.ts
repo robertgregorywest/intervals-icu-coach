@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { defineTool, READ_ONLY } from "./define.js";
-import { dateString } from "./common.js";
+import { dateString, idOut } from "./common.js";
 
 const getTrainingWeekSummarySchema = z.object({
   weekStart: dateString
@@ -61,7 +61,7 @@ const getTrainingWeekSummaryOutputSchema = z.object({
   fitness: fitnessDeltaShape,
   completedActivities: z.array(
     z.object({
-      id: z.union([z.number(), z.string()]).nullable().optional(),
+      id: idOut.nullable().optional(),
       date: z.string().nullable().optional(),
       type: z.string().nullable().optional(),
       name: z.string().nullable().optional(),
@@ -79,7 +79,7 @@ const getTrainingWeekSummaryOutputSchema = z.object({
   ),
   events: z.array(
     z.object({
-      id: z.union([z.number(), z.string()]).nullable().optional(),
+      id: idOut.nullable().optional(),
       date: z.string().nullable().optional(),
       category: z.string().nullable().optional(),
       type: z.string().nullable().optional(),

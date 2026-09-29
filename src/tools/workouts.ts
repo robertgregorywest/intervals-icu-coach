@@ -2,7 +2,7 @@ import { z } from "zod";
 import { SPORT_TYPES } from "../types.js";
 import { defineTool, UPSERT } from "./define.js";
 import type { ScheduledWorkouts } from "../index.js";
-import { dateString } from "./common.js";
+import { colorField, dateString, externalIdField } from "./common.js";
 import { WORK_WORDS } from "../work-words.js";
 
 const sportTypeEnum = z.enum(SPORT_TYPES);
@@ -78,11 +78,8 @@ const createWorkoutSchema = z.object({
         "which Intervals.icu silently truncates. Avoid lines starting with '-' or " +
         "a repeat header such as '3x' — they would parse as steps."
     ),
-  externalId: z
-    .string()
-    .optional()
-    .describe("Optional external ID for upsert matching"),
-  color: z.string().optional().describe("Optional event color"),
+  externalId: externalIdField,
+  color: colorField,
 });
 
 const createWorkoutOutputSchema = z.object({
@@ -134,11 +131,8 @@ export const createWorkoutTool = defineTool({
 const scheduleLibraryWorkoutSchema = z.object({
   id: z.number().describe("Library workout ID (from list_workout_library)"),
   date: dateString.describe("Date in YYYY-MM-DD format"),
-  externalId: z
-    .string()
-    .optional()
-    .describe("Optional external ID for upsert matching"),
-  color: z.string().optional().describe("Optional event color"),
+  externalId: externalIdField,
+  color: colorField,
 });
 
 export const scheduleLibraryWorkoutTool = defineTool({
@@ -168,11 +162,8 @@ const createStrengthWorkoutSchema = z.object({
         "Include exercises, sets, reps, load, and RPE. " +
         'Example: "Box Squat 3×5 @ RPE 7\\nTrap Bar Deadlift 3×5 @ RPE 8\\nBulgarian Split Squat 3×8 each leg\\nPull-ups 3×8"'
     ),
-  externalId: z
-    .string()
-    .optional()
-    .describe("Optional external ID for upsert matching"),
-  color: z.string().optional().describe("Optional event color"),
+  externalId: externalIdField,
+  color: colorField,
 });
 
 export const createStrengthWorkoutTool = defineTool({

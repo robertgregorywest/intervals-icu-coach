@@ -133,7 +133,10 @@ describe("compare_intensity_distribution handler", () => {
   it("prefixes a bare numeric activity ID", async () => {
     const { services, one } = clientWith();
 
-    await compareIntensityDistribution(services, { activityId: 170317118 });
+    await compareIntensityDistribution(
+      services,
+      compareIntensityDistributionTool.schema.parse({ activityId: 170317118 })
+    );
 
     expect(one).toHaveBeenCalledWith({
       activityId: "i170317118",

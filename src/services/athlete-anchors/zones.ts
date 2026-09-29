@@ -2,9 +2,23 @@
 // https://www.cyclecoach.com/calculator (inline calculateMapZones JS).
 // Ric Stern / CycleCoach — kept inline so refresh against source is trivial.
 
+export const ZONE_NAMES = [
+  "REC",
+  "L1",
+  "L2",
+  "L3",
+  "L4",
+  "L5",
+  "L6",
+  "L7",
+  "NMP",
+] as const;
+
+export type ZoneName = (typeof ZONE_NAMES)[number];
+
 /** One MAP zone, in both %MAP and watts. See ADR 0003. */
 export interface ZoneRow {
-  name: "REC" | "L1" | "L2" | "L3" | "L4" | "L5" | "L6" | "L7" | "NMP";
+  name: ZoneName;
   label: string;
   lowPct: number;
   highPct: number;

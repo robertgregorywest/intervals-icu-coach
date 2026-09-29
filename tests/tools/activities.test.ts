@@ -71,7 +71,7 @@ describe("getActivity tool handler", () => {
 
   it("normalizes bare number to i-prefixed string", async () => {
     const services = createMockServices();
-    await getActivity(services, { id: 1 });
+    await getActivity(services, getActivityTool.schema.parse({ id: 1 }));
 
     expect(services.activities.getActivity).toHaveBeenCalledWith(
       "i1",
@@ -250,7 +250,10 @@ describe("getActivityStreams tool handler", () => {
 
   it("normalizes bare number to i-prefixed string", async () => {
     const services = createMockServices();
-    await getActivityStreams(services, { id: 1 });
+    await getActivityStreams(
+      services,
+      getActivityStreamsTool.schema.parse({ id: 1 })
+    );
 
     expect(services.activities.getActivityStreams).toHaveBeenCalledWith(
       "i1",
@@ -331,9 +334,10 @@ describe("getActivityLaps tool handler", () => {
 
   it("normalizes a bare numeric id", async () => {
     const getLaps = vi.fn().mockResolvedValue(null);
-    await getActivityLaps(createMockServices({ getActivityLaps: getLaps }), {
-      id: 176326434,
-    });
+    await getActivityLaps(
+      createMockServices({ getActivityLaps: getLaps }),
+      getActivityLapsTool.schema.parse({ id: 176326434 })
+    );
     expect(getLaps).toHaveBeenCalledWith("i176326434");
   });
 });

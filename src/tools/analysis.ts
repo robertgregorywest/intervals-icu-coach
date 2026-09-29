@@ -1,13 +1,11 @@
 import { z } from "zod";
-import { normalizeActivityId } from "../services/activities/index.js";
+import { activityIdField, idOut } from "./common.js";
 import { defineTool, READ_ONLY } from "./define.js";
 
 const getAerobicDecouplingSchema = z.object({
-  activityId: z
-    .union([z.string(), z.number()])
-    .describe(
-      'Activity ID (e.g. "i151827252" from get_activities, or bare number)'
-    ),
+  activityId: activityIdField.describe(
+    'Activity ID (e.g. "i151827252" from get_activities, or bare number)'
+  ),
 });
 
 const decouplingHalfShape = z.object({
@@ -25,7 +23,7 @@ const getAerobicDecouplingOutputSchema = z.object({
 
 const compareIntervalsSchema = z.object({
   activityIds: z
-    .array(z.union([z.string(), z.number()]))
+    .array(activityIdField)
     .describe(
       "Activity IDs to compare intervals across " +
         '(e.g. ["i151827252", "i151543822"] from get_activities)'
@@ -49,7 +47,7 @@ const compareIntervalsSchema = z.object({
 });
 
 const intervalValueShape = z.object({
-  activityId: z.union([z.string(), z.number()]),
+  activityId: idOut,
   name: z.string().optional(),
   date: z.string().optional(),
   avg_watts: z.number().optional(),
@@ -60,7 +58,7 @@ const intervalValueShape = z.object({
 });
 
 const intervalSummaryShape = z.object({
-  activityId: z.union([z.string(), z.number()]),
+  activityId: idOut,
   name: z.string().optional(),
   date: z.string().optional(),
   intervalCount: z.number(),
@@ -94,9 +92,7 @@ export const getAerobicDecouplingTool = defineTool({
   annotations: READ_ONLY,
   outputSchema: getAerobicDecouplingOutputSchema,
   handler: (services, args) =>
-    services.analysis.getAerobicDecoupling(
-      normalizeActivityId(args.activityId)
-    ),
+    services.analysis.getAerobicDecoupling(args.activityId),
 });
 
 export const compareIntervalsTool = defineTool({
@@ -112,12 +108,9 @@ export const compareIntervalsTool = defineTool({
   annotations: READ_ONLY,
   outputSchema: compareIntervalsOutputSchema,
   handler: (services, args) =>
-    services.analysis.compareIntervals(
-      args.activityIds.map(normalizeActivityId),
-      {
-        minPower: args.minPower,
-        targetDuration: args.targetDuration,
-        durationTolerance: args.durationTolerance,
-      }
-    ),
+    services.analysis.compareIntervals(args.activityIds, {
+      minPower: args.minPower,
+      targetDuration: args.targetDuration,
+      durationTolerance: args.durationTolerance,
+    }),
 });

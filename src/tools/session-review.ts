@@ -1,13 +1,12 @@
 import { z } from "zod";
-import { normalizeActivityId } from "../services/activities/index.js";
+import { activityIdField } from "./common.js";
 import { defineTool, READ_ONLY } from "./define.js";
 
 // Deliberately a plain object rather than a `.refine()`d one: the MCP adapter
 // registers `schema.shape`, which a ZodEffects wrapper does not expose. The
 // exactly-one rule is enforced by the paired-session loader, before any request.
 const comparePlannedVsActualSchema = z.object({
-  activityId: z
-    .union([z.string(), z.number()])
+  activityId: activityIdField
     .optional()
     .describe(
       'Completed activity ID (e.g. "i171371339" from get_activities, or a bare ' +
@@ -166,10 +165,7 @@ export const comparePlannedVsActualTool = defineTool({
   outputSchema: comparePlannedVsActualOutputSchema,
   handler: (services, args) =>
     services.executionReview.comparePlannedVsActual({
-      activityId:
-        args.activityId === undefined
-          ? undefined
-          : normalizeActivityId(args.activityId),
+      activityId: args.activityId,
       eventId: args.eventId,
       tolerance: args.tolerance,
     }),

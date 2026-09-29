@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { normalizeActivityId } from "../services/activities/index.js";
+import { ZONE_NAMES } from "../services/athlete-anchors/index.js";
 
 export const CHARACTER_LIMIT = 25_000;
 export const DEFAULT_LIST_LIMIT = 50;
@@ -8,6 +10,29 @@ export const MAX_RANGE_DAYS = 365;
 export const dateString = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, "must be YYYY-MM-DD");
+
+/**
+ * An activity ID as callers give it — the "i"-prefixed string or a bare number.
+ * Handlers receive the normalised string. Add `.describe()` per tool.
+ */
+export const activityIdField = z
+  .union([z.string(), z.number()])
+  .transform(normalizeActivityId);
+
+/** An activity ID in a response: not normalised, either form may appear. */
+export const idOut = z.union([z.number(), z.string()]);
+
+export const zoneName = z.enum(ZONE_NAMES);
+
+export const externalIdField = z
+  .string()
+  .optional()
+  .describe("Optional external ID for upsert matching");
+
+export const colorField = z
+  .string()
+  .optional()
+  .describe("Optional event color");
 
 export const limitField = z
   .number()

@@ -2,12 +2,12 @@ import { z } from "zod";
 import {
   compactIntervalAnalysis,
   detectStravaStub,
-  normalizeActivityId,
   packStreams,
 } from "../services/activities/index.js";
 import { defineTool, READ_ONLY } from "./define.js";
 import {
   applyLimit,
+  activityIdField,
   assertDateRange,
   dateString,
   limitField,
@@ -73,13 +73,11 @@ export const getActivitiesTool = defineTool({
 });
 
 const getActivitySchema = z.object({
-  id: z
-    .union([z.string(), z.number()])
-    .describe(
-      "Activity ID — use the string form returned by get_activities / get_training_week_summary " +
-        '(e.g. "i151827252"). Bare numbers are also accepted and will be prefixed automatically. ' +
-        "Note: activities synced from Strava cannot be retrieved via the API."
-    ),
+  id: activityIdField.describe(
+    "Activity ID — use the string form returned by get_activities / get_training_week_summary " +
+      '(e.g. "i151827252"). Bare numbers are also accepted and will be prefixed automatically. ' +
+      "Note: activities synced from Strava cannot be retrieved via the API."
+  ),
   includeIntervals: z
     .boolean()
     .optional()
@@ -101,7 +99,7 @@ export const getActivityTool = defineTool({
   annotations: READ_ONLY,
   outputSchema: null,
   async handler(services, args) {
-    const id = normalizeActivityId(args.id);
+    const id = args.id;
     const activity = await services.activities.getActivity(
       id,
       args.includeIntervals
@@ -117,13 +115,11 @@ export const getActivityTool = defineTool({
 });
 
 const getActivityStreamsSchema = z.object({
-  id: z
-    .union([z.string(), z.number()])
-    .describe(
-      "Activity ID — use the string form returned by get_activities / get_training_week_summary " +
-        '(e.g. "i151827252"). Bare numbers are also accepted and will be prefixed automatically. ' +
-        "Note: activities synced from Strava have no stream data available."
-    ),
+  id: activityIdField.describe(
+    "Activity ID — use the string form returned by get_activities / get_training_week_summary " +
+      '(e.g. "i151827252"). Bare numbers are also accepted and will be prefixed automatically. ' +
+      "Note: activities synced from Strava have no stream data available."
+  ),
   types: z
     .array(z.string())
     .optional()
@@ -149,7 +145,7 @@ export const getActivityStreamsTool = defineTool({
   annotations: READ_ONLY,
   outputSchema: null,
   async handler(services, args) {
-    const id = normalizeActivityId(args.id);
+    const id = args.id;
     const streams = await services.activities.getActivityStreams(
       id,
       args.types
@@ -203,7 +199,7 @@ export const getActivityLapsTool = defineTool({
   annotations: READ_ONLY,
   outputSchema: getActivityLapsOutputSchema,
   async handler(services, args) {
-    const id = normalizeActivityId(args.id);
+    const id = args.id;
     const laps = await services.activities.getActivityLaps(id);
     if (!laps || laps.length === 0) {
       return {
