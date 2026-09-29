@@ -60,4 +60,20 @@ describe("PowerCurvesApi", () => {
       "https://intervals.icu/api/v1/athlete/i12345/power-curves-ext?curves=r.2024-01-01.2024-06-30"
     );
   });
+
+  it("reads the 5s, 1min and 5min peaks off the same request", async () => {
+    const mockFetch = createMockFetch(200, {
+      list: [{ secs: [5, 60, 300, 1200], watts: [1050, 540, 370, 280] }],
+    });
+    const httpClient = new HttpClient(config, mockFetch);
+    const api = new PowerCurvesApi(httpClient, config.athleteId);
+
+    const peaks = await api.getPeaks({ type: "Ride", range: "90d" });
+
+    expect(peaks).toEqual({ p5s: 1050, p60: 540, p5min: 370 });
+    const [url] = mockFetch.mock.calls[0];
+    expect(url).toBe(
+      "https://intervals.icu/api/v1/athlete/i12345/power-curves-ext?type=Ride&curves=90d"
+    );
+  });
 });

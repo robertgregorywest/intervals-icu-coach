@@ -97,6 +97,6 @@ export class ExecutionReview implements IExecutionReview {
 
 export function createExecutionReview(
   deps: ExecutionReviewDeps
-): ExecutionReview {
+): IExecutionReview {
   return new ExecutionReview(deps);
 }

@@ -13,7 +13,7 @@
  * written one cannot drift apart.
  */
 
-import { normalizeActivityId } from "../activities/index.js";
+import { normalizeActivityId } from "../../shared/activity-id.js";
 import type { TrackLapPowerOptions } from "./alignment/types.js";
 import { TrackComparisonError } from "./records/compare.js";
 import { serializeSplits } from "./records/splits-source.js";

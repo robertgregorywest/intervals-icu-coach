@@ -1,14 +1,10 @@
 import type { Activity, IActivitiesApi } from "../activities/index.js";
 import type { IAthleteAnchors } from "../athlete-anchors/index.js";
 import {
-  MIDDLE_BAND_HIGH_PCT_FTP,
-  MIDDLE_BAND_LOW_PCT_FTP,
-  bucketDelivered,
   middleBandBounds,
-} from "../execution-review/index.js";
-import { round } from "../../round.js";
-
-export { MIDDLE_BAND_HIGH_PCT_FTP, MIDDLE_BAND_LOW_PCT_FTP };
+  middleBandSeconds,
+} from "../../shared/middle-band.js";
+import { round } from "../../shared/round.js";
 
 /** One activity's delivered middle-band time, measured against its own FTP. */
 export interface RideBand {
@@ -61,10 +57,13 @@ export async function measureRides(
       const streams = await activitiesApi.getActivityStreams(a.id, ["watts"]);
       if (!streams.watts?.length) return { ...NO_BAND };
       const bounds = middleBandBounds(ftp);
-      const bucketed = bucketDelivered(streams.watts, [], bounds);
+      const { bandSeconds, powerSeconds } = middleBandSeconds(
+        streams.watts,
+        bounds
+      );
       return {
-        seconds: bucketed.middleBandSeconds,
-        powerSeconds: bucketed.totalSeconds,
+        seconds: bandSeconds,
+        powerSeconds,
         ftp,
         lowW: bounds.lowW,
         highW: bounds.highW,

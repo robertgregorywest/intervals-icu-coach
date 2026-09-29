@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { WORK_WORDS } from "../src/work-words.js";
+import { WORK_WORDS } from "../../src/shared/work-words.js";
 
 describe("WORK_WORDS", () => {
   it("is normalised the way a label's first word is, so every entry can match", () => {

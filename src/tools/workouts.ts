@@ -3,7 +3,7 @@ import { SPORT_TYPES } from "../types.js";
 import { defineTool, UPSERT } from "./define.js";
 import type { ScheduledWorkouts } from "../index.js";
 import { colorField, dateString, externalIdField } from "./common.js";
-import { WORK_WORDS } from "../work-words.js";
+import { WORK_WORDS } from "../shared/work-words.js";
 
 const sportTypeEnum = z.enum(SPORT_TYPES);
 

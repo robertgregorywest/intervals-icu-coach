@@ -1,5 +1,9 @@
 import type { PlannedStep, PowerTarget } from "../../prescription/index.js";
 import { bandFor } from "./zones.js";
+import {
+  inMiddleBand,
+  type MiddleBandBounds,
+} from "../../../shared/middle-band.js";
 import type {
   BoundarySpanningStep,
   MiddleBandRollup,
@@ -18,11 +22,6 @@ export interface BucketedSeconds {
 export interface PlannedBuckets extends BucketedSeconds {
   unbucketed: UnbucketedStep[];
   boundarySpanning: BoundarySpanningStep[];
-}
-
-export interface MiddleBandBounds {
-  lowW: number;
-  highW: number;
 }
 
 /**
@@ -46,12 +45,12 @@ export function middleBandFraction(
   middle: MiddleBandBounds
 ): number {
   if (typeof target.watts === "number") {
-    return target.watts >= middle.lowW && target.watts <= middle.highW ? 1 : 0;
+    return inMiddleBand(target.watts, middle) ? 1 : 0;
   }
 
   const { low, high } = target;
   if (typeof low !== "number" || typeof high !== "number") return 0;
-  if (high <= low) return low >= middle.lowW && low <= middle.highW ? 1 : 0;
+  if (high <= low) return inMiddleBand(low, middle) ? 1 : 0;
 
   const overlap = Math.min(high, middle.highW) - Math.max(low, middle.lowW);
   return overlap <= 0 ? 0 : overlap / (high - low);
@@ -162,7 +161,7 @@ export function bucketDelivered(
     const band = bandFor(partition, sample);
     if (band) byZone.set(band.name, (byZone.get(band.name) ?? 0) + 1);
 
-    if (middle && sample >= middle.lowW && sample <= middle.highW) {
+    if (middle && inMiddleBand(sample, middle)) {
       middleBandSeconds += 1;
     }
   }

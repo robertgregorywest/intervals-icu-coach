@@ -1,8 +1,6 @@
 import { describe, it, expect } from "vitest";
-import {
-  computeMapZones,
-  createAthleteAnchors,
-} from "../../../src/services/athlete-anchors/index.js";
+import { createAthleteAnchors } from "../../../src/services/athlete-anchors/index.js";
+import { computeMapZones } from "../../../src/shared/map-zones.js";
 import { createAthleteAnchorsFrom } from "../../../src/services/athlete-anchors/anchors.js";
 import { createMap } from "../../../src/services/map/index.js";
 import type { IAthleteApi } from "../../../src/services/athlete/index.js";
@@ -147,9 +145,10 @@ function harness() {
     },
   } as unknown as IActivitiesApi;
   const powerCurvesApi: IPowerCurvesApi = {
-    getPowerCurve: async () => {
+    getPowerCurve: async () => [],
+    getPeaks: async () => {
       calls.push("curve");
-      return [{ secs: 5, value: 1000 }] as never;
+      return { p5s: 1000, p60: null, p5min: null };
     },
   };
   const anchors = createAthleteAnchors({

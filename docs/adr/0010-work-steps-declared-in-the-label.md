@@ -2,7 +2,7 @@
 
 A **Planned step** declares whether it carries the session's intent in the first word of its own
 label, matched against a closed vocabulary in `src/services/step-roles/` (since moved to
-`src/work-words.ts`, shared by the `create_workout` schema and the Prescription module). `get_execution_digest`
+`src/shared/work-words.ts`, shared by the `create_workout` schema and the Prescription module). `get_execution_digest`
 reads that declaration as data, runs both execution-review lenses over a **Review window**, and
 returns the work steps that missed their prescription. The forked `execution-review` skill is
 retired; the coaching thread runs the review itself.

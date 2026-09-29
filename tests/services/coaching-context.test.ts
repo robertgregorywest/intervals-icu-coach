@@ -17,7 +17,7 @@ import type {
 } from "../../src/services/activities/index.js";
 import type {
   IPowerCurvesApi,
-  PowerCurvePoint,
+  PeakSet,
 } from "../../src/services/power-curves/index.js";
 
 function fakeAthleteApi(profile: Partial<AthleteProfile>): IAthleteApi {
@@ -41,10 +41,11 @@ const emptyActivitiesApi: IActivitiesApi = {
 
 const emptyPowerCurvesApi: IPowerCurvesApi = {
   getPowerCurve: async () => [],
+  getPeaks: async () => ({ p5s: null, p60: null, p5min: null }),
 };
 
-function fakePowerCurvesApi(points: PowerCurvePoint[]): IPowerCurvesApi {
-  return { getPowerCurve: async () => points };
+function fakePowerCurvesApi(peaks: PeakSet): IPowerCurvesApi {
+  return { getPowerCurve: async () => [], getPeaks: async () => peaks };
 }
 
 function fakeActivitiesApi(
@@ -202,9 +203,11 @@ describe("buildCoachingContext", () => {
       ],
       { watts: new Array(120).fill(400) }
     );
-    const powerCurvesApi = fakePowerCurvesApi([
-      { secs: 5, value: 900, activity_id: 1 },
-    ]);
+    const powerCurvesApi = fakePowerCurvesApi({
+      p5s: 900,
+      p60: null,
+      p5min: null,
+    });
 
     const ctx = await buildCoachingContext(
       {

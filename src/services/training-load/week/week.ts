@@ -1,14 +1,13 @@
-import { isoToday } from "../../../clock.js";
-import { mondayOf, shiftDate } from "../../../dates.js";
+import { isoToday } from "../../../shared/clock.js";
+import { mondayOf, shiftDate } from "../../../shared/dates.js";
 import type { Activity } from "../../activities/index.js";
 import type { WellnessRecord } from "../../wellness/index.js";
 import type { IntervalsEvent } from "../../../types.js";
 import {
   MIDDLE_BAND_HIGH_PCT_FTP,
   MIDDLE_BAND_LOW_PCT_FTP,
-  measureRides,
-  rollUpBand,
-} from "../middle-band.js";
+} from "../../../shared/middle-band.js";
+import { measureRides, rollUpBand } from "../middle-band.js";
 import type {
   ActivitySummary,
   EventSummary,
@@ -19,7 +18,7 @@ import type {
   WeekMiddleBand,
 } from "./types.js";
 import type { RideBand } from "../middle-band.js";
-import { round } from "../../../round.js";
+import { round } from "../../../shared/round.js";
 
 export class TrainingWeek {
   constructor(private deps: TrainingWeekDeps) {}

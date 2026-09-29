@@ -5,7 +5,6 @@ export type {
   CoachingContext,
 } from "./types.js";
 export {
-  buildCoachingContext,
   createCoachingContext,
   DEFAULT_DAYS,
   MAX_DAYS,

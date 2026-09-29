@@ -3,7 +3,7 @@ import { dateString } from "./common.js";
 import { defineTool, READ_ONLY } from "./define.js";
 import { SPORT_TYPES } from "../types.js";
 import { MAX_FORECAST_DAYS } from "../services/training-load/index.js";
-import { round } from "../round.js";
+import { round } from "../shared/round.js";
 
 const proposedSessionSchema = z.object({
   date: dateString.describe("Date of the session, YYYY-MM-DD."),

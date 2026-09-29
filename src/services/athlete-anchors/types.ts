@@ -1,7 +1,7 @@
 import type { SportSetting } from "../athlete/index.js";
 import type { MapInfo } from "../map/index.js";
 import type { IntervalsEvent } from "../../types.js";
-import type { ZoneRow } from "./zones.js";
+import type { ZoneRow } from "../../shared/map-zones.js";
 
 /**
  * What the athlete record says, read once and one way: one request, no

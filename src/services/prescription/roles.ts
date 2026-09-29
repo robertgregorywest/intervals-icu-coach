@@ -15,7 +15,7 @@
  * all fall out the same way, so nothing is ever guessed into a finding.
  */
 
-import { WORK_WORDS } from "../../work-words.js";
+import { WORK_WORDS } from "../../shared/work-words.js";
 
 export type StepRole = "work" | "unclassified";
 

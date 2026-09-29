@@ -11,7 +11,7 @@ import {
   computeTtEstimates,
   computeRaceEstimates,
   computePowerProfile,
-} from "../../../src/services/power-profile/index.js";
+} from "../../../src/services/power-profile/compute.js";
 import type { ResolvedInputs } from "../../../src/services/power-profile/index.js";
 
 function field<T>(value: T | null): { value: T | null; source: "override" } {

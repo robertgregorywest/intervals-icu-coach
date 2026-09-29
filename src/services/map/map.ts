@@ -1,7 +1,7 @@
 import type { Activity, IActivitiesApi } from "../activities/index.js";
-import { computeBestPower } from "../analysis/index.js";
+import { computeBestPower } from "../../shared/power.js";
 import type { IMap, MapDerivation } from "./types.js";
-import { daysBetween, shiftDate } from "../../dates.js";
+import { daysBetween, shiftDate } from "../../shared/dates.js";
 
 const MAP_LOOKBACK_DAYS = 90;
 const RAMP_TEST_NAME_PREFIX = "map ramp test";

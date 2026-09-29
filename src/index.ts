@@ -1,6 +1,6 @@
 import { createHttpClient } from "./client.js";
 import type { FetchFn } from "./client.js";
-import { isoToday } from "./clock.js";
+import { isoToday } from "./shared/clock.js";
 import { parseClientConfig } from "./config.js";
 import { createEventsApi } from "./services/events/index.js";
 import type { IEventsApi } from "./services/events/index.js";

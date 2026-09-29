@@ -4,12 +4,6 @@
  * and streams scale with ride length, so both are cut to a budget here.
  */
 
-/** Accepts the bare number the API also answers to, and adds the `i` prefix. */
-export function normalizeActivityId(id: string | number): string {
-  if (typeof id === "number") return `i${id}`;
-  return id.startsWith("i") ? id : `i${id}`;
-}
-
 type IntervalProjection = {
   i: number;
   type?: unknown;

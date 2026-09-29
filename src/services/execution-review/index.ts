@@ -1,4 +1,4 @@
-export { ExecutionReview, createExecutionReview } from "./execution-review.js";
+export { createExecutionReview } from "./execution-review.js";
 export type { ExecutionReviewDeps } from "./execution-review.js";
 export type {
   IExecutionReview,
@@ -6,12 +6,6 @@ export type {
   WindowRef,
   ComparePlannedVsActualOptions,
 } from "./types.js";
-export {
-  MIDDLE_BAND_LOW_PCT_FTP,
-  MIDDLE_BAND_HIGH_PCT_FTP,
-  middleBandBounds,
-} from "./bands/zones.js";
-export { bucketDelivered } from "./bands/bucket.js";
 export type {
   PlannedVsActualResult,
   AlignedStep,

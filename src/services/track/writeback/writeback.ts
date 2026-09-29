@@ -33,7 +33,7 @@ import type {
   TrackRunWriteResult,
   WrittenRun,
 } from "./types.js";
-import { round } from "../../../round.js";
+import { round } from "../../../shared/round.js";
 
 /** Streams the snapped re-read needs. Mirrors the alignment's own set. */
 const STREAM_TYPES = ["time", "watts", "cadence", "heartrate"];

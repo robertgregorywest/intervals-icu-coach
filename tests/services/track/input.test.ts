@@ -13,9 +13,9 @@ import { describe, it, expect } from "vitest";
 import { fileURLToPath } from "node:url";
 import {
   createTrack,
-  TrackInputError,
   type TrackInput,
 } from "../../../src/services/track/index.js";
+import { TrackInputError } from "../../../src/services/track/input.js";
 import { loadTrackSessionRecords } from "../../../src/services/track/records/loader.js";
 import type { IActivitiesApi } from "../../../src/services/activities/index.js";
 import { createFitCodec } from "../../../src/services/fit/index.js";

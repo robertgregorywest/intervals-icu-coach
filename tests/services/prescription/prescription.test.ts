@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { createPrescription } from "../../../src/services/prescription/index.js";
-import { WORK_WORDS } from "../../../src/work-words.js";
+import { WORK_WORDS } from "../../../src/shared/work-words.js";
 import type { WorkoutDoc } from "../../../src/types.js";
 import { createWorkoutParser } from "../../../src/services/workout-parser/index.js";
 

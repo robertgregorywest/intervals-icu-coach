@@ -93,6 +93,6 @@ export class EventsApi implements IEventsApi {
 export function createEventsApi(
   httpClient: IHttpClient,
   athleteId: string
-): EventsApi {
+): IEventsApi {
   return new EventsApi(httpClient, athleteId);
 }

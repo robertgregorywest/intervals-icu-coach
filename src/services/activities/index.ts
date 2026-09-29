@@ -1,5 +1,5 @@
 export type { IActivitiesApi, ActivitiesDeps } from "./activities.js";
-export { ActivitiesApi, createActivitiesApi } from "./activities.js";
+export { createActivitiesApi } from "./activities.js";
 export type {
   Activity,
   ActivityInterval,
@@ -7,9 +7,3 @@ export type {
   ActivityStreams,
   IntervalWrite,
 } from "./types.js";
-export {
-  normalizeActivityId,
-  compactIntervalAnalysis,
-  packStreams,
-  detectStravaStub,
-} from "./compact.js";

@@ -1,3 +1,9 @@
+/**
+ * The **MAP zones** (CONTEXT.md, ADR 0003): the zone model every coaching lens
+ * reasons in. Shared because the Athlete anchors derive them live, the power
+ * profile computes them for a what-if MAP, and a tool's schema names them.
+ */
+
 // Coefficients and prose ported verbatim from
 // https://www.cyclecoach.com/calculator (inline calculateMapZones JS).
 // Ric Stern / CycleCoach — kept inline so refresh against source is trivial.

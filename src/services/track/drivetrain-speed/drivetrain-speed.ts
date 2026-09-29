@@ -11,10 +11,8 @@
 
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  normalizeActivityId,
-  type IActivitiesApi,
-} from "../../activities/index.js";
+import type { IActivitiesApi } from "../../activities/index.js";
+import { normalizeActivityId } from "../../../shared/activity-id.js";
 import type { IFitCodec } from "../../fit/index.js";
 import { TrackAlignmentError } from "../alignment/align.js";
 import type {
@@ -23,7 +21,7 @@ import type {
 } from "../alignment/types.js";
 import { resolveTrackInput, TrackInputError } from "../input.js";
 import { developmentFromBasis } from "../records/derive.js";
-import { round } from "../../../round.js";
+import { round } from "../../../shared/round.js";
 import { RATE_DP } from "../records/precision.js";
 import type { SessionBasis, TrackSessionRecord } from "../records/types.js";
 import {

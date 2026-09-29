@@ -35,7 +35,7 @@ import type {
   TrackLapAlignmentResult,
   TrackLapPowerOptions,
 } from "./types.js";
-import { round } from "../../../round.js";
+import { round } from "../../../shared/round.js";
 
 /** Streams the join reads. Cadence is required; the rest are read if present. */
 const STREAM_TYPES = ["time", "watts", "cadence", "heartrate"];

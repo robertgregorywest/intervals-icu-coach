@@ -1,9 +1,5 @@
 import type { PartitionBand, ZoneRow } from "./types.js";
 
-/** The coaching philosophy's middle band, as a fraction of FTP. */
-export const MIDDLE_BAND_LOW_PCT_FTP = 76;
-export const MIDDLE_BAND_HIGH_PCT_FTP = 106;
-
 /**
  * Reduce the athlete's coaching zones to a frame seconds can be bucketed into.
  *
@@ -60,12 +56,4 @@ export function bandFor(
     if (watts >= partition[i].lowW) return partition[i];
   }
   return undefined;
-}
-
-/** The middle band's absolute bounds for an athlete's FTP. */
-export function middleBandBounds(ftp: number): { lowW: number; highW: number } {
-  return {
-    lowW: Math.round((ftp * MIDDLE_BAND_LOW_PCT_FTP) / 100),
-    highW: Math.round((ftp * MIDDLE_BAND_HIGH_PCT_FTP) / 100),
-  };
 }

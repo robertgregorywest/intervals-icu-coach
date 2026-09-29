@@ -1,4 +1,4 @@
-export { WorkoutScheduling, createWorkoutScheduling } from "./scheduling.js";
+export { createWorkoutScheduling } from "./scheduling.js";
 export type { WorkoutSchedulingDeps } from "./scheduling.js";
 export type {
   IWorkoutScheduling,

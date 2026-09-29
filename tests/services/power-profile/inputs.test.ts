@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { resolveInputs } from "../../../src/services/power-profile/index.js";
+import { resolveInputs } from "../../../src/services/power-profile/inputs.js";
 import { createAthleteAnchors } from "../../../src/services/athlete-anchors/index.js";
 import { createMap } from "../../../src/services/map/index.js";
 import type {
@@ -13,8 +13,7 @@ import type {
 } from "../../../src/services/athlete/index.js";
 import type {
   IPowerCurvesApi,
-  PowerCurvePoint,
-  PowerCurveOptions,
+  PeakSet,
 } from "../../../src/services/power-curves/index.js";
 
 const ATHLETE: Partial<AthleteProfile> = {
@@ -62,22 +61,14 @@ function fakeActivities(): IActivitiesApi {
   };
 }
 
-function fakePowerCurves(payload: unknown): IPowerCurvesApi {
+function fakePowerCurves(peaks: PeakSet): IPowerCurvesApi {
   return {
-    getPowerCurve: async (_opts?: PowerCurveOptions) =>
-      payload as PowerCurvePoint[],
+    getPowerCurve: async () => [],
+    getPeaks: async () => peaks,
   };
 }
 
-const CURVE_ENVELOPE = {
-  list: [
-    {
-      secs: [5, 30, 60, 120, 300, 1200],
-      watts: [1050, 800, 540, 450, 370, 280],
-      values: [1050, 800, 540, 450, 370, 280],
-    },
-  ],
-};
+const CURVE_PEAKS: PeakSet = { p5s: 1050, p60: 540, p5min: 370 };
 
 describe("resolveInputs", () => {
   it("auto-resolves from API + derives masters from age", async () => {
@@ -86,9 +77,9 @@ describe("resolveInputs", () => {
         anchors: createAthleteAnchors({
           athleteApi: fakeAthlete(),
           map: createMap({ activitiesApi: fakeActivities() }),
-          powerCurvesApi: fakePowerCurves(CURVE_ENVELOPE),
+          powerCurvesApi: fakePowerCurves(CURVE_PEAKS),
         }),
-        powerCurvesApi: fakePowerCurves(CURVE_ENVELOPE),
+        powerCurvesApi: fakePowerCurves(CURVE_PEAKS),
       },
       {},
       { today: "2026-05-01" }
@@ -117,9 +108,9 @@ describe("resolveInputs", () => {
         anchors: createAthleteAnchors({
           athleteApi: fakeAthlete(),
           map: createMap({ activitiesApi: fakeActivities() }),
-          powerCurvesApi: fakePowerCurves(CURVE_ENVELOPE),
+          powerCurvesApi: fakePowerCurves(CURVE_PEAKS),
         }),
-        powerCurvesApi: fakePowerCurves(CURVE_ENVELOPE),
+        powerCurvesApi: fakePowerCurves(CURVE_PEAKS),
       },
       {
         mapWatts: 400,
@@ -156,9 +147,9 @@ describe("resolveInputs", () => {
         anchors: createAthleteAnchors({
           athleteApi: fakeAthlete(),
           map: createMap({ activitiesApi: noActivities }),
-          powerCurvesApi: fakePowerCurves(CURVE_ENVELOPE),
+          powerCurvesApi: fakePowerCurves(CURVE_PEAKS),
         }),
-        powerCurvesApi: fakePowerCurves(CURVE_ENVELOPE),
+        powerCurvesApi: fakePowerCurves(CURVE_PEAKS),
       },
       {},
       { today: "2026-05-01" }
@@ -173,6 +164,9 @@ describe("resolveInputs", () => {
   it("falls back gracefully when power curve fails", async () => {
     const failingCurves: IPowerCurvesApi = {
       getPowerCurve: async () => {
+        throw new Error("network");
+      },
+      getPeaks: async () => {
         throw new Error("network");
       },
     };
@@ -203,9 +197,9 @@ describe("resolveInputs", () => {
             icu_date_of_birth: null,
           } as Partial<AthleteProfile>),
           map: createMap({ activitiesApi: fakeActivities() }),
-          powerCurvesApi: fakePowerCurves(CURVE_ENVELOPE),
+          powerCurvesApi: fakePowerCurves(CURVE_PEAKS),
         }),
-        powerCurvesApi: fakePowerCurves(CURVE_ENVELOPE),
+        powerCurvesApi: fakePowerCurves(CURVE_PEAKS),
       },
       {},
       { today: "2026-05-01" }

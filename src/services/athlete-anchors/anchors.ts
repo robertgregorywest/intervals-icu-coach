@@ -1,11 +1,10 @@
 import type { IAthleteApi } from "../athlete/index.js";
 import type { IPowerCurvesApi } from "../power-curves/index.js";
-import { extractPeaks } from "../power-curves/index.js";
 import type { IntervalsEvent } from "../../types.js";
-import { isoToday } from "../../clock.js";
+import { isoToday } from "../../shared/clock.js";
 import type { IMap } from "../map/index.js";
 import { positiveNumber, readAthlete } from "./fields.js";
-import { computeMapZones } from "./zones.js";
+import { computeMapZones } from "../../shared/map-zones.js";
 import type { AthleteAnchors, IAthleteAnchors, MapAnchors } from "./types.js";
 
 export interface AthleteAnchorsDeps {
@@ -104,14 +103,12 @@ async function deriveMapAnchors(
   deps: Pick<AthleteAnchorsDeps, "map" | "powerCurvesApi">,
   today: string
 ): Promise<MapAnchors> {
-  const [{ map, mapWarning }, curveRaw] = await Promise.all([
+  const [{ map, mapWarning }, peaks] = await Promise.all([
     deps.map.deriveLatest(today),
     deps.powerCurvesApi
-      .getPowerCurve({ range: "90d", type: "Ride" })
+      .getPeaks({ range: "90d", type: "Ride" })
       .catch(() => null),
   ]);
-  const mapZones = map
-    ? computeMapZones(map.watts, extractPeaks(curveRaw).p5s)
-    : null;
+  const mapZones = map ? computeMapZones(map.watts, peaks?.p5s ?? null) : null;
   return { map, mapZones, ...(mapWarning ? { mapWarning } : {}) };
 }

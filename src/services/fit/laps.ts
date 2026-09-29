@@ -17,7 +17,7 @@
 
 import { readFields, walkFit } from "./format.js";
 import type { FitLap } from "./types.js";
-import { round } from "../../round.js";
+import { round } from "../../shared/round.js";
 
 const LAP_GLOBAL_MESSAGE = 19;
 

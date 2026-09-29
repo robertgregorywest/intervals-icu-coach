@@ -14,7 +14,7 @@
  * watching for it.
  */
 
-import { round } from "../../../round.js";
+import { round } from "../../../shared/round.js";
 
 export interface SnappedBoundary {
   index: number;

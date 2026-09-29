@@ -3,7 +3,7 @@ import {
   compactIntervalAnalysis,
   detectStravaStub,
   packStreams,
-} from "../services/activities/index.js";
+} from "./activity-payloads.js";
 import { defineTool, READ_ONLY } from "./define.js";
 import {
   applyLimit,

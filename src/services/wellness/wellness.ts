@@ -31,6 +31,6 @@ export class WellnessApi implements IWellnessApi {
 export function createWellnessApi(
   httpClient: IHttpClient,
   athleteId: string
-): WellnessApi {
+): IWellnessApi {
   return new WellnessApi(httpClient, athleteId);
 }

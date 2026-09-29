@@ -100,6 +100,6 @@ export class WorkoutScheduling implements IWorkoutScheduling {
 
 export function createWorkoutScheduling(
   deps: WorkoutSchedulingDeps
-): WorkoutScheduling {
+): IWorkoutScheduling {
   return new WorkoutScheduling(deps);
 }

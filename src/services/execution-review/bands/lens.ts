@@ -3,18 +3,14 @@ import type { IntervalsEvent } from "../../../types.js";
 import type { IPrescription } from "../../prescription/index.js";
 import type { IAthleteAnchors } from "../../athlete-anchors/index.js";
 import type { LoadedWindow, PairedSession, Unpaired } from "../paired/types.js";
-import {
-  bucketDelivered,
-  bucketPlanned,
-  rollUpMiddleBand,
-  type MiddleBandBounds,
-} from "./bucket.js";
+import { bucketDelivered, bucketPlanned, rollUpMiddleBand } from "./bucket.js";
+import { derivePartition } from "./zones.js";
 import {
   MIDDLE_BAND_HIGH_PCT_FTP,
   MIDDLE_BAND_LOW_PCT_FTP,
-  derivePartition,
   middleBandBounds,
-} from "./zones.js";
+  type MiddleBandBounds,
+} from "../../../shared/middle-band.js";
 import type {
   DistributionReason,
   ExcludedSession,

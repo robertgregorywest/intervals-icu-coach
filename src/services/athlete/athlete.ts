@@ -49,6 +49,6 @@ export class AthleteApi implements IAthleteApi {
 export function createAthleteApi(
   httpClient: IHttpClient,
   athleteId: string
-): AthleteApi {
+): IAthleteApi {
   return new AthleteApi(httpClient, athleteId);
 }

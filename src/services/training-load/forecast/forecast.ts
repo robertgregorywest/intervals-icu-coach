@@ -13,7 +13,7 @@ import {
   project,
   shiftDate,
 } from "./trajectory.js";
-import { mondayOf } from "../../../dates.js";
+import { mondayOf } from "../../../shared/dates.js";
 import type {
   ForecastBasis,
   ForecastOptions,

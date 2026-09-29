@@ -1,7 +1,6 @@
 import type { IPowerCurvesApi } from "../power-curves/index.js";
-import { extractPeaks } from "../power-curves/index.js";
 import type { IAthleteAnchors } from "../athlete-anchors/index.js";
-import { isoToday } from "../../clock.js";
+import { isoToday } from "../../shared/clock.js";
 import type {
   InputField,
   InputSource,
@@ -113,11 +112,10 @@ export async function resolveInputs(
     overrides.p5s == null || overrides.p60 == null || overrides.p5min == null;
   if (needCurve) {
     try {
-      const curveRaw = await deps.powerCurvesApi.getPowerCurve({
+      const peaks = await deps.powerCurvesApi.getPeaks({
         range: overrides.powerCurveRange ?? "90d",
         type: "Ride",
       });
-      const peaks = extractPeaks(curveRaw);
       if (overrides.p5s == null && peaks.p5s != null)
         p5s = field(peaks.p5s, "powerCurve");
       if (overrides.p60 == null && peaks.p60 != null)

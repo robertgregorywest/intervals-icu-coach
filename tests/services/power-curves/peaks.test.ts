@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { extractPeaks } from "../../../src/services/power-curves/index.js";
+import { extractPeaks } from "../../../src/services/power-curves/peaks.js";
 
 const CURVE_ENVELOPE = {
   list: [

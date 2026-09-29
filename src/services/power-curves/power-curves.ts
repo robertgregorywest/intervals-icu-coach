@@ -1,5 +1,6 @@
 import type { IHttpClient } from "../../client.js";
 import type { PowerCurvePoint } from "./types.js";
+import { extractPeaks, type PeakSet } from "./peaks.js";
 
 export interface PowerCurveOptions {
   type?: string;
@@ -8,6 +9,11 @@ export interface PowerCurveOptions {
 
 export interface IPowerCurvesApi {
   getPowerCurve(options?: PowerCurveOptions): Promise<PowerCurvePoint[]>;
+  /**
+   * The 5s, 1min and 5min peaks off the same curve, each `null` where the
+   * curve has no point at that duration. Throws when the curve will not load.
+   */
+  getPeaks(options?: PowerCurveOptions): Promise<PeakSet>;
 }
 
 export class PowerCurvesApi implements IPowerCurvesApi {
@@ -30,11 +36,15 @@ export class PowerCurvesApi implements IPowerCurvesApi {
       `/api/v1/athlete/${this.athleteId}/power-curves-ext${query ? `?${query}` : ""}`
     );
   }
+
+  async getPeaks(options: PowerCurveOptions = {}): Promise<PeakSet> {
+    return extractPeaks(await this.getPowerCurve(options));
+  }
 }
 
 export function createPowerCurvesApi(
   httpClient: IHttpClient,
   athleteId: string
-): PowerCurvesApi {
+): IPowerCurvesApi {
   return new PowerCurvesApi(httpClient, athleteId);
 }

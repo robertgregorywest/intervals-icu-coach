@@ -1,4 +1,9 @@
 /**
+ * Power-stream arithmetic shared by more than one module: normalised power and
+ * the best mean over a window. Pure, over 1 Hz streams.
+ */
+
+/**
  * Rolling-mean window for normalised power: 30 seconds, trailing and
  * expanding. The first 29 samples each average what has arrived so far
  * rather than being skipped — skipping them leaves a session under 30
@@ -56,12 +61,4 @@ export function computeBestPower(
     bestPower: Math.round(bestSum / durationSeconds),
     startIndex: bestStart,
   };
-}
-
-export function formatDuration(seconds: number): string {
-  if (seconds < 60) return `${seconds}s`;
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  if (secs === 0) return `${mins}min`;
-  return `${mins}min ${secs}s`;
 }

@@ -1,5 +1,5 @@
 import type { PlannedStep } from "../../prescription/index.js";
-import { normalizedPower } from "../../analysis/index.js";
+import { normalizedPower } from "../../../shared/power.js";
 
 /**
  * The synthetic power stream a prescription implies, and the figures
@@ -7,7 +7,7 @@ import { normalizedPower } from "../../analysis/index.js";
  *
  * Every rule here was fitted to the platform's own output and then checked
  * against the whole harvested corpus: on the 109 events prescribed wholly in
- * absolute watts, `normalizedPower` (see analysis/power.ts) reproduces the
+ * absolute watts, `normalizedPower` (see shared/power.ts) reproduces the
  * platform's figure exactly, to the watt, on all 109 once fed this stream.
  * The pieces that matter, in the order they were found to matter:
  *
@@ -15,7 +15,7 @@ import { normalizedPower } from "../../analysis/index.js";
  *   events at design time, midpoint landed within 1 W on 65 and sweeping on 32;
  * - a **ramp** — a step the text marks `ramp` — is swept linearly instead;
  * - the rolling mean's 30-second trailing/expanding window (see
- *   `ROLLING_WINDOW_SECONDS` in analysis/power.ts) — dropping the first 29
+ *   `ROLLING_WINDOW_SECONDS` in shared/power.ts) — dropping the first 29
  *   partial samples instead of expanding into them costs 33 of the 109 exact
  *   matches, so this is not a detail;
  * - the final figure is rounded half up.

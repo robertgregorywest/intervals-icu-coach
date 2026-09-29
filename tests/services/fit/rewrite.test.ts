@@ -1,12 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import {
-  createFitCodec,
-  FitFormatError,
-} from "../../../src/services/fit/index.js";
+import { createFitCodec } from "../../../src/services/fit/index.js";
 import { fitCrc } from "../../../src/services/fit/crc.js";
 import {
+  FitFormatError,
   readFields,
   walkFit,
   type FitMessage,

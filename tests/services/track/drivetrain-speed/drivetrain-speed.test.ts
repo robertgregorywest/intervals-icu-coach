@@ -13,11 +13,11 @@ import {
 } from "../../../../src/services/track/drivetrain-speed/drivetrain-speed.js";
 import {
   createTrack,
-  TrackAlignmentError,
-  TrackInputError,
   type DrivetrainSpeedInput,
   type TrackLapAlignmentResult,
 } from "../../../../src/services/track/index.js";
+import { TrackAlignmentError } from "../../../../src/services/track/alignment/align.js";
+import { TrackInputError } from "../../../../src/services/track/input.js";
 import { loadTrackSessionRecords } from "../../../../src/services/track/records/loader.js";
 
 const fit = createFitCodec();

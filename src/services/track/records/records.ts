@@ -1,7 +1,7 @@
 import { compareRuns, resolveRunRef, TrackComparisonError } from "./compare.js";
 import { deriveRun, developmentFromBasis, startFor } from "./derive.js";
 import { recordsDir, type LoadedRecords } from "./loader.js";
-import { round } from "../../../round.js";
+import { round } from "../../../shared/round.js";
 import { RATE_DP } from "./precision.js";
 import type {
   CompareTrackSessionsOptions,

@@ -1,9 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  computeBestPower,
-  formatDuration,
-  normalizedPower,
-} from "../../../src/services/analysis/power.js";
+import { computeBestPower, normalizedPower } from "../../src/shared/power.js";
 
 describe("computeBestPower", () => {
   it("finds best power over a sliding window", () => {
@@ -46,19 +42,5 @@ describe("normalizedPower", () => {
 
   it("returns undefined for an empty stream", () => {
     expect(normalizedPower([])).toBeUndefined();
-  });
-});
-
-describe("formatDuration", () => {
-  it("formats seconds", () => {
-    expect(formatDuration(30)).toBe("30s");
-  });
-
-  it("formats even minutes", () => {
-    expect(formatDuration(300)).toBe("5min");
-  });
-
-  it("formats minutes and seconds", () => {
-    expect(formatDuration(90)).toBe("1min 30s");
   });
 });

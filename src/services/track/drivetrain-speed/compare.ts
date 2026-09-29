@@ -5,7 +5,7 @@
 
 import type { FitRecord } from "../../fit/index.js";
 import type { TrackLapAlignmentResult } from "../alignment/types.js";
-import { round } from "../../../round.js";
+import { round } from "../../../shared/round.js";
 import { RATE_DP } from "../records/precision.js";
 import { distanceOver, type DrivetrainSpeedStream } from "./speed.js";
 import type {

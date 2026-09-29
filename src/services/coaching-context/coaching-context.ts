@@ -1,6 +1,6 @@
 import type { IWellnessApi, WellnessRecord } from "../wellness/index.js";
-import { isoToday } from "../../clock.js";
-import { shiftDate } from "../../dates.js";
+import { isoToday } from "../../shared/clock.js";
+import { shiftDate } from "../../shared/dates.js";
 import type {
   AthleteAnchors,
   IAthleteAnchors,
@@ -11,7 +11,7 @@ import type {
   FitnessSnapshot,
   WellnessTrendPoint,
 } from "./types.js";
-import { round } from "../../round.js";
+import { round } from "../../shared/round.js";
 
 export interface CoachingContextDeps {
   anchors: IAthleteAnchors;

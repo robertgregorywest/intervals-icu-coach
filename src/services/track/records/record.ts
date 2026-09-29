@@ -16,9 +16,9 @@
 
 import { z } from "zod";
 import {
+  FrontmatterError,
   parseFrontmatter,
-  TemplateParseError,
-} from "../../workout-library/index.js";
+} from "../../../shared/frontmatter.js";
 import {
   parseLapSplits,
   SplitParseError,
@@ -87,18 +87,6 @@ const metaSchema = z.object({
   start: z.enum(START_VALUES).default("flying"),
 });
 
-/**
- * `TemplateParseError` renders as `<file> — msg` or `<file>:<line> — msg`, and
- * `TrackRecordError` re-adds the filename. Drop the duplicate, keep the line.
- */
-function stripFilePrefix(message: string, file: string): string {
-  const escaped = file.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return message.replace(
-    new RegExp(`^${escaped}(?::(\\d+))?\\s*—\\s*`),
-    (_, line: string | undefined) => (line ? `line ${line}: ` : "")
-  );
-}
-
 /** Pull the fenced ```splits block out of the body. */
 function extractSplitsBlock(body: string, file: string): string {
   const match = body.match(/^[ \t]*```splits[ \t]*\r?\n([\s\S]*?)^[ \t]*```/m);
@@ -122,9 +110,7 @@ export function parseTrackSessionRecord(
   source: string,
   file: string
 ): TrackSessionRecord {
-  // `parseFrontmatter` is the workout-library's, reused rather than copied.
-  // Its messages are format-generic; only the error class names templates, so
-  // that is re-wrapped and nothing about workouts leaks into a track record.
+  // Re-raised as the record's own error, which names the file itself.
   let meta: Record<string, string>;
   let body: string;
   try {
@@ -132,8 +118,11 @@ export function parseTrackSessionRecord(
     meta = parsed.meta;
     body = parsed.body;
   } catch (err) {
-    if (err instanceof TemplateParseError) {
-      throw new TrackRecordError(file, stripFilePrefix(err.message, file));
+    if (err instanceof FrontmatterError) {
+      throw new TrackRecordError(
+        file,
+        err.line === null ? err.detail : `line ${err.line}: ${err.detail}`
+      );
     }
     throw err;
   }

@@ -20,8 +20,8 @@ We made the remote shape the only shape.
 - **Code outside a module imports only its `index.ts`.** `npm run check:imports`
   (`scripts/check-imports.ts`) enforces this in the pre-commit hook.
 
-Top-level shared files in `src/*.ts` — `dates.ts`, `clock.ts`, `types.ts` and the like — are not
-modules, and are imported directly.
+Shared pure helpers are not modules and are imported directly. Where they live, and what else an
+index may export, is set out in the amendment below.
 
 ## Tests
 
@@ -45,5 +45,45 @@ The check is a regex over relative import specifiers, not a compiler pass. It ca
 this repo writes (`from`, `export … from`, `import "…"`, `import("…")`), and refuses to pass having
 scanned nothing.
 
-Some indexes — `workout-library`'s among them — still export more than the rule allows. The import
-check already holds.
+## Amendment: what an index may export, and where shared helpers live
+
+Most indexes still exported helpers, constants, concrete classes and error classes that other modules
+and tools used (#46). Three questions came out of trimming them.
+
+**A helper another module or a tool uses.** Apply the deletion test before choosing a home:
+
+- **If every caller runs it on something the module just returned, it belongs behind the interface.**
+  Both users of the power-curve parser fetched the raw curve and then parsed it, so
+  `IPowerCurvesApi.getPeaks()` returns the peaks and the parser is internal.
+- **If it only shapes a payload for the model, it belongs with the Tool.** Activity compaction and stream
+  packing are cut to a character budget that only `get_activity` and `get_activity_streams` care
+  about, so they live in `src/tools/activity-payloads.ts`.
+- **If it is a pure domain primitive with nothing that varies, needed by two or more modules or
+  tools, it belongs in `src/shared/`.** Examples are normalised power, the MAP zones, the middle band,
+  the activity ID, the frontmatter reader, dates and rounding. A module and a factory would add a seam
+  with one adapter, which nothing ever substitutes. A Tool's schema is built at import time, before
+  any service exists, so it could not reach one through `deps` anyway.
+
+`src/shared/` holds one file per domain concept, named from CONTEXT.md, never `utils` or `helpers`.
+Its files are pure (no I/O, no `deps`) and import only each other, so `src/shared/` stays below every
+module. `npm run check:imports` enforces the import rule. A helper moves there only once a second
+module or tool needs it; until then it stays inside its module. Files left at the top of `src/` are
+infrastructure and wiring: the composition root, registry, HTTP client, config, error rendering and
+cassette.
+
+**Constants a Tool's schema needs.** A limit or default the module enforces, such as `MAX_DAYS` or
+`MAX_FORECAST_DAYS`, is part of what a caller must know to call it, which makes it part of the
+interface. An index may export such constants, as primitives, beside the factory. Moving them to
+`src/shared/` would separate each limit from the code that enforces it.
+
+**Error classes.** No index exports one. Nothing outside a module needed to `instanceof` one: the
+adapters render `error.message`, and the only cross-module check was on the frontmatter reader's
+error, which now belongs to `src/shared/frontmatter.ts`. A module's own tests import its error
+classes from internal files. If a caller ever needs to branch on how a call failed, the module
+should return a discriminated result rather than export an error class.
+
+So a module's index exports its interface, its `createX` factory, the types that interface uses, and
+primitive constants from its input contract, and every factory returns its interface.
+`tests/module-indexes.test.ts` loads every index and fails on any runtime export that is neither a
+`createX` factory nor a primitive constant. That catches concrete classes, error classes and helper
+functions alike.

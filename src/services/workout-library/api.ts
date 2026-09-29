@@ -93,6 +93,6 @@ export class WorkoutLibraryApi implements IWorkoutLibraryApi {
 export function createWorkoutLibraryApi(
   httpClient: IHttpClient,
   athleteId: string
-): WorkoutLibraryApi {
+): IWorkoutLibraryApi {
   return new WorkoutLibraryApi(httpClient, athleteId);
 }

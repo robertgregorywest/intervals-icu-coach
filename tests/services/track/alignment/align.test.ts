@@ -1,10 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import {
-  createTrack,
-  TrackAlignmentError,
-} from "../../../../src/services/track/index.js";
+import { createTrack } from "../../../../src/services/track/index.js";
+import { TrackAlignmentError } from "../../../../src/services/track/alignment/align.js";
 import type { IActivitiesApi } from "../../../../src/services/activities/index.js";
 import type { ActivityStreams } from "../../../../src/services/activities/index.js";
 import { createFitCodec } from "../../../../src/services/fit/index.js";

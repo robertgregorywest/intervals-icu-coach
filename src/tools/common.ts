@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { normalizeActivityId } from "../services/activities/index.js";
-import { ZONE_NAMES } from "../services/athlete-anchors/index.js";
+import { normalizeActivityId } from "../shared/activity-id.js";
+import { ZONE_NAMES } from "../shared/map-zones.js";
 
 export const CHARACTER_LIMIT = 25_000;
 export const DEFAULT_LIST_LIMIT = 50;

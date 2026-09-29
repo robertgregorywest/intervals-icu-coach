@@ -157,6 +157,6 @@ export function createActivitiesApi(
   httpClient: IHttpClient,
   athleteId: string,
   deps: ActivitiesDeps
-): ActivitiesApi {
+): IActivitiesApi {
   return new ActivitiesApi(httpClient, athleteId, deps);
 }

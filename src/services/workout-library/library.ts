@@ -125,7 +125,7 @@ function collectWorkouts(
 export function createWorkoutLibrary(
   api: IWorkoutLibraryApi,
   deps: WorkoutLibraryDeps
-): WorkoutLibrary {
+): IWorkoutLibrary {
   return new WorkoutLibrary(api, deps);
 }
 

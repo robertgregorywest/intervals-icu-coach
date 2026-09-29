@@ -10,7 +10,7 @@ import {
   DEFAULT_TOLERANCE,
   type RawPowerStream,
 } from "../../../../src/services/execution-review/steps/review.js";
-import { normalizedPower } from "../../../../src/services/analysis/index.js";
+import { normalizedPower } from "../../../../src/shared/power.js";
 import {
   plannedStep,
   readPlannedSteps,

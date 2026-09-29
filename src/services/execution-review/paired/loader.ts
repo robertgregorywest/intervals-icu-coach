@@ -1,7 +1,7 @@
 import type { Activity, IActivitiesApi } from "../../activities/index.js";
 import type { IEventsApi } from "../../events/index.js";
 import type { IntervalsEvent } from "../../../types.js";
-import { shiftDate } from "../../../dates.js";
+import { shiftDate } from "../../../shared/dates.js";
 import { executionCandidates } from "../steps/delivered.js";
 import { reviewWindow } from "./window.js";
 import type {

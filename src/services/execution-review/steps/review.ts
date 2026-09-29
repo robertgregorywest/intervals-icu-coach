@@ -2,7 +2,7 @@ import { alignSteps } from "./align.js";
 import {
   ROLLING_WINDOW_SECONDS,
   normalizedPower,
-} from "../../analysis/index.js";
+} from "../../../shared/power.js";
 import type {
   ActivityInterval,
   AlignedStep,
@@ -16,7 +16,7 @@ import type {
   UnplannedInterval,
   VerdictBasis,
 } from "./types.js";
-import { round } from "../../../round.js";
+import { round } from "../../../shared/round.js";
 
 export const DEFAULT_TOLERANCE = 0.05;
 

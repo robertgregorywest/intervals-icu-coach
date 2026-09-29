@@ -1,12 +1,11 @@
-import { mondayOf, shiftDate } from "../../../dates.js";
+import { mondayOf, shiftDate } from "../../../shared/dates.js";
 import type { Activity, IActivitiesApi } from "../../activities/index.js";
 import type { IAthleteAnchors } from "../../athlete-anchors/index.js";
 import {
   MIDDLE_BAND_HIGH_PCT_FTP,
   MIDDLE_BAND_LOW_PCT_FTP,
-  measureRides,
-  rollUpBand,
-} from "../middle-band.js";
+} from "../../../shared/middle-band.js";
+import { measureRides, rollUpBand } from "../middle-band.js";
 import type { RideBand } from "../middle-band.js";
 import type {
   MiddleBandFigures,

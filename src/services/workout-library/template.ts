@@ -1,4 +1,9 @@
 import { z } from "zod";
+import {
+  FrontmatterError,
+  parseFrontmatter,
+  type Frontmatter,
+} from "../../shared/frontmatter.js";
 import type { AnchorBasis } from "./types.js";
 
 /**
@@ -161,82 +166,19 @@ interface RawLine {
   lineNo: number;
 }
 
-// ---------------------------------------------------------------------------
-// Frontmatter
-// ---------------------------------------------------------------------------
-
 /**
- * Minimal frontmatter: `key: value`, one line each, optional surrounding
- * quotes, split on the FIRST colon so values may contain colons (folder names
- * are `Coach: VO2 Max`). Anything YAML-ish beyond that is a parse error rather
- * than a silent misread.
+ * The shared frontmatter reader, its failures re-raised as the template's own
+ * error so every template problem reads alike.
  */
-export function parseFrontmatter(
-  source: string,
-  file: string
-): { meta: Record<string, string>; body: string; bodyStartLine: number } {
-  const lines = source.split(/\r?\n/);
-  if (lines[0]?.trim() !== "---") {
-    throw new TemplateParseError(
-      file,
-      1,
-      "must start with a `---` frontmatter fence"
-    );
+function readFrontmatter(source: string, file: string): Frontmatter {
+  try {
+    return parseFrontmatter(source, file);
+  } catch (err) {
+    if (err instanceof FrontmatterError) {
+      throw new TemplateParseError(file, err.line, err.detail);
+    }
+    throw err;
   }
-  const meta: Record<string, string> = {};
-  let i = 1;
-  for (; i < lines.length; i++) {
-    const line = lines[i];
-    if (line.trim() === "---") break;
-    if (line.trim() === "") continue;
-    const colon = line.indexOf(":");
-    if (colon === -1) {
-      throw new TemplateParseError(
-        file,
-        i + 1,
-        `frontmatter line has no colon: ${JSON.stringify(line)}. ` +
-          "Values must be a single line of `key: value`."
-      );
-    }
-    const key = line.slice(0, colon).trim();
-    let value = line.slice(colon + 1).trim();
-    if (key === "") {
-      throw new TemplateParseError(file, i + 1, "frontmatter key is empty");
-    }
-    if (value === "") {
-      throw new TemplateParseError(
-        file,
-        i + 1,
-        `\`${key}\` has no value. Multi-line values, lists and anchors are not supported — keep it on one line.`
-      );
-    }
-    if (
-      (value.startsWith('"') && value.endsWith('"') && value.length > 1) ||
-      (value.startsWith("'") && value.endsWith("'") && value.length > 1)
-    ) {
-      value = value.slice(1, -1);
-    }
-    if (key in meta) {
-      throw new TemplateParseError(
-        file,
-        i + 1,
-        `duplicate frontmatter key \`${key}\``
-      );
-    }
-    meta[key] = value;
-  }
-  if (i >= lines.length) {
-    throw new TemplateParseError(
-      file,
-      null,
-      "frontmatter is not closed with `---`"
-    );
-  }
-  return {
-    meta,
-    body: lines.slice(i + 1).join("\n"),
-    bodyStartLine: i + 2,
-  };
 }
 
 // ---------------------------------------------------------------------------
@@ -431,7 +373,7 @@ function splitBody(
 }
 
 export function parseTemplate(source: string, file: string): WorkoutTemplate {
-  const { meta, body, bodyStartLine } = parseFrontmatter(source, file);
+  const { meta, body, bodyStartLine } = readFrontmatter(source, file);
 
   const parsed = metaSchema.safeParse(meta);
   if (!parsed.success) {

@@ -8,7 +8,7 @@
  */
 
 /** Intervals.icu's defaults, applied when the athlete has set no constants. */
-import { shiftDate } from "../../../dates.js";
+import { shiftDate } from "../../../shared/dates.js";
 
 export { shiftDate };
 

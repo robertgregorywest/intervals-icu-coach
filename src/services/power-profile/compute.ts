@@ -17,7 +17,7 @@ import type {
   TtEstimateRow,
   RaceEstimateRow,
 } from "./types.js";
-import { computeMapZones } from "../athlete-anchors/index.js";
+import { computeMapZones } from "../../shared/map-zones.js";
 
 const CD_FACTOR_BY_POSITION: Record<string, number> = {
   road_hoods: 0.7,
