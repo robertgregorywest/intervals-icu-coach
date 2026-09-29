@@ -56,11 +56,15 @@ Rebuild:
 
 ```bash
 node ~/.claude/skills/archify/bin/archify.mjs deliver architecture \
-  docs/architecture/deep-modules.archify.json docs/architecture/deep-modules.html --quality showcase
+  docs/architecture/deep-modules.archify.json docs/architecture/deep-modules.html \
+  --quality standard --repo-root .
 ```
 
 Keep in mind when editing:
 
-- The showcase profile rejects crossing or shared edge corridors, so only a representative subset of dependencies is drawn. The rest are stated in the "Deep core" card — keep the card honest when dependencies change.
-- `map` and `workout-parser` are folded into **Athlete anchors** and **Prescription**, the only modules that use them.
+- Edges are the `createServices` wiring in `src/index.ts`: each module points at the modules it takes through its `Deps`. Consumers sit below the deep core, so edges to Athlete anchors and Prescription run upward.
+- Selecting a module opens its Semantic Passport: upstream and downstream connections plus its `sources` (interface and glossary). The five guided views in `meta.views` highlight one connection theme each. Add a `sources` entry when a module gets a `CONTEXT.md`.
+- The `standard` profile is used because the showcase profile rejects the shared edge corridors this many connections need. Consumer → wrapper edges are drawn only where they say something (calendar writes, CTL/ATL, device laps); the rest are in the cards.
+- `map` and `workout-parser` are folded into **Athlete anchors** and **Prescription**, the only modules that use them. `fit` is drawn beside the API wrappers.
+- `meta.repository.revision` pins the `sources` links; bump it to a recent commit when rebuilding.
 - Update the diagram when a service is added, merged or split, using the names from the [context map](../../CONTEXT-MAP.md).
