@@ -13,6 +13,6 @@ Before changing anything under `src/`, `tests/`, `evals/` or `scripts/`, read `d
 
 ## Agent skills
 
-- **Issue tracker**: GitHub Issues for `robertgregorywest/intervals-icu-coach` (use the `gh` CLI). See `docs/agents/issue-tracker.md`.
+- **Issue tracker**: GitHub Issues for `robertgregorywest/intervals-icu-coach`. See `docs/agents/issue-tracker.md`.
 - **Triage labels**: canonical vocabulary, no overrides. See `docs/agents/triage-labels.md`.
 - **Domain docs**: multi-context — `CONTEXT-MAP.md` points at one `CONTEXT.md` per context, beside its code; decisions in `docs/adr/`. See `docs/agents/domain.md`.
