@@ -6,6 +6,7 @@ import {
   bucketDelivered,
   middleBandBounds,
 } from "../execution-review/index.js";
+import { round } from "../../round.js";
 
 export { MIDDLE_BAND_HIGH_PCT_FTP, MIDDLE_BAND_LOW_PCT_FTP };
 
@@ -98,7 +99,7 @@ export function rollUpBand(rides: RideBand[], span: string): BandRollUp | null {
     excludedNoFtp,
     rides: measured.length,
     seconds: bandSeconds,
-    hours: round1(bandSeconds / 3600),
+    hours: round(bandSeconds / 3600, 1),
     fractionOfPowerTime: powerSeconds
       ? Math.round((bandSeconds / powerSeconds) * 1000) / 1000
       : null,
@@ -112,8 +113,4 @@ function sum(values: number[]): number {
 function numericField(obj: Record<string, unknown>, key: string): number {
   const v = obj[key];
   return typeof v === "number" ? v : 0;
-}
-
-function round1(n: number): number {
-  return Math.round(n * 10) / 10;
 }

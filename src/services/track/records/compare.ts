@@ -8,7 +8,8 @@
  */
 
 import { deriveRun } from "./derive.js";
-import { RATIO_DP, round, SECONDS_DP } from "./round.js";
+import { round } from "../../../round.js";
+import { RATIO_DP, SECONDS_DP } from "./precision.js";
 import type {
   ComparisonLapRow,
   ComparisonSummaryRow,

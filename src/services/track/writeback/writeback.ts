@@ -33,6 +33,7 @@ import type {
   TrackRunWriteResult,
   WrittenRun,
 } from "./types.js";
+import { round } from "../../../round.js";
 
 /** Streams the snapped re-read needs. Mirrors the alignment's own set. */
 const STREAM_TYPES = ["time", "watts", "cadence", "heartrate"];
@@ -254,9 +255,4 @@ async function countExistingIntervals(
   } catch {
     return undefined;
   }
-}
-
-function round(value: number, places: number): number {
-  const factor = 10 ** places;
-  return Math.round(value * factor) / factor;
 }

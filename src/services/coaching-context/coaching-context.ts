@@ -11,6 +11,7 @@ import type {
   FitnessSnapshot,
   WellnessTrendPoint,
 } from "./types.js";
+import { round } from "../../round.js";
 
 export interface CoachingContextDeps {
   anchors: IAthleteAnchors;
@@ -109,9 +110,9 @@ function summarizeTrend(records: WellnessRecord[]): WellnessTrendPoint[] {
       const atl = numeric(r.atl);
       return {
         date: String(r.id),
-        ctl: round1(ctl),
-        atl: round1(atl),
-        tsb: round1(ctl - atl),
+        ctl: round(ctl, 1),
+        atl: round(atl, 1),
+        tsb: round(ctl - atl, 1),
         fatigue: r.fatigue,
         soreness: r.soreness,
         motivation: r.motivation,
@@ -139,7 +140,7 @@ function pickFitnessSnapshot(trend: WellnessTrendPoint[]): FitnessSnapshot {
   const last = trend[trend.length - 1];
   const first = trend[0];
   const rampRate =
-    trend.length > 1 ? round1((last.ctl - first.ctl) / trend.length) : 0;
+    trend.length > 1 ? round((last.ctl - first.ctl) / trend.length, 1) : 0;
   return {
     date: last.date,
     ctl: last.ctl,
@@ -151,8 +152,4 @@ function pickFitnessSnapshot(trend: WellnessTrendPoint[]): FitnessSnapshot {
 
 function numeric(v: unknown): number {
   return typeof v === "number" && Number.isFinite(v) ? v : 0;
-}
-
-function round1(n: number): number {
-  return Math.round(n * 10) / 10;
 }

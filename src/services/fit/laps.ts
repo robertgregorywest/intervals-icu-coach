@@ -17,6 +17,7 @@
 
 import { readFields, walkFit } from "./format.js";
 import type { FitLap } from "./types.js";
+import { round } from "../../round.js";
 
 const LAP_GLOBAL_MESSAGE = 19;
 
@@ -73,11 +74,11 @@ function toLaps(raw: Array<Map<number, number>>): FitLap[] {
       index,
       startTimeSeconds:
         start !== undefined && anchor !== undefined ? start - anchor : 0,
-      durationSeconds: round(m.get(FIELD_TOTAL_ELAPSED_TIME)! / 1000),
+      durationSeconds: round(m.get(FIELD_TOTAL_ELAPSED_TIME)! / 1000, 0),
     };
 
     const timer = m.get(FIELD_TOTAL_TIMER_TIME);
-    if (timer !== undefined) lap.timerSeconds = round(timer / 1000);
+    if (timer !== undefined) lap.timerSeconds = round(timer / 1000, 0);
 
     const distance = m.get(FIELD_TOTAL_DISTANCE);
     if (distance !== undefined) lap.distanceMeters = distance / 100;
@@ -99,8 +100,4 @@ function toLaps(raw: Array<Map<number, number>>): FitLap[] {
 
     return lap;
   });
-}
-
-function round(n: number): number {
-  return Math.round(n);
 }

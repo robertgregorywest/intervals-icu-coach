@@ -14,6 +14,8 @@
  * watching for it.
  */
 
+import { round } from "../../../round.js";
+
 export interface SnappedBoundary {
   index: number;
   /** The sample's own time — where the boundary actually ended up. */
@@ -119,9 +121,4 @@ function nearestIndex(
     boundaryTime(times, after, samplingIntervalSeconds) - target
   );
   return afterGap < beforeGap ? after : atOrBefore;
-}
-
-function round(value: number, places: number): number {
-  const factor = 10 ** places;
-  return Math.round(value * factor) / factor;
 }

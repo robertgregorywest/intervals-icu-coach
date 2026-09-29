@@ -35,6 +35,7 @@ import type {
   TrackLapAlignmentResult,
   TrackLapPowerOptions,
 } from "./types.js";
+import { round } from "../../../round.js";
 
 /** Streams the join reads. Cadence is required; the rest are read if present. */
 const STREAM_TYPES = ["time", "watts", "cadence", "heartrate"];
@@ -318,9 +319,4 @@ function rolloutAgreement(runs: AlignedRun[]): RolloutAgreement | undefined {
     maxMeters: round(max, 4),
     spreadPercent: round(((max - min) / mean) * 100, 2),
   };
-}
-
-function round(value: number, places: number): number {
-  const factor = 10 ** places;
-  return Math.round(value * factor) / factor;
 }

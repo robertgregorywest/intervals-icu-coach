@@ -11,7 +11,8 @@
  */
 
 import type { RunSplits } from "../alignment/types.js";
-import { RATE_DP, RATIO_DP, round, SECONDS_DP } from "./round.js";
+import { round } from "../../../round.js";
+import { RATE_DP, RATIO_DP, SECONDS_DP } from "./precision.js";
 import type {
   DerivedLap,
   DerivedRun,

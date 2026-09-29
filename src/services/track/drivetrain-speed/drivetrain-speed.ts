@@ -23,7 +23,8 @@ import type {
 } from "../alignment/types.js";
 import { resolveTrackInput, TrackInputError } from "../input.js";
 import { developmentFromBasis } from "../records/derive.js";
-import { RATE_DP, round } from "../records/round.js";
+import { round } from "../../../round.js";
+import { RATE_DP } from "../records/precision.js";
 import type { SessionBasis, TrackSessionRecord } from "../records/types.js";
 import {
   compareWithSensor,

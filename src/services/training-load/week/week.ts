@@ -19,6 +19,7 @@ import type {
   WeekMiddleBand,
 } from "./types.js";
 import type { RideBand } from "../middle-band.js";
+import { round } from "../../../round.js";
 
 export class TrainingWeek {
   constructor(private deps: TrainingWeekDeps) {}
@@ -88,9 +89,9 @@ function computeTotals(activities: Activity[]) {
   }
   return {
     activityCount: activities.length,
-    tss: round1(tss),
+    tss: round(tss, 1),
     durationSeconds: seconds,
-    durationHours: round1(seconds / 3600),
+    durationHours: round(seconds / 3600, 1),
   };
 }
 
@@ -100,8 +101,8 @@ function groupBySport(activities: Activity[]): Record<string, SportTotals> {
     const sport = String(a.type || "Unknown");
     const slot = out[sport] ?? { count: 0, tss: 0, hours: 0 };
     slot.count += 1;
-    slot.tss = round1(slot.tss + numericField(a, "icu_training_load"));
-    slot.hours = round1(slot.hours + numericField(a, "moving_time") / 3600);
+    slot.tss = round(slot.tss + numericField(a, "icu_training_load"), 1);
+    slot.hours = round(slot.hours + numericField(a, "moving_time") / 3600, 1);
     out[sport] = slot;
   }
   return out;
@@ -118,18 +119,18 @@ function computeFitnessDelta(wellness: WellnessRecord[]): FitnessDelta | null {
     startDate: String(first.id),
     endDate: String(last.id),
     ctl: {
-      start: round1(first.ctl),
-      end: round1(last.ctl),
-      delta: round1(last.ctl - first.ctl),
+      start: round(first.ctl, 1),
+      end: round(last.ctl, 1),
+      delta: round(last.ctl - first.ctl, 1),
     },
     atl: {
-      start: round1(first.atl),
-      end: round1(last.atl),
-      delta: round1(last.atl - first.atl),
+      start: round(first.atl, 1),
+      end: round(last.atl, 1),
+      delta: round(last.atl - first.atl, 1),
     },
     tsb: {
-      start: round1(first.ctl - first.atl),
-      end: round1(last.ctl - last.atl),
+      start: round(first.ctl - first.atl, 1),
+      end: round(last.ctl - last.atl, 1),
     },
   };
 }
@@ -146,9 +147,9 @@ function summarizeActivity(
     type: a.type,
     name: a.name,
     source,
-    tss: round1(numericField(a, "icu_training_load")),
+    tss: round(numericField(a, "icu_training_load"), 1),
     durationMin: Math.round(seconds / 60),
-    distanceKm: meters ? round1(meters / 1000) : null,
+    distanceKm: meters ? round(meters / 1000, 1) : null,
     avgWatts: numericField(a, "icu_average_watts") || null,
     avgHr: numericField(a, "average_heartrate") || null,
   };
@@ -167,8 +168,4 @@ function summarizeEvent(e: IntervalsEvent): EventSummary {
 function numericField(obj: Record<string, unknown>, key: string): number {
   const v = obj[key];
   return typeof v === "number" ? v : 0;
-}
-
-function round1(n: number): number {
-  return Math.round(n * 10) / 10;
 }

@@ -16,6 +16,7 @@ import type {
   UnplannedInterval,
   VerdictBasis,
 } from "./types.js";
+import { round } from "../../../round.js";
 
 export const DEFAULT_TOLERANCE = 0.05;
 
@@ -466,9 +467,4 @@ export function reviewSession(
     steps,
     rollup,
   };
-}
-
-function round(n: number, dp: number): number {
-  const f = 10 ** dp;
-  return Math.round(n * f) / f;
 }
