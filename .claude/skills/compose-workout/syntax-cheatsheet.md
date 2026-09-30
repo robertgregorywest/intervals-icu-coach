@@ -28,12 +28,12 @@ Lines starting with `- ` are steps. `Nx` introduces a repeat block whose followi
 
 ```
 - Warm-up 10m ramp 50-80%
-- 1m 90%
-- 2m 60%
+- Opener 1m 90%
+- Easy 2m 60%
 
 3x
-- 12m 250w-265w 85-105rpm
-- 5m 160w
+- Sweet spot 12m 250w-265w 85-105rpm
+- Recovery 5m 160w
 
 - Cool 5m 50%
 ```
@@ -42,13 +42,14 @@ Lines starting with `- ` are steps. `Nx` introduces a repeat block whose followi
 
 ```
 - Warm-up 10m ramp 50-80%
+
 3x
-- 30s 100% 100rpm
-- 30s 55%
+- Opener 30s 100% 100rpm
+- Easy 30s 55%
 
 4x
-- 4m 360w-390w 95rpm
-- 4m 160w
+- VO2 4m 360w-390w 95rpm
+- Recovery 4m 160w
 
 - Cool 5m 50%
 ```

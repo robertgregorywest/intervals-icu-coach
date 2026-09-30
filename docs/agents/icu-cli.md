@@ -36,7 +36,7 @@ runs is set by its tier:
 
 | Tier                          | Runs                                                                                                                                          |
 | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Read-only**                 | `get_*`, `list_*`, `compute_*`, `compare_*`, `describe` — nothing else, and never `--yes`.                                                    |
-| **Build**                     | Read-only, plus `create_*`/`sync_*` (idempotent upserts, no `--yes` needed).                                                                  |
+| **Read-only**                 | `get_*`, `list_*`, `compute_*`, `compare_*`, `forecast_*`, `describe` — nothing else, and never `--yes`.                                      |
+| **Build**                     | Read-only, plus `create_*`/`schedule_*`/`sync_*` (idempotent upserts, no `--yes` needed).                                                     |
 | **Build**, replacing an event | Build, plus `update_event --yes` on the one event id the caller's brief names — the athlete agreed to the replacement on the coaching thread. |
 | **Coaching**                  | Build, plus any other command with `--yes` once the athlete has agreed to the change in conversation (move/delete an event, and so on).       |

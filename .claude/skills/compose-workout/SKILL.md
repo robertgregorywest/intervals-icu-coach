@@ -58,10 +58,12 @@ write again rather than leaving it.
 Where those files say to check `list_workout_library` first, the caller already has: the brief's
 library decision is that check's answer.
 
-When the brief names a library item, fetch its body with `get_workout_library_item` and schedule
-that. When it says compose fresh, compose. Schedule with `create_workout` — or, when the brief
-names an event to replace, a `steps`-bearing `update_event --yes` on that id. If asked to save to the
-library, write `templates/workouts/<seedId>.md` then run `sync_workout_library`.
+When the brief names a library item, schedule it with `schedule_library_workout`, which copies its
+description verbatim. When it says compose fresh, compose, and schedule with `create_workout`. When
+the brief names an event to replace, write onto that id instead: a `steps`-bearing
+`update_event --yes` for a composed session, or `update_event --yes` with the library item's
+`description` from `get_workout_library_item` for a library one. If asked to save to the library,
+write `templates/workouts/<seedId>.md` then run `sync_workout_library`.
 
 ## Tool access
 

@@ -10,7 +10,7 @@ Reuse when **all** of these hold:
 - The workout's calibration is current. `hasTemplate: true` means `sync_workout_library` maintains it, so its watts track the athlete's tests; treat those as calibrated. A workout without a template is unmanaged and may sit at a stale anchor.
 - The athlete hasn't asked for explicit variation ("not 4×4 again, do something different").
 
-To reuse: pull the body via `get_workout_library_item`, then schedule with `create_workout` using the workout's description text.
+To reuse: schedule it with `schedule_library_workout` (its id and the date). It copies the description verbatim — prose, steps and template marker — so don't re-express a library item as `create_workout` steps. `get_workout_library_item` is for reading the body first.
 
 ## When to compose
 
