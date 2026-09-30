@@ -7,7 +7,7 @@ something new.
 
 ## Layout
 
-- **Service modules** (`src/services/`) — every module, pure or Intervals.icu-backed, exposes an `IX` interface and a `createX()` factory returning it, is built in `createServices`, and reaches consumers through `deps`. Larger modules (`workout-library/`, `track/`) split into multiple files or folders behind the same index. Rules below.
+- **Service modules** (`src/services/`) — every module, pure or Intervals.icu-backed, exposes an `IX` interface and a `createX()` factory returning it, is built in `createServices`, and reaches consumers through `deps`. Larger modules (`workout-library/`, `track/`) split into multiple files or folders behind the same index.
 - **Shared** (`src/shared/`) — pure domain primitives needed by two or more modules or tools, one file per concept (`power.ts`, `map-zones.ts`, `middle-band.ts`, `dates.ts`, …). They are not modules, are imported directly, and import only each other. Before adding to it, check whether the helper belongs behind the owning module's interface instead.
 - **Client** (`src/client.ts`) — `HttpClient` with Basic auth, rate limiting, injectable `fetchFn` for testing.
 - **Services** (`src/index.ts`) — the composition root: `createServices()` builds every service once and returns them as `IServices`, which every handler receives as `services`. It forwards nothing.
@@ -25,17 +25,11 @@ The terms above are defined in the [Tool surface glossary](../../src/CONTEXT.md)
 - **A new Tool**: `defineTool` in `src/tools/` → one line in `src/registry.ts` → both adapters pick it up.
 - **New behaviour**: a module with an interface and factory under `src/services/`, built in `createServices`.
 
-## Module rules
+## Rules
 
-From [ADR 0014](../adr/0014-modules-behind-interfaces.md) and its amendment:
-
-- A module's `index.ts` exports only the interface, the factory, the types the interface uses and primitive constants from its input contract (such as `MAX_DAYS`) — never a class, helper or error class. `tests/module-indexes.test.ts` enforces it.
-- Code outside the module imports nothing but its index. `npm run check:imports` enforces it, in the pre-commit hook.
-- A module's own tests may reach its internals; other tests substitute it through `deps`.
-
-## Knowledge placement
-
-A Tool's input contract goes in its schema `.describe()`, enforced in code where possible; coaching and workout-writing practice goes in a skill. Neither adapter carries shared instructions ([ADR 0013](../adr/0013-knowledge-in-schemas-and-skills.md)).
+The rules a change is reviewed against — modules behind interfaces, where a helper goes, what a
+handler may do, knowledge placement, the single owner of each domain rule, tests — are in
+[`CODING_STANDARDS.md`](../../CODING_STANDARDS.md).
 
 ## Dev loop
 

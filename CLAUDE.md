@@ -4,7 +4,7 @@ MCP server and CLI tool for the Intervals.icu API plus tools and skills to suppo
 
 ## Changing code
 
-Before changing anything under `src/`, `tests/`, `evals/` or `scripts/`, read `docs/architecture/README.md` — layout, module rules, adding a Tool, the dev loop. Before naming or exploring a domain concept, read `CONTEXT-MAP.md`, then the glossary for that area.
+Before changing anything under `src/`, `tests/`, `evals/` or `scripts/`, read `docs/architecture/README.md` — layout, adding a Tool, the dev loop — and `CODING_STANDARDS.md`, the rules a change is reviewed against. Before naming or exploring a domain concept, read `CONTEXT-MAP.md`, then the glossary for that area.
 
 ## Ways of working
 
