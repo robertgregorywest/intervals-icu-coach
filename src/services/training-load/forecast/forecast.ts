@@ -65,8 +65,9 @@ export class TrainingLoadForecast {
     const { oldest, newest } = options;
     assertForecastWindow(oldest, newest);
 
-    // The seed is the last delivered day before the window; ramp needs a week
-    // of fitness behind that again.
+    // The seed is the last delivered day before the window — what the athlete
+    // delivered, not the platform's projection onto planned work, which on a
+    // day carrying both differs. Ramp needs a week of fitness behind that again.
     const seedDate = shiftDate(oldest, -1);
     const historyStart = shiftDate(seedDate, -RAMP_LOOKBACK_DAYS);
 

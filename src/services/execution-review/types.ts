@@ -35,7 +35,12 @@ export interface IExecutionReview {
   comparePlannedVsActual(
     options: ComparePlannedVsActualOptions
   ): Promise<PlannedVsActualResult>;
-  /** The band lens over one session. */
+  /**
+   * The band lens over one session. Both sides are computed here — the planned
+   * side from the prescription's own steps, the delivered side from the power
+   * stream — never read off `workout_doc.zoneTimes` or `icu_zone_times`, which
+   * are authoring-time and upload-time snapshots, each anchored independently.
+   */
   compareIntensityDistribution(
     options: SessionRef
   ): Promise<IntensityDistributionResult>;

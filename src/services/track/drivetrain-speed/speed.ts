@@ -7,6 +7,10 @@
  * what the wheel travelled rather than what the assumed line measures
  * (`docs/personal/track-context.md` §1).
  *
+ * It carries the recording's cadence resolution: whole-rpm cadence puts up to
+ * ~1% of noise on each sample and may bias the whole stream, which only a
+ * **Lap-split record** can measure.
+ *
  * Each sample's speed holds until the next sample, the same convention the
  * alignment reads streams by (`alignment/samples.ts`), so a lap window placed by
  * the alignment integrates this stream exactly as it averaged the cadence. A

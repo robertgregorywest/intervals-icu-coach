@@ -2,7 +2,7 @@
 
 How code in this repo is written, stated as rules a reviewer can hold a diff against. Where a rule
 comes from a decision, the ADR is cited; the domain terms are defined in the
-[context map](./CONTEXT-MAP.md) and its glossaries. Layout and the dev loop are in
+[glossary](./CONTEXT.md). Layout and the dev loop are in
 [`docs/architecture/README.md`](./docs/architecture/README.md).
 
 ## Already enforced — don't review for these

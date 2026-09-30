@@ -4,39 +4,24 @@ How the engineering skills should consume this repo's domain documentation when 
 
 ## Before exploring, read these
 
-- **`CONTEXT.md`** at the repo root, or
-- **`CONTEXT-MAP.md`** at the repo root if it exists — it points at one `CONTEXT.md` per context. Read each one relevant to the topic.
-- **`docs/adr/`** — read ADRs that touch the area you're about to work in. In multi-context repos, also check `src/<context>/docs/adr/` for context-scoped decisions.
+- **`CONTEXT.md`** at the repo root — the one glossary, grouped by area. Read the areas relevant to the topic.
+- **`docs/adr/`** — read ADRs that touch the area you're about to work in.
 
-If any of these files don't exist, **proceed silently**. Don't flag their absence; don't suggest creating them upfront. The producer skill (`/grill-with-docs`) creates them lazily when terms or decisions actually get resolved.
+This repo has one language, so there is no `CONTEXT-MAP.md`. Keep it that way: add a term under the area it belongs to, and add an area rather than a second `CONTEXT.md`.
 
-## File structure
+## What a CONTEXT.md holds
 
-Single-context repo (most repos):
+Terms, each defined in one or two sentences as what it _is_; `_Avoid_` lists the synonyms not to use. Nothing else — when writing to one, put everything else where it belongs:
 
-```
-/
-├── CONTEXT.md
-├── docs/adr/
-│   ├── 0001-event-sourced-orders.md
-│   └── 0002-postgres-for-write-model.md
-└── src/
-```
+| Not a definition                                             | Goes in                                      |
+| ------------------------------------------------------------ | -------------------------------------------- |
+| Paths, interfaces, methods, what is fetched when             | The module's interface doc comments          |
+| "The one place X is computed", "never do Y outside Z"        | `CODING_STANDARDS.md`                        |
+| Thresholds, formulas, fallback orders, edge cases            | The code that applies them, pinned by a test |
+| Why it is this way, what it replaced, what was measured      | An ADR, or a comment on the code it explains |
+| Intervals.icu quirks — misleading fields, what the API omits | The code that parses the field               |
 
-Multi-context repo (presence of `CONTEXT-MAP.md` at the root):
-
-```
-/
-├── CONTEXT-MAP.md
-├── docs/adr/                          ← system-wide decisions
-└── src/
-    ├── ordering/
-    │   ├── CONTEXT.md
-    │   └── docs/adr/                  ← context-specific decisions
-    └── billing/
-        ├── CONTEXT.md
-        └── docs/adr/
-```
+A glossary entry that needs a paragraph is usually a module's description or a decision; move it rather than grow the entry.
 
 ## Use the glossary's vocabulary
 

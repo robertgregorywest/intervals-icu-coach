@@ -129,7 +129,7 @@
           "label": "IExecutionReview"
         },
         {
-          "path": "src/services/execution-review/CONTEXT.md",
+          "path": "CONTEXT.md",
           "label": "glossary"
         }
       ]
@@ -147,7 +147,7 @@
           "label": "ITrainingLoad"
         },
         {
-          "path": "src/services/training-load/CONTEXT.md",
+          "path": "CONTEXT.md",
           "label": "glossary"
         }
       ]
@@ -207,7 +207,7 @@
           "label": "ITrack"
         },
         {
-          "path": "src/services/track/CONTEXT.md",
+          "path": "CONTEXT.md",
           "label": "glossary"
         }
       ]
@@ -240,7 +240,7 @@
           "label": "IPrescription"
         },
         {
-          "path": "src/services/prescription/CONTEXT.md",
+          "path": "CONTEXT.md",
           "label": "glossary"
         }
       ]
@@ -259,7 +259,7 @@
           "label": "IAthleteAnchors"
         },
         {
-          "path": "src/services/athlete-anchors/CONTEXT.md",
+          "path": "CONTEXT.md",
           "label": "glossary"
         }
       ]
