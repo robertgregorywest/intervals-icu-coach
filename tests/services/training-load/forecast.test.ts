@@ -439,7 +439,7 @@ describe("forecast — refusals and read-only behaviour", () => {
         oldest: "2026-08-16",
         newest: "2026-08-10",
       })
-    ).rejects.toThrow(/must be on or after/);
+    ).rejects.toThrow(/ends before it starts/);
   });
 
   it("accepts a window exactly at the cap", async () => {
@@ -461,7 +461,9 @@ describe("forecast — refusals and read-only behaviour", () => {
         newest: newest.toISOString().slice(0, 10),
       })
     ).rejects.toThrow(
-      new RegExp(`too long: ${MAX_FORECAST_DAYS + 1} days.*model compounds`)
+      new RegExp(
+        `spans ${MAX_FORECAST_DAYS + 1} days, over the ${MAX_FORECAST_DAYS}-day maximum.*model compounds`
+      )
     );
     expect(fetchFn).not.toHaveBeenCalled();
   });

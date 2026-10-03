@@ -9,11 +9,12 @@ import {
   DEFAULT_ATL_DAYS,
   DEFAULT_CTL_DAYS,
   RAMP_LOOKBACK_DAYS,
-  dateRange,
+  eachDate,
   project,
   shiftDate,
 } from "./trajectory.js";
 import { mondayOf } from "../../../shared/dates.js";
+import { dateRange } from "../../../shared/date-range.js";
 import type {
   ForecastBasis,
   ForecastOptions,
@@ -63,7 +64,12 @@ export class TrainingLoadForecast {
     options: ForecastOptions
   ): Promise<ForecastResult> {
     const { oldest, newest } = options;
-    assertForecastWindow(oldest, newest);
+    dateRange(oldest, newest, {
+      maxDays: MAX_FORECAST_DAYS,
+      why:
+        "Forecast a block at a time — the model compounds, and a projection " +
+        "four months out says more about the assumed sessions than about the athlete.",
+    });
 
     // The seed is the last delivered day before the window — what the athlete
     // delivered, not the platform's projection onto planned work, which on a
@@ -118,7 +124,7 @@ export class TrainingLoadForecast {
       loadByDate.set(s.date, (loadByDate.get(s.date) ?? 0) + s.load);
     }
 
-    const dates = dateRange(oldest, newest);
+    const dates = eachDate(oldest, newest);
     const days = project(
       seed,
       dates.map((date) => ({ date, load: loadByDate.get(date) ?? 0 })),
@@ -320,28 +326,6 @@ export class TrainingLoadForecast {
       intensityFactor: derived.intensityFactor,
       ...(derived.gaps.length > 0 ? { gaps: derived.gaps } : {}),
     };
-  }
-}
-
-/** Refuses a backwards window, and one past the cap rather than truncating it. */
-function assertForecastWindow(oldest: string, newest: string): void {
-  const start = Date.parse(oldest);
-  const end = Date.parse(newest);
-  if (Number.isNaN(start) || Number.isNaN(end)) {
-    throw new Error("Invalid date — must be YYYY-MM-DD");
-  }
-  if (end < start) {
-    throw new Error(
-      `newest (${newest}) must be on or after oldest (${oldest})`
-    );
-  }
-  const days = (end - start) / 86_400_000 + 1;
-  if (days > MAX_FORECAST_DAYS) {
-    throw new Error(
-      `Forecast window too long: ${Math.round(days)} days (max ${MAX_FORECAST_DAYS}). ` +
-        "Forecast a block at a time — the model compounds, and a projection " +
-        "four months out says more about the assumed sessions than about the athlete."
-    );
   }
 }
 

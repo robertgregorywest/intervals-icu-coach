@@ -5,7 +5,7 @@ import {
   DEFAULT_ATL_DAYS,
   DEFAULT_CTL_DAYS,
   advance,
-  dateRange,
+  eachDate,
   form,
   project,
   shiftDate,
@@ -144,7 +144,7 @@ describe("trajectory — the model itself", () => {
   it("counts calendar days in UTC, so a DST shift cannot drop one", () => {
     expect(shiftDate("2026-03-28", 1)).toBe("2026-03-29");
     expect(shiftDate("2026-10-25", 1)).toBe("2026-10-26");
-    expect(dateRange("2026-03-28", "2026-03-31")).toEqual([
+    expect(eachDate("2026-03-28", "2026-03-31")).toEqual([
       "2026-03-28",
       "2026-03-29",
       "2026-03-30",

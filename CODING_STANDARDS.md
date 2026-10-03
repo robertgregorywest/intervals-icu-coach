@@ -88,6 +88,7 @@ correct copy — is a violation; call the owner. The glossary entry for each say
 | Forecast and trend range caps                                                                      | **Training load module**                                                             |
 | Workout text building, the WORKOUT event shape, any calendar write of a workout                    | **Workout scheduling module**                                                        |
 | Resolving a **Track input**; alignment; write-back                                                 | **Track module**                                                                     |
+| Date-range guard: format, order, inclusive day count, refusal past a cap (the cap is the caller's) | `src/shared/date-range.ts`                                                           |
 | Rounding                                                                                           | `src/shared/round.ts`                                                                |
 | "Today"                                                                                            | `ServicesOptions.today`, defaulting to `isoToday()` — never `new Date()` in a module |
 

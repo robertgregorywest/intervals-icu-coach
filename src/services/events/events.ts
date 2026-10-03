@@ -1,5 +1,12 @@
 import type { IHttpClient } from "../../client.js";
 import type { IntervalsEvent } from "../../types.js";
+import { dateRange } from "../../shared/date-range.js";
+
+/**
+ * Longest range a list read accepts, in days counting both ends: a season of
+ * history, beyond which the payload is too large to be useful to the model.
+ */
+export const MAX_RANGE_DAYS = 365;
 
 export interface IEventsApi {
   getEvents(
@@ -33,6 +40,7 @@ export class EventsApi implements IEventsApi {
     newest: string,
     resolve = false
   ): Promise<IntervalsEvent[]> {
+    dateRange(oldest, newest, { maxDays: MAX_RANGE_DAYS });
     const resolveParam = resolve ? "&resolve=true" : "";
     return this.httpClient.request<IntervalsEvent[]>(
       `/api/v1/athlete/${this.athleteId}/events?oldest=${oldest}&newest=${newest}${resolveParam}`

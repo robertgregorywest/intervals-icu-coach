@@ -250,6 +250,6 @@ describe("TrainingLoad.getMiddleBandTrend", () => {
         oldest: "2026-08-23",
         newest: "2026-08-03",
       })
-    ).rejects.toThrow(/must be on or after/);
+    ).rejects.toThrow(/ends before it starts/);
   });
 });

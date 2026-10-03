@@ -1,4 +1,5 @@
 import { mondayOf, shiftDate } from "../../../shared/dates.js";
+import { dateRange } from "../../../shared/date-range.js";
 import type { Activity, IActivitiesApi } from "../../activities/index.js";
 import type { IAthleteAnchors } from "../../athlete-anchors/index.js";
 import {
@@ -70,31 +71,30 @@ export class MiddleBandTrend {
   }
 }
 
-/** Snaps the range out to whole Monday-to-Sunday weeks and enforces the cap. */
+/**
+ * Snaps the range out to whole Monday-to-Sunday weeks and enforces the cap on
+ * the snapped range, since that is what is fetched.
+ */
 function snapToWeeks(
   from: string,
   to: string
 ): { weekStarts: string[]; oldest: string; newest: string } {
-  if (Number.isNaN(Date.parse(from)) || Number.isNaN(Date.parse(to))) {
-    throw new Error("Invalid date — must be YYYY-MM-DD");
-  }
-  if (to < from) {
-    throw new Error(`newest (${to}) must be on or after oldest (${from})`);
-  }
-  const oldest = mondayOf(from);
-  const lastWeek = mondayOf(to);
-  const weekStarts: string[] = [];
-  for (let w = oldest; w <= lastWeek; w = shiftDate(w, 7)) {
-    weekStarts.push(w);
-    if (weekStarts.length > MAX_TREND_WEEKS) {
-      throw new Error(
-        `Range too long: more than ${MAX_TREND_WEEKS} weeks once snapped to ` +
-          "Monday-to-Sunday weeks. Every power-recorded ride costs a stream " +
-          "fetch — narrow the range and try again."
-      );
+  dateRange(from, to);
+  const { oldest, newest, days } = dateRange(
+    mondayOf(from),
+    shiftDate(mondayOf(to), 6),
+    {
+      maxDays: MAX_TREND_WEEKS * 7,
+      why:
+        `That is more than ${MAX_TREND_WEEKS} weeks once snapped to ` +
+        "Monday-to-Sunday weeks, and every power-recorded ride costs a stream " +
+        "fetch — narrow the range and try again.",
     }
-  }
-  return { weekStarts, oldest, newest: shiftDate(lastWeek, 6) };
+  );
+  const weekStarts = Array.from({ length: days / 7 }, (_, i) =>
+    shiftDate(oldest, i * 7)
+  );
+  return { weekStarts, oldest, newest };
 }
 
 function figures(rides: RideBand[], span: string): MiddleBandFigures {

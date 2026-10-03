@@ -101,7 +101,7 @@ export function project(
 }
 
 /** Every date from `oldest` to `newest` inclusive. */
-export function dateRange(oldest: string, newest: string): string[] {
+export function eachDate(oldest: string, newest: string): string[] {
   const out: string[] = [];
   for (let d = oldest; d <= newest; d = shiftDate(d, 1)) out.push(d);
   return out;

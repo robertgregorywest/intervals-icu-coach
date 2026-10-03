@@ -1,6 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
 import { HttpClient } from "../../src/client.js";
-import { WellnessApi } from "../../src/services/wellness/wellness.js";
+import {
+  WellnessApi,
+  MAX_RANGE_DAYS,
+} from "../../src/services/wellness/wellness.js";
 
 function createMockFetch(status: number, body: unknown) {
   return vi.fn().mockResolvedValue({
@@ -33,6 +36,20 @@ describe("WellnessApi", () => {
     expect(url).toBe(
       "https://intervals.icu/api/v1/athlete/i12345/wellness?oldest=2024-01-01&newest=2024-01-31"
     );
+  });
+
+  it("refuses a range past MAX_RANGE_DAYS before fetching", async () => {
+    const mockFetch = createMockFetch(200, []);
+    const api = new WellnessApi(
+      new HttpClient(config, mockFetch),
+      config.athleteId
+    );
+
+    await expect(api.getWellness("2025-01-01", "2026-01-01")).rejects.toThrow(
+      /spans 366 days, over the 365-day maximum/
+    );
+    expect(MAX_RANGE_DAYS).toBe(365);
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 
   it("GETs wellness for a single day", async () => {

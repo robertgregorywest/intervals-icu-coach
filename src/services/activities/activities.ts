@@ -6,6 +6,13 @@ import type {
   ActivityStreams,
   IntervalWrite,
 } from "./types.js";
+import { dateRange } from "../../shared/date-range.js";
+
+/**
+ * Longest range a list read accepts, in days counting both ends: a season of
+ * history, beyond which the payload is too large to be useful to the model.
+ */
+export const MAX_RANGE_DAYS = 365;
 
 export interface IActivitiesApi {
   getActivities(oldest: string, newest: string): Promise<Activity[]>;
@@ -64,6 +71,7 @@ export class ActivitiesApi implements IActivitiesApi {
   }
 
   async getActivities(oldest: string, newest: string): Promise<Activity[]> {
+    dateRange(oldest, newest, { maxDays: MAX_RANGE_DAYS });
     return this.httpClient.request<Activity[]>(
       `/api/v1/athlete/${this.athleteId}/activities?oldest=${oldest}&newest=${newest}`
     );

@@ -4,11 +4,11 @@ import {
   detectStravaStub,
   packStreams,
 } from "./activity-payloads.js";
+import { MAX_RANGE_DAYS } from "../services/activities/index.js";
 import { defineTool, READ_ONLY } from "./define.js";
 import {
   applyLimit,
   activityIdField,
-  assertDateRange,
   dateString,
   limitField,
 } from "./common.js";
@@ -44,13 +44,12 @@ export const getActivitiesTool = defineTool({
   description:
     "List activities in a date range with summary metrics (TSS, IF, NP, duration, distance, HR, power). " +
     "Use this to review recent training history. " +
-    "Date range max 365 days; results capped at 'limit' (default 50, max 200). " +
+    `Date range max ${MAX_RANGE_DAYS} days, counting both ends; results capped at 'limit' (default 50, max 200). ` +
     "Returns: { total, count, truncated, activities: [...] }.",
   schema: getActivitiesSchema,
   annotations: READ_ONLY,
   outputSchema: getActivitiesOutputSchema,
   async handler(services, args) {
-    assertDateRange(args.oldest, args.newest);
     const all = await services.activities.getActivities(
       args.oldest,
       args.newest
