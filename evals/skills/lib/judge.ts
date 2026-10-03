@@ -49,22 +49,26 @@ async function vote(model: string, prompt: string): Promise<Vote> {
   return { verdict: "UNPARSEABLE", reason: text.slice(0, 200), costUsd };
 }
 
-/** Majority of three votes from the pinned judge model. */
+/**
+ * Majority of `votes` from the pinned judge model — three for a whole rubric,
+ * one for a single Noul check the Noul could not settle.
+ */
 export async function judge(
   model: string,
   criteria: string,
-  output: string
+  output: string,
+  votes = VOTES
 ): Promise<GradeOutcome> {
   const prompt = `## Rubric\n\n${criteria.trim()}\n\n## Output to grade\n\n${output.trim() || "(empty)"}`;
-  const votes = await Promise.all(
-    Array.from({ length: VOTES }, () => vote(model, prompt))
+  const cast = await Promise.all(
+    Array.from({ length: votes }, () => vote(model, prompt))
   );
-  const passes = votes.filter((v) => v.verdict === "PASS").length;
-  const passed = passes * 2 > VOTES;
-  const deciding = votes.find((v) => (v.verdict === "PASS") === passed);
+  const passes = cast.filter((v) => v.verdict === "PASS").length;
+  const passed = passes * 2 > votes;
+  const deciding = cast.find((v) => (v.verdict === "PASS") === passed);
   return {
     passed,
-    explanation: `${passes}/${VOTES} PASS — ${deciding?.reason ?? votes[0].reason}`,
-    costUsd: votes.reduce((s, v) => s + v.costUsd, 0),
+    explanation: `${passes}/${votes} PASS — ${deciding?.reason ?? cast[0].reason}`,
+    costUsd: cast.reduce((s, v) => s + v.costUsd, 0),
   };
 }

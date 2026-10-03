@@ -4,7 +4,7 @@ import type { CapturedWrite } from "../../../src/cassette.js";
 import { TOOLS } from "../../../src/registry.js";
 import { defineGrader, target } from "../lib/grader.js";
 import { judge } from "../lib/judge.js";
-import { noulJudge } from "../lib/noul-judge.js";
+import { noulJudge, type NoulCheck } from "../lib/noul-judge.js";
 import { icuCalls, skillMatches, targetText } from "../lib/transcript.js";
 import type { GradeOutcome, RunArtifacts } from "../lib/types.js";
 
@@ -281,10 +281,24 @@ export const llmRubric = defineGrader(
     judge(o.judgeModel ?? ctx.judgeModel, o.criteria, targetText(run, o.target))
 );
 
+/** One Noul check as the rubric a single judge vote reads. */
+function checkCriteria(check: NoulCheck, context?: string): string {
+  return [
+    ...(context
+      ? [`Facts the output should agree with:\n${context.trim()}`]
+      : []),
+    `PASS if: ${check.question}`,
+    ...(check.yes ? [`A pass looks like: ${check.yes}`] : []),
+    ...(check.no ? [`A fail looks like: ${check.no}`] : []),
+  ].join("\n\n");
+}
+
 /**
  * A rubric as separate yes/no checks, each a TypeSafe Noul over the output:
  * one request returns a yes-probability per check, and the run passes when
  * every check reaches its threshold. Phrase each check so yes is a pass.
+ * With a `floor`, a check between it and its threshold is not failed but
+ * settled by one judge vote on that check alone.
  */
 export const noulRubric = defineGrader(
   z.strictObject({
@@ -295,20 +309,37 @@ export const noulRubric = defineGrader(
           yes: z.string().min(1).optional(),
           no: z.string().min(1).optional(),
           threshold: z.number().gt(0).lt(1).optional(),
+          floor: z.number().gt(0).lt(1).optional(),
         })
       )
       .min(1),
     context: z.string().min(1).optional(),
     threshold: z.number().gt(0).lt(1).optional(),
+    floor: z.number().gt(0).lt(1).optional(),
+    judgeModel: z.string().optional(),
     target,
   }),
-  (o, run) =>
-    noulJudge(
-      o.checks.map((c) => ({
-        ...c,
-        threshold: c.threshold ?? o.threshold ?? 0.5,
-      })),
-      targetText(run, o.target),
-      o.context
-    )
+  (o, run, ctx) => {
+    const output = targetText(run, o.target);
+    const checks = o.checks.map((c) => {
+      const threshold = c.threshold ?? o.threshold ?? 0.5;
+      const floor = c.floor ?? o.floor;
+      if (floor !== undefined && floor >= threshold) {
+        throw new Error(
+          `floor ${floor} must sit below threshold ${threshold}: ${c.question}`
+        );
+      }
+      return { ...c, threshold, floor };
+    });
+    return noulJudge(checks, output, {
+      context: o.context,
+      escalate: (c) =>
+        judge(
+          o.judgeModel ?? ctx.judgeModel,
+          checkCriteria(c, o.context),
+          output,
+          1
+        ),
+    });
+  }
 );
