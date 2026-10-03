@@ -24,7 +24,6 @@ const EXCLUDE = [
   "docs/evals.md",
   "docs/adr/0009-skill-evals.md",
   "tests",
-  ".sandcastle",
   ".github",
   "docs/personal",
 ];
