@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { SPORT_TYPES } from "../types.js";
 import { defineTool, UPSERT } from "./define.js";
-import type { ScheduledWorkouts } from "../index.js";
+import type { ScheduledWorkouts } from "../services/workout-scheduling/index.js";
 import { colorField, dateString, externalIdField } from "./common.js";
 import { WORK_WORDS } from "../shared/work-words.js";
 
