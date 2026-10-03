@@ -1,9 +1,17 @@
 import { describe, it, expect } from "vitest";
+import { readFileSync } from "node:fs";
 import { TOOLS, READ_ONLY, MUTATING, UPSERT } from "../src/registry.js";
 
 describe("TOOLS registry", () => {
-  it("has 35 tools", () => {
-    expect(TOOLS).toHaveLength(35);
+  // Claude Desktop shows the manifest's list, not the server's, so a Tool
+  // missing from it is undiscoverable there.
+  it("manifest.json declares exactly the registered tools", () => {
+    const manifest = JSON.parse(
+      readFileSync(new URL("../manifest.json", import.meta.url), "utf8")
+    ) as { tools: Array<{ name: string }> };
+    expect(manifest.tools.map((t) => t.name).sort()).toEqual(
+      TOOLS.map((t) => t.name).sort()
+    );
   });
 
   it("every tool has required fields", () => {

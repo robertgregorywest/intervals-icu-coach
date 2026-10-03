@@ -3,7 +3,6 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { IServices } from "../index.js";
 import { logResponse, logError } from "./logger.js";
 import { formatToolError } from "../errors.js";
-import { TOOLS } from "../registry.js";
 import type { ToolDef } from "../registry.js";
 
 const require = createRequire(import.meta.url);
@@ -21,7 +20,11 @@ const INSTRUCTIONS =
   "Emit absolute watts (e.g. 220w, 160w-256w) in anything written to Intervals.icu: it cannot parse %MAP, " +
   "and %FTP couples the workout to whatever FTP is on file.";
 
-export function createMcpServer(services: IServices): McpServer {
+/** `tools` is the registry's `TOOLS` in production; tests pass a stub registry. */
+export function createMcpServer(
+  services: IServices,
+  tools: readonly ToolDef[]
+): McpServer {
   const server = new McpServer(
     {
       name: "intervals-icu-coach",
@@ -73,7 +76,7 @@ export function createMcpServer(services: IServices): McpServer {
     );
   }
 
-  for (const t of TOOLS) {
+  for (const t of tools) {
     registerTool(t);
   }
 

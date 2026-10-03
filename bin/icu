@@ -3,9 +3,11 @@ import "dotenv/config";
 import { createServices } from "../src/index.js";
 import { evalServicesOptions } from "../src/cassette.js";
 import { runCli } from "../src/cli/main.js";
+import { TOOLS } from "../src/registry.js";
 
 await runCli(
   process.argv.slice(2),
+  TOOLS,
   () =>
     createServices({
       apiKey: process.env.INTERVALS_API_KEY ?? "",

@@ -2,6 +2,7 @@
 import "dotenv/config";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { createServices, type IServices } from "../index.js";
+import { TOOLS } from "../registry.js";
 import { createMcpServer } from "./server.js";
 
 async function main() {
@@ -13,7 +14,7 @@ async function main() {
     process.exit(1);
   }
 
-  const server = createMcpServer(services);
+  const server = createMcpServer(services, TOOLS);
   const transport = new StdioServerTransport();
 
   process.on("SIGINT", () => {

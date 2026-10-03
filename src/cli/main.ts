@@ -1,7 +1,7 @@
 import { parseArgs } from "node:util";
 import { z } from "zod";
 import type { IServices } from "../index.js";
-import { TOOLS } from "../registry.js";
+import type { ToolDef } from "../registry.js";
 import { formatToolError } from "../errors.js";
 
 export interface CliIO {
@@ -15,8 +15,10 @@ function serialize(value: unknown, isTTY: boolean): string {
   return isTTY ? JSON.stringify(value, null, 2) : JSON.stringify(value);
 }
 
+/** `tools` is the registry's `TOOLS` in production; tests pass a stub registry. */
 export async function runCli(
   argv: string[],
+  tools: readonly ToolDef[],
   getServices: () => IServices,
   io: CliIO
 ): Promise<void> {
@@ -59,7 +61,7 @@ export async function runCli(
     const names = rest.length > 0 ? rest : null;
 
     if (names) {
-      const missing = names.filter((n) => !TOOLS.find((t) => t.name === n));
+      const missing = names.filter((n) => !tools.find((t) => t.name === n));
       if (missing.length > 0) {
         io.stderr(
           `Unknown tool(s): ${missing.join(", ")}. Run \`icu describe\` for the full list.`
@@ -69,8 +71,8 @@ export async function runCli(
       }
     }
 
-    const tools = (
-      names ? TOOLS.filter((t) => names.includes(t.name)) : TOOLS
+    const described = (
+      names ? tools.filter((t) => names.includes(t.name)) : tools
     ).map((t) => ({
       name: t.name,
       description: t.description,
@@ -78,12 +80,12 @@ export async function runCli(
       inputSchema: z.toJSONSchema(t.schema, { io: "input" }),
     }));
 
-    io.stdout(serialize({ tools }, io.isTTY));
+    io.stdout(serialize({ tools: described }, io.isTTY));
     return;
   }
 
   // tool invocation
-  const toolDef = TOOLS.find((t) => t.name === command);
+  const toolDef = tools.find((t) => t.name === command);
   if (!toolDef) {
     io.stderr(
       `Unknown command: "${command}". Run \`icu describe\` for the tool catalogue.`
