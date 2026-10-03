@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { defineTool, READ_ONLY } from "./define.js";
-import { trackInputFields } from "./track-inputs.js";
-import type { TrackInput } from "../services/track/index.js";
+import { oneSplitsSource, trackInputFields } from "./track-inputs.js";
 
-const computeTrackLapPowerSchema = z.object({ ...trackInputFields });
+const computeTrackLapPowerSchema = z
+  .object({ ...trackInputFields })
+  .refine(...oneSplitsSource);
 
 const reading = z.object({
   watts: z.number().optional(),
@@ -88,6 +89,5 @@ export const computeTrackLapPowerTool = defineTool({
   schema: computeTrackLapPowerSchema,
   annotations: READ_ONLY,
   outputSchema: computeTrackLapPowerOutputSchema,
-  // The schema cannot say "exactly one of"; `align` checks it.
-  handler: async (services, args) => services.track.align(args as TrackInput),
+  handler: async (services, args) => services.track.align(args),
 });

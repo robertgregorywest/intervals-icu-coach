@@ -80,14 +80,17 @@ describe("compute_track_lap_power", () => {
     expect(requested).toEqual(["i173732945"]);
   });
 
-  // "splits or sessionId" cannot be a schema refinement — the MCP adapter
-  // registers `schema.shape`, which `.refine()` erases — so the handler owns it.
-  it("refuses a call with neither splits nor a session id", async () => {
-    const { services } = servicesWithStreams();
-    expect(computeTrackLapPowerSchema.safeParse({}).success).toBe(true);
-    await expect(
-      computeTrackLapPower(services, { activityId: "i1" })
-    ).rejects.toThrow(/Supply splits .* or sessionId/);
+  it("refuses neither or both of splits and a session id at the boundary", () => {
+    for (const args of [
+      { activityId: "i1" },
+      { activityId: "i1", splits: "x", sessionId: "s" },
+    ]) {
+      const parsed = computeTrackLapPowerSchema.safeParse(args);
+      expect(parsed.success).toBe(false);
+      expect(parsed.error?.message).toMatch(
+        /exactly one of splits .* or sessionId/
+      );
+    }
   });
 
   it("requires an activity id alongside pasted splits", async () => {

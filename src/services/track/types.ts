@@ -13,28 +13,27 @@ import type {
 } from "./records/types.js";
 
 /**
- * What a run's alignment is fitted from: a stored record, or the lap-timer
- * export pasted with the ride it was timed on.
+ * What a run's alignment is fitted from: a stored record (`sessionId`), or the
+ * lap-timer export (`splits`) pasted with the ride it was timed on — exactly
+ * one of the two.
  *
  * A record is preferred — its splits come back re-serialised from the parse
  * that already reconciled them, so the export is never transcribed twice. Its
  * `activityId` and `lapDistanceMeters` come from the record's basis; either
  * may be supplied to override it, and `activityId` must be when the record has
- * none (a race timed with no ride behind it).
+ * none (a race timed with no ride behind it) or when splits are pasted.
+ *
+ * Flat rather than a union because it is what the Tools' schema produces; the
+ * pairing rules are checked when the input is resolved.
  */
-export type TrackInput =
-  | {
-      sessionId: string;
-      activityId?: string | number;
-      lapDistanceMeters?: number;
-    }
-  | {
-      /** The export, pasted as exported. */
-      splits: string;
-      activityId: string | number;
-      /** Defaults to 250 m. */
-      lapDistanceMeters?: number;
-    };
+export interface TrackInput {
+  sessionId?: string;
+  /** The export, pasted as exported. */
+  splits?: string;
+  activityId?: string | number;
+  /** Defaults to the record's, or 250 m for pasted splits. */
+  lapDistanceMeters?: number;
+}
 
 export type TrackWriteInput = TrackInput & {
   /** Compose everything, write nothing. */

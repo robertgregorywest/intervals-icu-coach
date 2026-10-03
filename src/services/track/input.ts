@@ -28,18 +28,15 @@ export class TrackInputError extends Error {
 }
 
 /**
- * The union is the typed contract; it is checked again here because an
- * adapter's arguments are only as typed as its schema, and "exactly one of" is
- * not in the schema — the MCP adapter registers `schema.shape`, which only a
- * plain `ZodObject` has, so a `.refine()` would erase it.
+ * Checks the pairing rules a flat `TrackInput` cannot carry in its type. The
+ * Tools' schema refuses the same inputs at the boundary; this is the module's
+ * own contract, for callers that come in through `ITrack`.
  */
 export function resolveTrackInput(
   input: TrackInput,
   records: () => TrackSessionRecord[]
 ): TrackLapPowerOptions {
-  const { activityId, lapDistanceMeters } = input;
-  const splits = "splits" in input ? input.splits : undefined;
-  const sessionId = "sessionId" in input ? input.sessionId : undefined;
+  const { activityId, lapDistanceMeters, splits, sessionId } = input;
 
   if (splits && sessionId) {
     throw new TrackInputError(

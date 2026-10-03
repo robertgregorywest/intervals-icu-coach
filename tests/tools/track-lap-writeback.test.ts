@@ -39,7 +39,15 @@ describe("write_track_runs handler", () => {
   });
 
   it("takes preview as an optional boolean", () => {
-    expect(schema.safeParse({ preview: "yes" }).success).toBe(false);
-    expect(schema.safeParse({ preview: true }).success).toBe(true);
+    expect(schema.safeParse({ sessionId: "s", preview: "yes" }).success).toBe(
+      false
+    );
+    expect(schema.safeParse({ sessionId: "s", preview: true }).success).toBe(
+      true
+    );
+  });
+
+  it("refuses a call naming no splits source", () => {
+    expect(schema.safeParse({ preview: true }).success).toBe(false);
   });
 });

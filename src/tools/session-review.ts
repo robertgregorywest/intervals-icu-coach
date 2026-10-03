@@ -2,9 +2,8 @@ import { z } from "zod";
 import { activityIdField } from "./common.js";
 import { defineTool, READ_ONLY } from "./define.js";
 
-// Deliberately a plain object rather than a `.refine()`d one: the MCP adapter
-// registers `schema.shape`, which a ZodEffects wrapper does not expose. The
-// exactly-one rule is enforced by the paired-session loader, before any request.
+// No exactly-one refinement: the paired-session loader owns that rule for both
+// session lenses and refuses before any request.
 const comparePlannedVsActualSchema = z.object({
   activityId: activityIdField
     .optional()

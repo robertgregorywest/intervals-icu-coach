@@ -1,18 +1,19 @@
 import { z } from "zod";
 import { defineTool, DESTRUCTIVE_IDEMPOTENT } from "./define.js";
-import { trackInputFields } from "./track-inputs.js";
-import type { TrackWriteInput } from "../services/track/index.js";
+import { oneSplitsSource, trackInputFields } from "./track-inputs.js";
 
-const writeTrackRunsSchema = z.object({
-  ...trackInputFields,
-  preview: z
-    .boolean()
-    .optional()
-    .describe(
-      "Compose the intervals and return them without writing anything. Use this " +
-        "first: the write replaces every interval on the activity."
-    ),
-});
+const writeTrackRunsSchema = z
+  .object({
+    ...trackInputFields,
+    preview: z
+      .boolean()
+      .optional()
+      .describe(
+        "Compose the intervals and return them without writing anything. Use this " +
+          "first: the write replaces every interval on the activity."
+      ),
+  })
+  .refine(...oneSplitsSource);
 
 const reading = z.object({
   watts: z.number().optional(),
@@ -70,7 +71,5 @@ export const writeTrackRunsTool = defineTool({
   schema: writeTrackRunsSchema,
   annotations: DESTRUCTIVE_IDEMPOTENT,
   outputSchema: writeTrackRunsOutputSchema,
-  // The schema cannot say "exactly one of"; `write` checks it.
-  handler: async (services, args) =>
-    services.track.write(args as TrackWriteInput),
+  handler: async (services, args) => services.track.write(args),
 });

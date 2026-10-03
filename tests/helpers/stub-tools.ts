@@ -11,7 +11,7 @@ export const STUB_SERVICES = {} as IServices;
 
 /**
  * A two-Tool registry for adapter tests: one read-only Tool with an output
- * schema, one mutating Tool without. Adapter behaviour (parsing, the `--yes`
+ * schema, one mutating Tool without and with a refined input schema. Adapter behaviour (parsing, the `--yes`
  * guard, serialisation, registration) depends only on those shapes, so adding
  * or moving a real Tool changes none of these tests.
  */
@@ -42,7 +42,9 @@ export function stubTools() {
   const writeTool = defineTool({
     name: "delete_thing",
     description: "Deletes a thing.",
-    schema: z.object({ id: z.number() }),
+    schema: z
+      .object({ id: z.number() })
+      .refine((args) => args.id > 0, { message: "id must be positive" }),
     annotations: MUTATING,
     outputSchema: null,
     handler: (services, args) => writeHandler(services, args),

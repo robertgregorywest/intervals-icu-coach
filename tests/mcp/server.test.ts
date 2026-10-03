@@ -55,6 +55,22 @@ describe("createMcpServer", () => {
     expect(result.structuredContent).toEqual({ date: "2026-01-01" });
   });
 
+  it("rejects input that fails a schema refinement before the handler", async () => {
+    const { tools, writeHandler } = stubTools();
+    const client = await connectedClient(tools);
+
+    const result = await client.callTool({
+      name: "delete_thing",
+      arguments: { id: -1 },
+    });
+    await client.close();
+
+    expect(result.isError).toBe(true);
+    const [content] = result.content as Array<{ type: string; text: string }>;
+    expect(content.text).toContain("id must be positive");
+    expect(writeHandler).not.toHaveBeenCalled();
+  });
+
   it("returns text content only for a Tool with no output schema", async () => {
     const { tools, writeHandler } = stubTools();
     const client = await connectedClient(tools);

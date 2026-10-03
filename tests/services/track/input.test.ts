@@ -11,10 +11,7 @@
 
 import { describe, it, expect } from "vitest";
 import { fileURLToPath } from "node:url";
-import {
-  createTrack,
-  type TrackInput,
-} from "../../../src/services/track/index.js";
+import { createTrack } from "../../../src/services/track/index.js";
 import { TrackInputError } from "../../../src/services/track/input.js";
 import { loadTrackSessionRecords } from "../../../src/services/track/records/loader.js";
 import type { IActivitiesApi } from "../../../src/services/activities/index.js";
@@ -41,9 +38,6 @@ function trackOver(dir = FIXTURES) {
   });
   return { track, requested };
 }
-
-/** The input untyped, as an adapter hands it over. */
-const loose = (input: Record<string, unknown>) => input as TrackInput;
 
 describe("resolving a Track input", () => {
   it("takes the splits, activity and lap length from a record", async () => {
@@ -102,24 +96,24 @@ describe("resolving a Track input", () => {
   it("refuses both a session id and pasted splits", async () => {
     // They could disagree, and there is no principled way to pick a winner.
     const { track } = trackOver();
-    const both = loose({
+    const both = {
       sessionId: "2026-09-06-bmrc-ip",
       splits: "run-1,250,16.26,16.26",
-    });
+    };
     await expect(track.align(both)).rejects.toThrow(TrackInputError);
     await expect(track.write(both)).rejects.toThrow(TrackInputError);
   });
 
   it("refuses a call with neither", async () => {
     const { track } = trackOver();
-    await expect(track.align(loose({ activityId: "i1" }))).rejects.toThrow(
+    await expect(track.align({ activityId: "i1" })).rejects.toThrow(
       /Supply splits .* or sessionId/
     );
   });
 
   it("refuses pasted splits with no activity to align them to", async () => {
     const { track } = trackOver();
-    await expect(track.align(loose({ splits: "x" }))).rejects.toThrow(
+    await expect(track.align({ splits: "x" })).rejects.toThrow(
       /activityId is required when splits are pasted/
     );
   });

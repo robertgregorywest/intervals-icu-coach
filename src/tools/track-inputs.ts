@@ -1,10 +1,6 @@
 /**
  * The schema fields `compute_track_lap_power` and `write_track_runs` share — a
- * **Track input** as an adapter sees it.
- *
- * Every field is optional here: "exactly one of `sessionId` or `splits`" is
- * checked by the Track module, which resolves the input for both Tools, because
- * the MCP adapter registers `schema.shape` and a `.refine()` would erase it.
+ * **Track input** as an adapter sees it — and the refinement both schemas carry.
  */
 
 import { z } from "zod";
@@ -46,3 +42,14 @@ export const trackInputFields = {
         "otherwise 250."
     ),
 };
+
+/** Spread into `.refine()`: exactly one of `sessionId` or `splits`. */
+export const oneSplitsSource = [
+  (args: { sessionId?: string; splits?: string }) =>
+    (args.sessionId === undefined) !== (args.splits === undefined),
+  {
+    message:
+      "Supply exactly one of splits (the lap-timer export) or sessionId (a " +
+      "stored record; see list_track_sessions).",
+  },
+] as const;

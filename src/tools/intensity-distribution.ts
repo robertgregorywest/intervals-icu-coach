@@ -2,34 +2,52 @@ import { z } from "zod";
 import { activityIdField, dateString, zoneName } from "./common.js";
 import { defineTool, READ_ONLY } from "./define.js";
 
-// Plain object rather than a `.refine()`d one, matching compare_planned_vs_actual:
-// the MCP adapter registers `schema.shape`, which a ZodEffects wrapper does not
-// expose. The single-session / range choice is enforced in the handler.
-const compareIntensityDistributionSchema = z.object({
-  activityId: activityIdField
-    .optional()
-    .describe(
-      'Completed activity ID (e.g. "i171371339" from get_activities, or a bare ' +
-        "number). The planned event is resolved from the activity's paired event. " +
-        "Single-session form: supply exactly one of activityId or eventId."
-    ),
-  eventId: z
-    .number()
-    .optional()
-    .describe(
-      "Planned event ID. The completed activity is located by scanning a " +
-        "narrow date window for the ride paired to this event."
-    ),
-  oldest: dateString
-    .describe(
-      "Range form: start date (YYYY-MM-DD). Supply with `newest` and neither " +
-        "identifier. Maximum 28 days."
-    )
-    .optional(),
-  newest: dateString
-    .describe("Range form: end date (YYYY-MM-DD), inclusive.")
-    .optional(),
-});
+// Which form was asked for is the schema's to decide — the service has one
+// method per form. Exactly-one-of within the single form is the loader's.
+const compareIntensityDistributionSchema = z
+  .object({
+    activityId: activityIdField
+      .optional()
+      .describe(
+        'Completed activity ID (e.g. "i171371339" from get_activities, or a bare ' +
+          "number). The planned event is resolved from the activity's paired event. " +
+          "Single-session form: supply exactly one of activityId or eventId."
+      ),
+    eventId: z
+      .number()
+      .optional()
+      .describe(
+        "Planned event ID. The completed activity is located by scanning a " +
+          "narrow date window for the ride paired to this event."
+      ),
+    oldest: dateString
+      .describe(
+        "Range form: start date (YYYY-MM-DD). Supply with `newest` and neither " +
+          "identifier. Maximum 28 days."
+      )
+      .optional(),
+    newest: dateString
+      .describe("Range form: end date (YYYY-MM-DD), inclusive.")
+      .optional(),
+  })
+  .superRefine((args, ctx) => {
+    const hasRange = args.oldest !== undefined || args.newest !== undefined;
+    const hasSession =
+      args.activityId !== undefined || args.eventId !== undefined;
+    if (hasRange && hasSession) {
+      ctx.addIssue({
+        code: "custom",
+        message:
+          "Supply either a single session (activityId or eventId) or a date " +
+          "range (oldest and newest) — not both.",
+      });
+    } else if (hasRange && (!args.oldest || !args.newest)) {
+      ctx.addIssue({
+        code: "custom",
+        message: "The range form needs both oldest and newest (YYYY-MM-DD).",
+      });
+    }
+  });
 
 const reasonCode = z.enum([
   "no-paired-event",
@@ -170,24 +188,7 @@ export const compareIntensityDistributionTool = defineTool({
   annotations: READ_ONLY,
   outputSchema: compareIntensityDistributionOutputSchema,
   async handler(services, args) {
-    const hasRange = !!args.oldest || !!args.newest;
-    const hasSession = !!args.activityId || !!args.eventId;
-
-    // Which form was asked for is this tool's to decide — the service has one
-    // method per form. Exactly-one-of within the single form is the loader's.
-    if (hasRange && hasSession) {
-      throw new Error(
-        "Supply either a single session (activityId or eventId) or a date range " +
-          "(oldest and newest) — not both."
-      );
-    }
-
-    if (hasRange) {
-      if (!args.oldest || !args.newest) {
-        throw new Error(
-          "The range form needs both oldest and newest (YYYY-MM-DD)."
-        );
-      }
+    if (args.oldest && args.newest) {
       return services.executionReview.compareIntensityDistributionRange({
         oldest: args.oldest,
         newest: args.newest,

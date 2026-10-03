@@ -207,6 +207,21 @@ describe("CLI tool invocation", () => {
     expect(readHandler).not.toHaveBeenCalled();
   });
 
+  it("exits 1 on input that fails a schema refinement", async () => {
+    const { tools, writeHandler } = stubTools();
+    const io = makeIO();
+    await runCli(
+      ["delete_thing", "--json", '{"id":-1}', "--yes"],
+      tools,
+      SERVICES,
+      io
+    );
+
+    expect(io.exitCode).toBe(1);
+    expect(io.errLines[0]).toContain("id must be positive");
+    expect(writeHandler).not.toHaveBeenCalled();
+  });
+
   it("exits 1 on handler error", async () => {
     const { tools, readHandler } = stubTools();
     readHandler.mockRejectedValueOnce(new Error("API down"));

@@ -36,7 +36,7 @@ export function createMcpServer(
   function registerTool(t: ToolDef): void {
     const config: Record<string, unknown> = {
       description: t.description,
-      inputSchema: t.schema.shape,
+      inputSchema: t.schema,
       annotations: t.annotations,
     };
     if (t.outputSchema) {

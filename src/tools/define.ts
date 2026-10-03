@@ -43,7 +43,8 @@ type ToolResult<O> = O extends ObjectSchema ? z.infer<O> : unknown;
  * One Tool, whole: what both adapters project and the handler they call.
  *
  * `handler` is declared as a method so a Tool typed against its own schema is
- * still a `ToolDef` — the adapters validate `args` with `schema` before calling.
+ * still a `ToolDef` — both adapters parse `args` with the whole `schema`,
+ * refinements included, before calling it.
  */
 export interface Tool<
   S extends ObjectSchema = ObjectSchema,

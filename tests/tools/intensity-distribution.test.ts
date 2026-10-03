@@ -96,29 +96,6 @@ describe("compare_intensity_distribution handler", () => {
     expect(requested(fetchFn)).toEqual([]);
   });
 
-  it("rejects mixing a session with a range", async () => {
-    const { services, one, many } = clientWith();
-
-    await expect(
-      compareIntensityDistribution(services, {
-        activityId: "i1",
-        oldest: "2026-07-21",
-        newest: "2026-08-03",
-      })
-    ).rejects.toThrow(/not both/);
-    expect(one).not.toHaveBeenCalled();
-    expect(many).not.toHaveBeenCalled();
-  });
-
-  it("rejects a half-supplied range", async () => {
-    const { services, many } = clientWith();
-
-    await expect(
-      compareIntensityDistribution(services, { oldest: "2026-07-21" })
-    ).rejects.toThrow(/both oldest and newest/);
-    expect(many).not.toHaveBeenCalled();
-  });
-
   it("passes a single activityId through", async () => {
     const { services, one } = clientWith();
 
@@ -157,6 +134,33 @@ describe("compare_intensity_distribution handler", () => {
       newest: "2026-08-03",
     });
     expect(one).not.toHaveBeenCalled();
+  });
+});
+
+describe("compare_intensity_distribution input schema", () => {
+  const schema = compareIntensityDistributionTool.schema;
+
+  it("rejects mixing a session with a range", () => {
+    const parsed = schema.safeParse({
+      activityId: "i1",
+      oldest: "2026-07-21",
+      newest: "2026-08-03",
+    });
+    expect(parsed.success).toBe(false);
+    expect(parsed.error?.message).toMatch(/not both/);
+  });
+
+  it("rejects a half-supplied range", () => {
+    const parsed = schema.safeParse({ oldest: "2026-07-21" });
+    expect(parsed.success).toBe(false);
+    expect(parsed.error?.message).toMatch(/both oldest and newest/);
+  });
+
+  it("accepts either form alone", () => {
+    expect(schema.safeParse({ eventId: 2 }).success).toBe(true);
+    expect(
+      schema.safeParse({ oldest: "2026-07-21", newest: "2026-08-03" }).success
+    ).toBe(true);
   });
 });
 
