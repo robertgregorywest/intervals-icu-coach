@@ -1,7 +1,7 @@
 import type { Activity } from "../../activities/index.js";
 import type { IntervalsEvent } from "../../../types.js";
 import type { IPrescription } from "../../prescription/index.js";
-import type { IAthleteAnchors } from "../../athlete-anchors/index.js";
+import type { AthleteAnchors } from "../../athlete-anchors/index.js";
 import type { PairedSession, Unpaired } from "../paired/types.js";
 import { reviewSession, type RawPowerStream } from "./review.js";
 import type { ExecutionCandidate } from "./delivered.js";
@@ -13,8 +13,8 @@ import type {
 
 export interface ReviewOptions {
   tolerance: number;
-  /** Resolves the FTP the plan is read at. */
-  anchors: IAthleteAnchors;
+  /** The athlete's anchors, read once for the call: the last-resort FTP and the zones. */
+  athlete: AthleteAnchors;
   /** Reads the plan into the steps that are judged. */
   prescription: IPrescription;
 }
@@ -31,10 +31,10 @@ export async function reviewPairedSession(
   const { event, activity } = session;
   const { tolerance } = options;
 
-  const ftp = await options.anchors.planFtp(event, activity);
-  const { steps: planned, totalSeconds } = options.prescription.read(
-    event.workout_doc,
-    { ftp }
+  const { steps: planned, totalSeconds } = options.prescription.readPlanned(
+    event,
+    activity,
+    options.athlete
   );
 
   if (planned.length === 0) {

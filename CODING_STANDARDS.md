@@ -78,9 +78,10 @@ correct copy — is a violation; call the owner. The glossary entry for each say
 
 | Rule                                                                                               | Owner                                                                                |
 | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| FTP, weight, power zones, MAP, MAP zones; a planned event's FTP fallback                           | **Athlete anchors** (`IAthleteAnchors`, incl. `planFtp`, `snapshot`)                 |
+| FTP, weight, power zones, MAP, MAP zones                                                           | **Athlete anchors** (`IAthleteAnchors`, incl. `snapshot`)                            |
+| **Plan FTP** — a planned event's FTP fallback                                                      | `src/shared/plan-ftp.ts`                                                             |
 | MAP-zone model                                                                                     | `src/shared/map-zones.ts`                                                            |
-| Workout text / `workout_doc` → **Planned steps**, midpoints, **Work step** role, key-session floor | **Prescription module** (`IPrescription.read`)                                       |
+| Workout text / `workout_doc` → **Planned steps**, midpoints, **Work step** role, key-session floor | **Prescription module** (`IPrescription.read`; a planned event: `readPlanned`)       |
 | Work-word vocabulary                                                                               | `src/shared/work-words.ts`                                                           |
 | Pairing a planned event to its ride; a review window's day count and cap                           | **Paired session loader** (inside execution-review)                                  |
 | Middle-band measurement of a ride                                                                  | `src/shared/middle-band.ts`, via the **Training load module**                        |
@@ -90,8 +91,10 @@ correct copy — is a violation; call the owner. The glossary entry for each say
 | Rounding                                                                                           | `src/shared/round.ts`                                                                |
 | "Today"                                                                                            | `ServicesOptions.today`, defaulting to `isoToday()` — never `new Date()` in a module |
 
-Within a call, take one `snapshot()` of the anchors and pass it down, so every lens reads the same
-FTP and MAP.
+Within a call, read the anchors once — one `getAthleteAnchors()`, or a `snapshot()` when several
+readers need them — and pass the result down, so every lens reads the same FTP, zones and MAP. A
+planned event's Prescription is read with `readPlanned`, never by stitching the Plan FTP and `read`
+together.
 
 ## Intervals.icu data
 

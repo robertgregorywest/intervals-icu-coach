@@ -3,6 +3,7 @@ import type { WorkoutDoc } from "../../types.js";
 import { flattenPlannedSteps, plannedDuration } from "./planned.js";
 import { stepRole } from "./roles.js";
 import { unreviewableWorkSteps } from "./authoring.js";
+import { planFtp } from "../../shared/plan-ftp.js";
 import type {
   IPrescription,
   PlannedStep,
@@ -33,6 +34,11 @@ export function createPrescription(deps: PrescriptionDeps): IPrescription {
   ): Prescription => readPrescription(deps.workoutParser, source, anchors);
   return {
     read,
+    readPlanned: (event, ride, athlete) =>
+      read(event.workout_doc, {
+        ftp: planFtp(event, ride, athlete.ftp ?? null),
+        powerZones: athlete.powerZones,
+      }),
     shape: (text) => prescriptionShape(read(text)),
     keySessionFloorPctFtp: KEY_SESSION_FLOOR_PCT_FTP,
   };

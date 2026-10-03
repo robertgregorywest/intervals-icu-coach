@@ -279,7 +279,8 @@ describe("getExecutionDigest — selecting key sessions", () => {
     });
 
     expect((await service.getExecutionDigest(WINDOW)).status).toBe("skipped");
-    expect(athleteFtpReads()).toBe(0);
+    // Read once for the call all the same: its power zones resolve any zone step.
+    expect(athleteFtpReads()).toBe(1);
   });
 
   it("looks for paired rides as far past the window as the review does", async () => {

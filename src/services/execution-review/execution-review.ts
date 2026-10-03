@@ -53,7 +53,7 @@ export class ExecutionReview implements IExecutionReview {
     return found.session
       ? reviewPairedSession(found.session, {
           tolerance,
-          anchors: this.deps.anchors.snapshot(),
+          athlete: await this.deps.anchors.getAthleteAnchors(),
           prescription: this.deps.prescription,
         })
       : unpairedReview(found, tolerance);
@@ -66,7 +66,7 @@ export class ExecutionReview implements IExecutionReview {
     if (!found.session) return unpairedDistribution(found);
 
     const frame = await distributionFrame(
-      this.deps.anchors.snapshot(),
+      this.deps.anchors,
       this.deps.prescription
     );
     return distributeSession(found.session, frame);
@@ -77,7 +77,7 @@ export class ExecutionReview implements IExecutionReview {
   ): Promise<IntensityDistributionRangeResult> {
     const loaded = await this.loader.loadWindow(options);
     const frame = await distributionFrame(
-      this.deps.anchors.snapshot(),
+      this.deps.anchors,
       this.deps.prescription
     );
     return distributeWindow(loaded, frame);
@@ -85,12 +85,16 @@ export class ExecutionReview implements IExecutionReview {
 
   async getExecutionDigest(options: WindowRef): Promise<ExecutionDigestResult> {
     const loaded = await this.loader.loadWindow(options);
-    // One snapshot for the call: the athlete is read at most once however
-    // many plans fall back on its FTP, and both lenses share its frame.
+    // One snapshot for the call: the athlete is read once however many plans
+    // fall back on its FTP, and both lenses share it.
     const anchors = this.deps.anchors.snapshot();
     const { prescription } = this.deps;
-    return digestWindow(loaded, anchors, prescription, async () =>
-      distributeWindow(loaded, await distributionFrame(anchors, prescription))
+    return digestWindow(
+      loaded,
+      await anchors.getAthleteAnchors(),
+      prescription,
+      async () =>
+        distributeWindow(loaded, await distributionFrame(anchors, prescription))
     );
   }
 }

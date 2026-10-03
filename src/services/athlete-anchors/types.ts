@@ -1,6 +1,5 @@
 import type { SportSetting } from "../athlete/index.js";
 import type { MapInfo } from "../map/index.js";
-import type { IntervalsEvent } from "../../types.js";
 import type { ZoneRow } from "../../shared/map-zones.js";
 
 /**
@@ -48,24 +47,6 @@ export interface IAthleteAnchors {
   getAthleteAnchors(): Promise<AthleteAnchors>;
   /** MAP and the MAP zones — never touches the athlete record. */
   getMapAnchors(opts?: { today?: string }): Promise<MapAnchors>;
-  /**
-   * The FTP a planned event's percentages are read against — the one fallback
-   * order every lens shares: the event's own FTP, then the FTP the paired ride
-   * was recorded at, then the athlete's current FTP.
-   *
-   * Planned events on Intervals.icu carry no `icu_ftp` in practice, so the
-   * ride's FTP is what usually decides. A lens that resolved the same event
-   * differently would judge a step against a different target than its
-   * neighbour selected it by. The athlete is read only when neither half
-   * carries one.
-   *
-   * A ride with no paired event passes `null`, which skips the event term —
-   * the ride's own FTP, then the athlete's.
-   */
-  planFtp(
-    event: Pick<IntervalsEvent, "icu_ftp"> | null,
-    ride: { icu_ftp?: unknown } | null | undefined
-  ): Promise<number | null>;
   /**
    * The same anchors, each read at most once however often they are asked
    * for. Take one per call, so a caller reading FTP for every session in a

@@ -4,6 +4,7 @@ import {
   middleBandBounds,
   middleBandSeconds,
 } from "../../shared/middle-band.js";
+import { planFtp } from "../../shared/plan-ftp.js";
 import { round } from "../../shared/round.js";
 
 /** One activity's delivered middle-band time, measured against its own FTP. */
@@ -52,7 +53,11 @@ export async function measureRides(
   return Promise.all(
     activities.map(async (a): Promise<RideBand> => {
       if (!numericField(a, "icu_average_watts")) return { ...NO_BAND };
-      const ftp = (await anchors?.planFtp(null, a)) ?? null;
+      const ftp = planFtp(
+        null,
+        a,
+        (await anchors?.getAthleteAnchors())?.ftp ?? null
+      );
       if (!ftp) return { ...NO_BAND, noFtp: true };
       const streams = await activitiesApi.getActivityStreams(a.id, ["watts"]);
       if (!streams.watts?.length) return { ...NO_BAND };

@@ -1,7 +1,10 @@
 import type { Activity } from "../../activities/index.js";
 import type { IntervalsEvent } from "../../../types.js";
 import type { IPrescription } from "../../prescription/index.js";
-import type { IAthleteAnchors } from "../../athlete-anchors/index.js";
+import type {
+  AthleteAnchors,
+  IAthleteAnchors,
+} from "../../athlete-anchors/index.js";
 import type { LoadedWindow, PairedSession, Unpaired } from "../paired/types.js";
 import { bucketDelivered, bucketPlanned, rollUpMiddleBand } from "./bucket.js";
 import { derivePartition } from "./zones.js";
@@ -23,21 +26,22 @@ import type {
 } from "./types.js";
 
 /**
- * The bucketing frame, resolved once per call rather than per session. Pass a
- * snapshot, so each session's plan FTP falls back on the athlete read here.
+ * The bucketing frame, resolved once per call rather than per session: each
+ * session's plan is read against the athlete read here.
  */
 export async function distributionFrame(
   anchors: IAthleteAnchors,
   prescription: IPrescription
 ): Promise<DistributionFrame> {
-  const [{ mapZones }, { ftp }] = await Promise.all([
+  const [{ mapZones }, athlete] = await Promise.all([
     anchors.getMapAnchors(),
     anchors.getAthleteAnchors(),
   ]);
+  const { ftp } = athlete;
   return {
     partition: mapZones ? derivePartition(mapZones) : [],
     middle: ftp && ftp > 0 ? middleBandBounds(ftp) : undefined,
-    anchors,
+    athlete,
     prescription,
   };
 }
@@ -143,8 +147,11 @@ export async function distributeSession(
   frame: DistributionFrame
 ): Promise<IntensityDistributionResult> {
   const { activity, event } = session;
-  const ftp = await frame.anchors.planFtp(event, activity);
-  const planned = frame.prescription.read(event.workout_doc, { ftp }).steps;
+  const planned = frame.prescription.readPlanned(
+    event,
+    activity,
+    frame.athlete
+  ).steps;
 
   if (planned.length === 0) {
     return refuse(
@@ -226,8 +233,8 @@ export async function distributeSession(
 export interface DistributionFrame {
   partition: PartitionBand[];
   middle?: MiddleBandBounds;
-  /** Resolves each session's plan FTP, the athlete's as the last resort. */
-  anchors: IAthleteAnchors;
+  /** The athlete's anchors: each plan's last-resort FTP, and its zones. */
+  athlete: AthleteAnchors;
   /** Reads each session's plan into the steps that are bucketed. */
   prescription: IPrescription;
 }

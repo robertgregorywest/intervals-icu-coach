@@ -3,7 +3,7 @@ import type {
   ParseAnchors,
   ParseBasis,
 } from "../workout-parser/index.js";
-import type { WorkoutDoc } from "../../types.js";
+import type { IntervalsEvent, WorkoutDoc } from "../../types.js";
 import type { StepRole } from "./roles.js";
 
 export type { StepRole };
@@ -148,6 +148,21 @@ export interface IPrescription {
   read(
     source: WorkoutDoc | string | undefined,
     anchors?: ParseAnchors
+  ): Prescription;
+  /**
+   * A planned event's Prescription, read at its **Plan FTP** — the event's own
+   * FTP, then its ride's, then the athlete's — with its FTP zones resolved
+   * against the athlete's power zones. The one entry point for a session that
+   * was planned and may have been ridden, so no lens stitches the FTP rule and
+   * the read together itself, or forgets the zones.
+   *
+   * `athlete` is the athlete's anchors read once for the call: its FTP is the
+   * last resort, its power zones resolve `Z<n>` steps.
+   */
+  readPlanned(
+    event: Pick<IntervalsEvent, "workout_doc" | "icu_ftp">,
+    ride: { icu_ftp?: unknown } | null | undefined,
+    athlete: ParseAnchors
   ): Prescription;
   /** Step count and time of workout text; distance steps are counted and flagged. */
   shape(text: string): PrescriptionShape;

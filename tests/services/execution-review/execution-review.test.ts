@@ -55,13 +55,16 @@ const LAPS: FitLap[] = [
   { startTimeSeconds: 600, durationSeconds: 900, averageWatts: 270 },
 ] as FitLap[];
 
-function lenses(ride: Activity | null) {
+/** The athlete's FTP zones as %FTP upper bounds — Z4 is 91–105%. */
+const POWER_ZONES = [55, 75, 90, 105, 120, 150, 999];
+
+function lenses(ride: Activity | null, event: IntervalsEvent = EVENT) {
   const athleteFtpReads: string[] = [];
   // No MAP zones: only the FTP-anchored middle band is under test.
   const anchors = pinnedAnchors({
     athlete: async () => {
       athleteFtpReads.push("athlete");
-      return { ftp: ATHLETE_FTP };
+      return { ftp: ATHLETE_FTP, powerZones: POWER_ZONES };
     },
   });
   const activitiesApi = {
@@ -71,8 +74,8 @@ function lenses(ride: Activity | null) {
     getActivityStreams: async () => ({ watts: Array(1500).fill(200) }),
   } as unknown as IActivitiesApi;
   const eventsApi = {
-    getEvents: async () => [EVENT],
-    getEvent: async () => EVENT,
+    getEvents: async () => [event],
+    getEvent: async () => event,
   } as unknown as IEventsApi;
 
   return {
@@ -116,5 +119,39 @@ describe("one FTP per event, across the digest, review and distribution", () => 
     const review = await lens.comparePlannedVsActual({ eventId: 7 });
     expect(review.reason).toBe("no-paired-activity");
     expect((await lens.getExecutionDigest(WINDOW)).status).toBe("reviewed");
+  });
+});
+
+describe("a zone-written work step, across the digest, review and distribution", () => {
+  // `- Threshold 15m Z4` as the platform stores it: a zone, not watts.
+  const ZONE_EVENT = {
+    ...EVENT,
+    workout_doc: {
+      steps: [
+        {
+          text: "Threshold",
+          duration: 900,
+          power: { units: "power_zone", value: 4 },
+        },
+      ] as PlannedDocStep[],
+    },
+  } as IntervalsEvent;
+  const ZONE_RIDE = { ...RIDE, icu_ftp: ATHLETE_FTP } as Activity;
+
+  it("resolves the zone to watts at the plan FTP in all three lenses", async () => {
+    const { review: lens } = lenses(ZONE_RIDE, ZONE_EVENT);
+
+    // Z4 at 250 W: 91–105% → 226–262 W.
+    const review = await lens.comparePlannedVsActual({ eventId: 7 });
+    expect(review.steps[0]!.planned.target).toEqual({ low: 226, high: 262 });
+
+    // Inside the 190–265 W middle band, so all 900 s count.
+    const dist = await lens.compareIntensityDistribution({ eventId: 7 });
+    expect(dist.middleBand?.plannedSeconds).toBe(900);
+
+    // A 244 W midpoint clears the 220 W key floor, so the session is reviewed.
+    const digest = await lens.getExecutionDigest(WINDOW);
+    expect(digest.status).toBe("reviewed");
+    expect(digest.sessions).toHaveLength(1);
   });
 });

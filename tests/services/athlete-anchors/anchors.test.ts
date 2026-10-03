@@ -186,7 +186,7 @@ describe("snapshot — each anchor read at most once per call", () => {
     const snap = anchors.snapshot();
     await Promise.all([
       snap.getAthleteAnchors(),
-      snap.planFtp({}, null),
+      snap.getAthleteAnchors(),
       snap.getMapAnchors(),
       snap.getMapAnchors(),
     ]);
@@ -199,50 +199,6 @@ describe("snapshot — each anchor read at most once per call", () => {
     await anchors.getAthleteAnchors();
     await anchors.getAthleteAnchors();
     expect(calls.filter((c) => c === "athlete")).toHaveLength(2);
-  });
-});
-
-describe("planFtp — the one event → ride → athlete order", () => {
-  function anchorsAt(ftp: number | null) {
-    let reads = 0;
-    const anchors = createAthleteAnchorsFrom({
-      athlete: async () => {
-        reads++;
-        return { ftp };
-      },
-    });
-    return { anchors, reads: () => reads };
-  }
-
-  it("takes the event's own FTP first", async () => {
-    const { anchors, reads } = anchorsAt(286);
-    expect(await anchors.planFtp({ icu_ftp: 300 }, { icu_ftp: 320 })).toBe(300);
-    expect(reads()).toBe(0);
-  });
-
-  it("takes the ride's FTP when the event carries none", async () => {
-    const { anchors, reads } = anchorsAt(286);
-    expect(await anchors.planFtp({ icu_ftp: null }, { icu_ftp: 320 })).toBe(
-      320
-    );
-    expect(reads()).toBe(0);
-  });
-
-  it("reads the athlete only when neither half carries one", async () => {
-    const { anchors } = anchorsAt(286);
-    expect(await anchors.planFtp({}, undefined)).toBe(286);
-    expect(await anchors.planFtp({ icu_ftp: 0 }, { icu_ftp: 0 })).toBe(286);
-  });
-
-  it("skips the event term for a ride with no paired event", async () => {
-    const { anchors, reads } = anchorsAt(286);
-    expect(await anchors.planFtp(null, { icu_ftp: 320 })).toBe(320);
-    expect(reads()).toBe(0);
-    expect(await anchors.planFtp(null, null)).toBe(286);
-  });
-
-  it("answers null rather than guessing", async () => {
-    expect(await anchorsAt(null).anchors.planFtp({}, null)).toBeNull();
   });
 });
 

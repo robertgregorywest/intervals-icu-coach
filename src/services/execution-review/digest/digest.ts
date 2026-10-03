@@ -6,8 +6,12 @@ import type {
   IntensityDistributionRangeResult,
   RangeSessionRow,
 } from "../bands/types.js";
-import type { IPrescription, PlannedStep } from "../../prescription/index.js";
-import type { IAthleteAnchors } from "../../athlete-anchors/index.js";
+import type {
+  IPrescription,
+  PlannedStep,
+  Prescription,
+} from "../../prescription/index.js";
+import type { AthleteAnchors } from "../../athlete-anchors/index.js";
 import type { LoadedWindow } from "../paired/types.js";
 import type {
   CadenceRollup,
@@ -37,13 +41,14 @@ const COASTING_WORTH_REPORTING = 0.05;
  * thread that has the athlete's context loaded. See
  * `docs/adr/0010-work-steps-declared-in-the-label.md`.
  *
- * `anchors` is the call's snapshot, `prescription` reads each plan, and
+ * `athlete` is the athlete's anchors read once for the call, `prescription`
+ * reads each plan against them, and
  * `distribution` the band lens over the same window — read only when a session
  * is key, so a skipped window fetches no streams.
  */
 export async function digestWindow(
   loaded: LoadedWindow,
-  anchors: IAthleteAnchors,
+  athlete: AthleteAnchors,
   prescription: IPrescription,
   distribution: () => Promise<IntensityDistributionRangeResult>
 ): Promise<ExecutionDigestResult> {
@@ -51,19 +56,16 @@ export async function digestWindow(
 
   // Selection runs on the planned side, so a key session that was abandoned
   // or never started is selected and reported rather than silently missed.
-  // It reads each plan at the FTP the review will judge it at, so a step is
+  // It reads each plan the way the review will judge it, so a step is
   // selected and judged against the same target.
-  const planned = await Promise.all(
-    loaded.events
-      .filter((e) => e.category === "WORKOUT")
-      .map(async (event) =>
-        plannedSummary(
-          prescription,
-          event,
-          await anchors.planFtp(event, rideFor(loaded, event))
-        )
+  const planned = loaded.events
+    .filter((e) => e.category === "WORKOUT")
+    .map((event) =>
+      plannedSummary(
+        prescription.readPlanned(event, rideFor(loaded, event), athlete),
+        event
       )
-  );
+    );
   const key = planned.filter((p) => p.isKey);
 
   if (key.length === 0) {
@@ -89,7 +91,7 @@ export async function digestWindow(
         return found.session
           ? reviewPairedSession(found.session, {
               tolerance: DEFAULT_TOLERANCE,
-              anchors,
+              athlete,
               prescription,
             })
           : unpairedReview(found, DEFAULT_TOLERANCE);
@@ -143,11 +145,9 @@ interface PlannedSummary {
  * out at threshold used to pull an endurance ride into the review.
  */
 function plannedSummary(
-  prescription: IPrescription,
-  event: IntervalsEvent,
-  ftp: number | null
+  { steps, keySession }: Prescription,
+  event: IntervalsEvent
 ): PlannedSummary {
-  const { steps, keySession } = prescription.read(event.workout_doc, { ftp });
   return { event, steps, isKey: event.id !== undefined && keySession };
 }
 

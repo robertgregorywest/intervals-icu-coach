@@ -1,9 +1,8 @@
 import type { IAthleteApi } from "../athlete/index.js";
 import type { IPowerCurvesApi } from "../power-curves/index.js";
-import type { IntervalsEvent } from "../../types.js";
 import { isoToday } from "../../shared/clock.js";
 import type { IMap } from "../map/index.js";
-import { positiveNumber, readAthlete } from "./fields.js";
+import { readAthlete } from "./fields.js";
 import { computeMapZones } from "../../shared/map-zones.js";
 import type { AthleteAnchors, IAthleteAnchors, MapAnchors } from "./types.js";
 
@@ -41,19 +40,6 @@ class AthleteAnchorsService implements IAthleteAnchors {
 
   getMapAnchors(opts: { today?: string } = {}): Promise<MapAnchors> {
     return this.sources.map(opts.today ?? this.sources.today());
-  }
-
-  async planFtp(
-    event: Pick<IntervalsEvent, "icu_ftp"> | null,
-    ride: { icu_ftp?: unknown } | null | undefined
-  ): Promise<number | null> {
-    return (
-      positiveNumber(event as Record<string, unknown> | null, ["icu_ftp"]) ??
-      positiveNumber(ride as Record<string, unknown> | undefined, [
-        "icu_ftp",
-      ]) ??
-      (await this.getAthleteAnchors()).ftp
-    );
   }
 
   snapshot(): IAthleteAnchors {
