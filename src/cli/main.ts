@@ -1,7 +1,7 @@
 import { parseArgs } from "node:util";
 import { z } from "zod";
 import type { IServices } from "../index.js";
-import type { ToolDef } from "../registry.js";
+import { runTool, type ToolDef } from "../registry.js";
 import { formatToolError } from "../errors.js";
 
 export interface CliIO {
@@ -136,7 +136,7 @@ export async function runCli(
 
   // invoke handler
   try {
-    const result = await toolDef.handler(getServices(), parsed.data);
+    const result = await runTool(toolDef, getServices(), parsed.data);
     io.stdout(serialize(result, io.isTTY));
   } catch (error) {
     io.stderr(formatToolError(error as Error));

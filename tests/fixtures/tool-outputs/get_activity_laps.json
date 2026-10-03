@@ -1,0 +1,47 @@
+{
+  "args": {
+    "id": "i192509523"
+  },
+  "output": {
+    "record": "device-laps",
+    "count": 3,
+    "laps": [
+      {
+        "index": 0,
+        "startSeconds": 0,
+        "elapsedSeconds": 482,
+        "timerSeconds": 482,
+        "distanceMeters": 3288.81,
+        "avgWatts": 138,
+        "npWatts": 146,
+        "maxWatts": 231,
+        "avgHr": 101,
+        "avgCadence": 77
+      },
+      {
+        "index": 1,
+        "startSeconds": 482,
+        "elapsedSeconds": 2700,
+        "timerSeconds": 2700,
+        "distanceMeters": 18142.71,
+        "avgWatts": 152,
+        "npWatts": 167,
+        "maxWatts": 246,
+        "avgHr": 114,
+        "avgCadence": 80
+      },
+      {
+        "index": 2,
+        "startSeconds": 3182,
+        "elapsedSeconds": 681,
+        "timerSeconds": 681,
+        "distanceMeters": 5483.19,
+        "avgWatts": 146,
+        "npWatts": 154,
+        "maxWatts": 218,
+        "avgHr": 116,
+        "avgCadence": 90
+      }
+    ]
+  }
+}

@@ -1,0 +1,185 @@
+{
+  "args": {
+    "activityIds": ["i192509523", "i170317118"]
+  },
+  "output": {
+    "intervals": [
+      {
+        "lapNumber": 1,
+        "values": [
+          {
+            "activityId": "i192509523",
+            "name": "Cycling",
+            "date": "2026-10-02T06:37:56",
+            "avg_watts": 138,
+            "max_watts": 229,
+            "avg_hr": 101,
+            "avg_cadence": 74.48755,
+            "elapsed": 483
+          },
+          {
+            "activityId": "i170317118",
+            "name": "Sweet Spot 3×12",
+            "date": "2026-07-29T06:23:10",
+            "avg_watts": 154,
+            "max_watts": 244,
+            "avg_hr": 109,
+            "avg_cadence": 76.189224,
+            "elapsed": 729
+          }
+        ]
+      },
+      {
+        "lapNumber": 2,
+        "values": [
+          {
+            "activityId": "i192509523",
+            "name": "Cycling",
+            "date": "2026-10-02T06:37:56",
+            "avg_watts": 152,
+            "max_watts": 243,
+            "avg_hr": 114,
+            "avg_cadence": 73.88963,
+            "elapsed": 2700
+          },
+          {
+            "activityId": "i170317118",
+            "name": "Sweet Spot 3×12",
+            "date": "2026-07-29T06:23:10",
+            "avg_watts": 244,
+            "max_watts": 340,
+            "avg_hr": 140,
+            "avg_cadence": 84.13194,
+            "elapsed": 723
+          }
+        ]
+      },
+      {
+        "lapNumber": 3,
+        "values": [
+          {
+            "activityId": "i192509523",
+            "name": "Cycling",
+            "date": "2026-10-02T06:37:56",
+            "avg_watts": 147,
+            "max_watts": 212,
+            "avg_hr": 116,
+            "avg_cadence": 86.367645,
+            "elapsed": 680
+          },
+          {
+            "activityId": "i170317118",
+            "name": "Sweet Spot 3×12",
+            "date": "2026-07-29T06:23:10",
+            "avg_watts": 158,
+            "max_watts": 244,
+            "avg_hr": 129,
+            "avg_cadence": 77.291664,
+            "elapsed": 240
+          }
+        ]
+      },
+      {
+        "lapNumber": 4,
+        "values": [
+          {
+            "activityId": "i170317118",
+            "name": "Sweet Spot 3×12",
+            "date": "2026-07-29T06:23:10",
+            "avg_watts": 270,
+            "max_watts": 346,
+            "avg_hr": 148,
+            "avg_cadence": 89.49167,
+            "elapsed": 720
+          }
+        ]
+      },
+      {
+        "lapNumber": 5,
+        "values": [
+          {
+            "activityId": "i170317118",
+            "name": "Sweet Spot 3×12",
+            "date": "2026-07-29T06:23:10",
+            "avg_watts": 111,
+            "max_watts": 197,
+            "avg_hr": 124,
+            "avg_cadence": 55.585773,
+            "elapsed": 239
+          }
+        ]
+      },
+      {
+        "lapNumber": 6,
+        "values": [
+          {
+            "activityId": "i170317118",
+            "name": "Sweet Spot 3×12",
+            "date": "2026-07-29T06:23:10",
+            "avg_watts": 264,
+            "max_watts": 338,
+            "avg_hr": 147,
+            "avg_cadence": 85.47573,
+            "elapsed": 721
+          }
+        ]
+      },
+      {
+        "lapNumber": 7,
+        "values": [
+          {
+            "activityId": "i170317118",
+            "name": "Sweet Spot 3×12",
+            "date": "2026-07-29T06:23:10",
+            "avg_watts": 82,
+            "max_watts": 243,
+            "avg_hr": 123,
+            "avg_cadence": 48.4375,
+            "elapsed": 242
+          }
+        ]
+      },
+      {
+        "lapNumber": 8,
+        "values": [
+          {
+            "activityId": "i170317118",
+            "name": "Sweet Spot 3×12",
+            "date": "2026-07-29T06:23:10",
+            "avg_watts": 132,
+            "max_watts": 260,
+            "avg_hr": 120,
+            "avg_cadence": 66.517715,
+            "elapsed": 508
+          }
+        ]
+      }
+    ],
+    "summaries": [
+      {
+        "activityId": "i192509523",
+        "name": "Cycling",
+        "date": "2026-10-02T06:37:56",
+        "intervalCount": 3,
+        "avgPower": 146,
+        "minPower": 138,
+        "maxPower": 152,
+        "powerRange": 14,
+        "avgCadence": 78,
+        "totalDuration": 3863
+      },
+      {
+        "activityId": "i170317118",
+        "name": "Sweet Spot 3×12",
+        "date": "2026-07-29T06:23:10",
+        "intervalCount": 8,
+        "avgPower": 177,
+        "minPower": 82,
+        "maxPower": 270,
+        "powerRange": 188,
+        "avgCadence": 73,
+        "totalDuration": 4122
+      }
+    ]
+  }
+}

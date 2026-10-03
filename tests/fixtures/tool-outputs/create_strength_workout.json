@@ -1,0 +1,19 @@
+{
+  "args": {
+    "name": "Strength",
+    "date": "2026-10-10",
+    "description": "Back squat 3x5\nRomanian deadlift 3x8"
+  },
+  "output": {
+    "success": true,
+    "created": 1,
+    "events": [
+      {
+        "id": 900000002,
+        "name": "Strength",
+        "start_date_local": "2026-10-10T00:00:00",
+        "description": "Back squat 3x5\nRomanian deadlift 3x8"
+      }
+    ]
+  }
+}

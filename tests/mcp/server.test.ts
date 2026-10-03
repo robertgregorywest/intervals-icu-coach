@@ -71,6 +71,19 @@ describe("createMcpServer", () => {
     expect(writeHandler).not.toHaveBeenCalled();
   });
 
+  it("renders a result failing its output schema as an isError result", async () => {
+    const { tools, readHandler } = stubTools();
+    readHandler.mockResolvedValueOnce({ date: 5 } as never);
+    const client = await connectedClient(tools);
+
+    const result = await client.callTool({ name: "read_thing", arguments: {} });
+    await client.close();
+
+    expect(result.isError).toBe(true);
+    const [content] = result.content as Array<{ type: string; text: string }>;
+    expect(content.text).toContain("read_thing returned a result");
+  });
+
   it("returns text content only for a Tool with no output schema", async () => {
     const { tools, writeHandler } = stubTools();
     const client = await connectedClient(tools);

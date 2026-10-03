@@ -222,6 +222,17 @@ describe("CLI tool invocation", () => {
     expect(writeHandler).not.toHaveBeenCalled();
   });
 
+  it("exits 1 on a result failing its output schema", async () => {
+    const { tools, readHandler } = stubTools();
+    readHandler.mockResolvedValueOnce({ date: 5 } as never);
+    const io = makeIO();
+    await runCli(["read_thing"], tools, SERVICES, io);
+
+    expect(io.exitCode).toBe(1);
+    expect(io.errLines[0]).toContain("read_thing returned a result");
+    expect(io.outLines).toEqual([]);
+  });
+
   it("exits 1 on handler error", async () => {
     const { tools, readHandler } = stubTools();
     readHandler.mockRejectedValueOnce(new Error("API down"));

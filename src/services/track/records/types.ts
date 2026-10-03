@@ -198,17 +198,21 @@ export interface ListTrackSessionsResult {
 export interface ComparisonLapRow {
   lap: number;
   standingStart: boolean;
-  /** Lap time per run, in the order the refs were given. */
-  values: Array<number | undefined>;
-  /** Difference against the first ref. `undefined` in the first column. */
-  deltas: Array<number | undefined>;
+  /**
+   * Lap time per run, in the order the refs were given; `null` where a run
+   * has no lap at this position. `null`, not `undefined`: JSON writes an
+   * array hole as `null`, so that is what a caller receives either way.
+   */
+  values: Array<number | null>;
+  /** Difference against the first ref. `null` in the first column. */
+  deltas: Array<number | null>;
 }
 
 /** One summary row — total, flying, a segment, or the decline. */
 export interface ComparisonSummaryRow {
   label: string;
-  values: Array<number | undefined>;
-  deltas: Array<number | undefined>;
+  values: Array<number | null>;
+  deltas: Array<number | null>;
   /** `seconds` or `ratio` — the decline is not a time. */
   unit: "seconds" | "ratio";
 }

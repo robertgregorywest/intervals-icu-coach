@@ -1,0 +1,13 @@
+{
+  "args": {
+    "ids": [
+      {
+        "id": 137474983
+      }
+    ]
+  },
+  "output": {
+    "success": true,
+    "deleted": 1
+  }
+}

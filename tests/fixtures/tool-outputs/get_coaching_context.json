@@ -1,0 +1,242 @@
+{
+  "args": {},
+  "output": {
+    "asOf": "2026-10-03",
+    "daysWindow": 7,
+    "athlete": {
+      "id": "i535702",
+      "name": "redacted",
+      "weight": 0,
+      "ftp": 286,
+      "lthr": 159,
+      "max_hr": 172,
+      "resting_hr": 0,
+      "hr_zones": [127, 142, 148, 158, 162, 167, 172],
+      "pace_zones": null,
+      "sport_settings_count": 4
+    },
+    "fitness": {
+      "date": "2026-10-03",
+      "ctl": 53.3,
+      "atl": 43,
+      "tsb": 10.3,
+      "ramp_rate": -0.5
+    },
+    "wellnessTrend": [
+      {
+        "date": "2026-09-27",
+        "ctl": 56.5,
+        "atl": 57,
+        "tsb": -0.5,
+        "fatigue": null,
+        "soreness": null,
+        "motivation": null,
+        "mood": null,
+        "stress": null,
+        "readiness": 0,
+        "sleep_secs": 0,
+        "sleep_score": 0,
+        "resting_hr": 0,
+        "hrv": 0
+      },
+      {
+        "date": "2026-09-28",
+        "ctl": 55.2,
+        "atl": 49.5,
+        "tsb": 5.7,
+        "fatigue": null,
+        "soreness": null,
+        "motivation": null,
+        "mood": null,
+        "stress": null,
+        "readiness": 0,
+        "sleep_secs": 0,
+        "sleep_score": 0,
+        "resting_hr": 0,
+        "hrv": 0
+      },
+      {
+        "date": "2026-09-29",
+        "ctl": 54.9,
+        "atl": 48.6,
+        "tsb": 6.3,
+        "fatigue": null,
+        "soreness": null,
+        "motivation": null,
+        "mood": null,
+        "stress": null,
+        "readiness": 0,
+        "sleep_secs": 0,
+        "sleep_score": 0,
+        "resting_hr": 0,
+        "hrv": 0
+      },
+      {
+        "date": "2026-09-30",
+        "ctl": 54.9,
+        "atl": 49.6,
+        "tsb": 5.3,
+        "fatigue": null,
+        "soreness": null,
+        "motivation": null,
+        "mood": null,
+        "stress": null,
+        "readiness": 0,
+        "sleep_secs": 0,
+        "sleep_score": 0,
+        "resting_hr": 0,
+        "hrv": 0
+      },
+      {
+        "date": "2026-10-01",
+        "ctl": 54.4,
+        "atl": 47.4,
+        "tsb": 7,
+        "fatigue": null,
+        "soreness": null,
+        "motivation": null,
+        "mood": null,
+        "stress": null,
+        "readiness": 0,
+        "sleep_secs": 0,
+        "sleep_score": 0,
+        "resting_hr": 0,
+        "hrv": 0
+      },
+      {
+        "date": "2026-10-02",
+        "ctl": 53.9,
+        "atl": 45.7,
+        "tsb": 8.2,
+        "fatigue": null,
+        "soreness": null,
+        "motivation": null,
+        "mood": null,
+        "stress": null,
+        "readiness": 0,
+        "sleep_secs": 0,
+        "sleep_score": 0,
+        "resting_hr": 0,
+        "hrv": 0
+      },
+      {
+        "date": "2026-10-03",
+        "ctl": 53.3,
+        "atl": 43,
+        "tsb": 10.3,
+        "fatigue": null,
+        "soreness": null,
+        "motivation": null,
+        "mood": null,
+        "stress": null,
+        "readiness": 0,
+        "sleep_secs": 0,
+        "sleep_score": 0,
+        "resting_hr": 0,
+        "hrv": 0
+      }
+    ],
+    "map": {
+      "watts": 415,
+      "computedFrom": {
+        "metric": "best_60s",
+        "activityId": "i165853469",
+        "activityName": "MAP ramp test 2026-07-15",
+        "activityDate": "2026-07-15",
+        "daysAgo": 80
+      }
+    },
+    "mapZones": [
+      {
+        "name": "REC",
+        "label": "Recovery rides, \"walk on the pedals\" (~30–90 min)",
+        "lowPct": 0,
+        "highPct": 40,
+        "lowW": 0,
+        "highW": 166,
+        "pctText": "0–40%",
+        "wattText": "0–166 W"
+      },
+      {
+        "name": "L1",
+        "label": "Long and/or steady rides, easier group rides (~1–6 h)",
+        "lowPct": 40,
+        "highPct": 55,
+        "lowW": 166,
+        "highW": 228,
+        "pctText": "40–55%",
+        "wattText": "166–228 W"
+      },
+      {
+        "name": "L2",
+        "label": "Core endurance, quality group rides, paceline (~1–4 h)",
+        "lowPct": 50,
+        "highPct": 65,
+        "lowW": 208,
+        "highW": 270,
+        "pctText": "50–65%",
+        "wattText": "208–270 W"
+      },
+      {
+        "name": "L3",
+        "label": "Moderate endurance / hard tempo / harder group rides (~30–120 min)",
+        "lowPct": 60,
+        "highPct": 70,
+        "lowW": 249,
+        "highW": 291,
+        "pctText": "60–70%",
+        "wattText": "249–291 W"
+      },
+      {
+        "name": "L4",
+        "label": "Intensive endurance / long climbs / shorter road races (~10–60 min)",
+        "lowPct": 65,
+        "highPct": 75,
+        "lowW": 270,
+        "highW": 311,
+        "pctText": "65–75%",
+        "wattText": "270–311 W"
+      },
+      {
+        "name": "L5",
+        "label": "Threshold tolerance / TTs / climbs / crits / track (~4–20 min)",
+        "lowPct": 70,
+        "highPct": 85,
+        "lowW": 291,
+        "highW": 353,
+        "pctText": "70–85%",
+        "wattText": "291–353 W"
+      },
+      {
+        "name": "L6",
+        "label": "Maximal aerobic / short climbs / pursuit (~1–5 min)",
+        "lowPct": 80,
+        "highPct": 110,
+        "lowW": 332,
+        "highW": 457,
+        "pctText": "80–110%",
+        "wattText": "332–457 W"
+      },
+      {
+        "name": "L7",
+        "label": "High-intensity anaerobic / sprint endurance (~20–60 s)",
+        "lowPct": 110,
+        "highPct": 150,
+        "lowW": 457,
+        "highW": 623,
+        "pctText": "110–150%",
+        "wattText": "457–623 W"
+      },
+      {
+        "name": "NMP",
+        "label": "Neuromuscular power / max sprints (~5–20 s)",
+        "lowPct": 150,
+        "highPct": 200,
+        "lowW": 623,
+        "highW": 846,
+        "pctText": "150%+",
+        "wattText": "623–846 W"
+      }
+    ]
+  }
+}

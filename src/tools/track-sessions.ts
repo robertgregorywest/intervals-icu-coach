@@ -150,15 +150,15 @@ const compareTrackSessionsOutputSchema = z.object({
     z.object({
       lap: z.number(),
       standingStart: z.boolean(),
-      values: z.array(z.number().optional()),
-      deltas: z.array(z.number().optional()),
+      values: z.array(z.number().nullable()),
+      deltas: z.array(z.number().nullable()),
     })
   ),
   summary: z.array(
     z.object({
       label: z.string(),
-      values: z.array(z.number().optional()),
-      deltas: z.array(z.number().optional()),
+      values: z.array(z.number().nullable()),
+      deltas: z.array(z.number().nullable()),
       unit: z.enum(["seconds", "ratio"]),
     })
   ),

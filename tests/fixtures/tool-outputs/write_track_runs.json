@@ -1,0 +1,39 @@
+{
+  "args": {
+    "sessionId": "2026-09-06-bmrc-ip"
+  },
+  "output": {
+    "activityId": "i183857008",
+    "mode": "written",
+    "runs": [
+      {
+        "run": "race",
+        "label": "Run race",
+        "verdict": "strong",
+        "startIndex": 559,
+        "endIndex": 694,
+        "fittedStartSeconds": 1052.92,
+        "fittedEndSeconds": 1188.14,
+        "startDriftSeconds": 0.08,
+        "endDriftSeconds": -0.14,
+        "fittedReading": {
+          "watts": 403,
+          "wattsBand": 0.2,
+          "cadence": 106.1,
+          "cadenceBand": 0.22,
+          "heartrate": 119.6,
+          "heartrateBand": 0.01
+        },
+        "snappedReading": {
+          "watts": 403,
+          "cadence": 106.2,
+          "heartrate": 119
+        }
+      }
+    ],
+    "intervalsReplaced": 3,
+    "notes": [
+      "Every stretch of the activity not covered by a written run is filled by Intervals.icu's own intervals, so the activity carries more intervals than runs were written."
+    ]
+  }
+}

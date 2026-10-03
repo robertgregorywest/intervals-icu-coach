@@ -1,0 +1,119 @@
+{
+  "args": {
+    "sessionId": "2026-09-06-bmrc-ip",
+    "gear": "65x16",
+    "outputPath": "/var/folders/8v/xrbrjby51mz_x5832sxg60mr0000gn/T/capture-tool-outputs-THGhNi/drivetrain-speed.fit"
+  },
+  "output": {
+    "activityId": "i183857008",
+    "outputPath": "/var/folders/8v/xrbrjby51mz_x5832sxg60mr0000gn/T/capture-tool-outputs-THGhNi/drivetrain-speed.fit",
+    "development": {
+      "meters": 8.5272,
+      "gear": "65x16",
+      "rolloutMm": 2099,
+      "source": "gear"
+    },
+    "recording": {
+      "records": 823,
+      "withSpeed": 623,
+      "missingCadence": 3,
+      "zeroCadence": 197,
+      "outsideOnTrack": 0,
+      "pauses": 4,
+      "pausedSeconds": 550,
+      "samplingIntervalSeconds": 1
+    },
+    "totals": {
+      "distanceMeters": 8078.8,
+      "maxSpeedMetersPerSecond": 16.77
+    },
+    "sensor": {
+      "samplesCompared": 618,
+      "speedDifferencePercent": {
+        "median": 0.884,
+        "p10": -0.198,
+        "p90": 1.91
+      },
+      "sensorImpliedDevelopmentMeters": 8.453,
+      "sensorDistanceMeters": 8431.4,
+      "drivetrainDistanceMeters": 8078.8,
+      "distanceDifferencePercent": -4.182
+    },
+    "splits": {
+      "sessionId": "2026-09-06-bmrc-ip",
+      "lapDistanceMeters": 250,
+      "runs": [
+        {
+          "run": "race",
+          "verdict": "strong",
+          "scoredDistanceMeters": 2000,
+          "drivetrainDistanceMeters": 2039.3,
+          "errorPercent": 1.965,
+          "fittedDevelopmentMeters": 8.3629,
+          "sensorDistanceMeters": 2029.58,
+          "sensorErrorPercent": 1.479,
+          "laps": [
+            {
+              "index": 0,
+              "lapTimeSeconds": 22.86,
+              "drivetrainDistanceMeters": 254.74,
+              "errorPercent": 1.898,
+              "sensorErrorPercent": 5.874
+            },
+            {
+              "index": 1,
+              "lapTimeSeconds": 15.87,
+              "drivetrainDistanceMeters": 255.39,
+              "errorPercent": 2.155,
+              "sensorErrorPercent": 1.115
+            },
+            {
+              "index": 2,
+              "lapTimeSeconds": 15.56,
+              "drivetrainDistanceMeters": 255.26,
+              "errorPercent": 2.103,
+              "sensorErrorPercent": 1.082
+            },
+            {
+              "index": 3,
+              "lapTimeSeconds": 15.64,
+              "drivetrainDistanceMeters": 253.38,
+              "errorPercent": 1.35,
+              "sensorErrorPercent": 0.113
+            },
+            {
+              "index": 4,
+              "lapTimeSeconds": 16.12,
+              "drivetrainDistanceMeters": 257.71,
+              "errorPercent": 3.083,
+              "sensorErrorPercent": 1.917
+            },
+            {
+              "index": 5,
+              "lapTimeSeconds": 16.06,
+              "drivetrainDistanceMeters": 253.76,
+              "errorPercent": 1.506,
+              "sensorErrorPercent": 0.574
+            },
+            {
+              "index": 6,
+              "lapTimeSeconds": 16.31,
+              "drivetrainDistanceMeters": 253.28,
+              "errorPercent": 1.311,
+              "sensorErrorPercent": 0.182
+            },
+            {
+              "index": 7,
+              "lapTimeSeconds": 16.8,
+              "drivetrainDistanceMeters": 255.78,
+              "errorPercent": 2.313,
+              "sensorErrorPercent": 0.976
+            }
+          ]
+        }
+      ],
+      "errorPercent": 1.965,
+      "sensorErrorPercent": 1.479
+    }
+  }
+}

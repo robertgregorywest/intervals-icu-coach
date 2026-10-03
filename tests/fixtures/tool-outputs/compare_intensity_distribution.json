@@ -1,0 +1,153 @@
+{
+  "args": {
+    "activityId": "i192509523"
+  },
+  "output": {
+    "activityId": "i192509523",
+    "eventId": 137474983,
+    "activityName": "Cycling",
+    "eventName": "Easy endurance 60m",
+    "date": "2026-10-02T06:37:56",
+    "plannedTotalSeconds": 3600,
+    "deliveredTotalSeconds": 3863,
+    "unbucketedSteps": [],
+    "boundarySpanningSteps": [],
+    "boundaries": [
+      {
+        "name": "REC",
+        "lowW": 0,
+        "highW": 166,
+        "coachingHighW": 166
+      },
+      {
+        "name": "L1",
+        "lowW": 166,
+        "highW": 208,
+        "coachingHighW": 228
+      },
+      {
+        "name": "L2",
+        "lowW": 208,
+        "highW": 249,
+        "coachingHighW": 270
+      },
+      {
+        "name": "L3",
+        "lowW": 249,
+        "highW": 270,
+        "coachingHighW": 291
+      },
+      {
+        "name": "L4",
+        "lowW": 270,
+        "highW": 291,
+        "coachingHighW": 311
+      },
+      {
+        "name": "L5",
+        "lowW": 291,
+        "highW": 332,
+        "coachingHighW": 353
+      },
+      {
+        "name": "L6",
+        "lowW": 332,
+        "highW": 457,
+        "coachingHighW": 457
+      },
+      {
+        "name": "L7",
+        "lowW": 457,
+        "highW": 623,
+        "coachingHighW": 623
+      },
+      {
+        "name": "NMP",
+        "lowW": 623,
+        "coachingHighW": 846
+      }
+    ],
+    "zones": [
+      {
+        "zone": "REC",
+        "lowW": 0,
+        "highW": 166,
+        "plannedSeconds": 900,
+        "deliveredSeconds": 1830,
+        "deltaSeconds": 930
+      },
+      {
+        "zone": "L1",
+        "lowW": 166,
+        "highW": 208,
+        "plannedSeconds": 2700,
+        "deliveredSeconds": 1933,
+        "deltaSeconds": -767
+      },
+      {
+        "zone": "L2",
+        "lowW": 208,
+        "highW": 249,
+        "plannedSeconds": 0,
+        "deliveredSeconds": 100,
+        "deltaSeconds": 100
+      },
+      {
+        "zone": "L3",
+        "lowW": 249,
+        "highW": 270,
+        "plannedSeconds": 0,
+        "deliveredSeconds": 0,
+        "deltaSeconds": 0
+      },
+      {
+        "zone": "L4",
+        "lowW": 270,
+        "highW": 291,
+        "plannedSeconds": 0,
+        "deliveredSeconds": 0,
+        "deltaSeconds": 0
+      },
+      {
+        "zone": "L5",
+        "lowW": 291,
+        "highW": 332,
+        "plannedSeconds": 0,
+        "deliveredSeconds": 0,
+        "deltaSeconds": 0
+      },
+      {
+        "zone": "L6",
+        "lowW": 332,
+        "highW": 457,
+        "plannedSeconds": 0,
+        "deliveredSeconds": 0,
+        "deltaSeconds": 0
+      },
+      {
+        "zone": "L7",
+        "lowW": 457,
+        "highW": 623,
+        "plannedSeconds": 0,
+        "deliveredSeconds": 0,
+        "deltaSeconds": 0
+      },
+      {
+        "zone": "NMP",
+        "lowW": 623,
+        "plannedSeconds": 0,
+        "deliveredSeconds": 0,
+        "deltaSeconds": 0
+      }
+    ],
+    "middleBand": {
+      "lowW": 217,
+      "highW": 303,
+      "lowPctFtp": 76,
+      "highPctFtp": 106,
+      "plannedSeconds": 0,
+      "deliveredSeconds": 39,
+      "deltaSeconds": 39
+    }
+  }
+}

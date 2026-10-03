@@ -1,0 +1,192 @@
+{
+  "args": {
+    "weekStart": "2026-09-28"
+  },
+  "output": {
+    "week": {
+      "start": "2026-09-28",
+      "end": "2026-10-04"
+    },
+    "totals": {
+      "activityCount": 5,
+      "tss": 167,
+      "durationSeconds": 16353,
+      "durationHours": 4.5
+    },
+    "middleBand": {
+      "lowPctFtp": 76,
+      "highPctFtp": 106,
+      "ftpRange": {
+        "min": 286,
+        "max": 286
+      },
+      "excludedNoFtp": 0,
+      "seconds": 460,
+      "hours": 0.1,
+      "fractionOfPowerTime": 0.032
+    },
+    "bySport": {
+      "Ride": {
+        "count": 4,
+        "tss": 167,
+        "hours": 4.1
+      },
+      "WeightTraining": {
+        "count": 1,
+        "tss": 0,
+        "hours": 0.5
+      }
+    },
+    "fitness": {
+      "startDate": "2026-09-28",
+      "endDate": "2026-10-04",
+      "ctl": {
+        "start": 55.2,
+        "end": 52.7,
+        "delta": -2.5
+      },
+      "atl": {
+        "start": 49.5,
+        "end": 41,
+        "delta": -8.5
+      },
+      "tsb": {
+        "start": 5.7,
+        "end": 11.7
+      }
+    },
+    "completedActivities": [
+      {
+        "id": "i192509523",
+        "date": "2026-10-02T06:37:56",
+        "type": "Ride",
+        "name": "Cycling",
+        "source": "WAHOO",
+        "tss": 35,
+        "durationMin": 64,
+        "distanceKm": 26.9,
+        "avgWatts": 150,
+        "avgHr": 113,
+        "middleBandSeconds": 39,
+        "ftp": 286,
+        "lowW": 217,
+        "highW": 303
+      },
+      {
+        "id": "i192116086",
+        "date": "2026-10-01T07:28:09",
+        "type": "Ride",
+        "name": "Cycling",
+        "source": "WAHOO",
+        "tss": 33,
+        "durationMin": 61,
+        "distanceKm": 28.4,
+        "avgWatts": 149,
+        "avgHr": 106,
+        "middleBandSeconds": 80,
+        "ftp": 286,
+        "lowW": 217,
+        "highW": 303
+      },
+      {
+        "id": "i191767941",
+        "date": "2026-09-30T06:37:48",
+        "type": "Ride",
+        "name": "Cycling",
+        "source": "WAHOO",
+        "tss": 56,
+        "durationMin": 54,
+        "distanceKm": 24,
+        "avgWatts": 159,
+        "avgHr": 118,
+        "middleBandSeconds": 109,
+        "ftp": 286,
+        "lowW": 217,
+        "highW": 303
+      },
+      {
+        "id": "i191426234",
+        "date": "2026-09-29T06:37:55",
+        "type": "Ride",
+        "name": "Cycling",
+        "source": "WAHOO",
+        "tss": 43,
+        "durationMin": 64,
+        "distanceKm": 28.1,
+        "avgWatts": 166,
+        "avgHr": 120,
+        "middleBandSeconds": 232,
+        "ftp": 286,
+        "lowW": 217,
+        "highW": 303
+      },
+      {
+        "id": "i191217211",
+        "date": "2026-09-28T00:00:00",
+        "type": "WeightTraining",
+        "name": "Strength — Sharpen (Race Week Primer)",
+        "source": "MANUAL",
+        "tss": 0,
+        "durationMin": 30,
+        "distanceKm": null,
+        "avgWatts": null,
+        "avgHr": null,
+        "middleBandSeconds": null,
+        "ftp": null,
+        "lowW": null,
+        "highW": null
+      }
+    ],
+    "events": [
+      {
+        "id": 137474722,
+        "date": "2026-09-28T00:00:00",
+        "category": "WORKOUT",
+        "type": "WeightTraining",
+        "name": "Strength — Sharpen (Race Week Primer)"
+      },
+      {
+        "id": 137474969,
+        "date": "2026-09-29T00:00:00",
+        "category": "WORKOUT",
+        "type": "Ride",
+        "name": "Easy endurance 60m"
+      },
+      {
+        "id": 137474974,
+        "date": "2026-09-30T00:00:00",
+        "category": "WORKOUT",
+        "type": "Ride",
+        "name": "Race-pace touch 2x1:30 — full race-day dress rehearsal"
+      },
+      {
+        "id": 137474977,
+        "date": "2026-10-01T00:00:00",
+        "category": "WORKOUT",
+        "type": "Ride",
+        "name": "Easy endurance 60m"
+      },
+      {
+        "id": 137474983,
+        "date": "2026-10-02T00:00:00",
+        "category": "WORKOUT",
+        "type": "Ride",
+        "name": "Easy endurance 60m"
+      },
+      {
+        "id": 137474989,
+        "date": "2026-10-03T00:00:00",
+        "category": "WORKOUT",
+        "type": "Ride",
+        "name": "Easy 45m"
+      },
+      {
+        "id": 137474998,
+        "date": "2026-10-04T00:00:00",
+        "category": "WORKOUT",
+        "type": "Ride",
+        "name": "Openers - race eve (AM, before travel)"
+      }
+    ]
+  }
+}

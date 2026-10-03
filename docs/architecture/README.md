@@ -11,7 +11,7 @@ How the code is laid out and the rules that keep it that way. Read it before cha
 - **Client** (`src/client.ts`) — `HttpClient` with Basic auth, rate limiting, injectable `fetchFn` for testing.
 - **Services** (`src/index.ts`) — the composition root: `createServices()` builds every service once and returns them as `IServices`, which every handler receives as `services`. It forwards nothing.
 - **Tool registry** (`src/registry.ts`) — the list of all Tools (`ToolDef[]`), one line each. Both adapters iterate it ([ADR 0001](../adr/0001-cli-adapter-and-tool-registry.md)).
-- **Tools** (`src/tools/`) — each Tool is one `defineTool({ name, description, schema, annotations, outputSchema, handler })`, so the handler's args are typed by its own schema. Logic beyond shaping a response belongs in a service.
+- **Tools** (`src/tools/`) — each Tool is one `defineTool({ name, description, schema, annotations, outputSchema, handler })`, so the handler's args are typed by its own schema. Both adapters call it through `runTool`, which checks the result, as JSON delivers it, against `outputSchema`. Logic beyond shaping a response belongs in a service.
 - **MCP adapter** (`src/mcp/`) — `server.ts` registers each Tool, with a few lines of `instructions` for clients that load no skills.
 - **CLI adapter** (`src/cli/main.ts`, entrypoint `bin/icu`) — projects Tools as Bash subcommands via `tsx` ([ADR 0002](../adr/0002-cli-json-input.md)). See the dev loop below.
 - **Tests** (`tests/`) — mirror `src/` structure. Use injectable fetch (not global mocks).
@@ -21,7 +21,7 @@ The terms above are defined under _Tool surface_ in the [glossary](../../CONTEXT
 
 ## Adding behaviour
 
-- **A new Tool**: `defineTool` in `src/tools/` → one line in `src/registry.ts` → both adapters pick it up.
+- **A new Tool**: `defineTool` in `src/tools/` → one line in `src/registry.ts` → both adapters pick it up. With an `outputSchema`, add sample args to `scripts/capture-tool-outputs.ts` and run it: `tests/tool-outputs.test.ts` holds every output schema against a captured real result.
 - **New behaviour**: a module with an interface and factory under `src/services/`, built in `createServices`.
 
 ## Rules

@@ -1,0 +1,127 @@
+{
+  "args": {
+    "id": "2026-09-06-bmrc-ip"
+  },
+  "output": {
+    "basis": {
+      "id": "2026-09-06-bmrc-ip",
+      "date": "2026-09-06",
+      "kind": "race",
+      "event": "2 km IP — BMRC",
+      "gear": "64x16",
+      "rolloutMm": 2099,
+      "crankLengthMm": 165,
+      "suit": "race",
+      "lapDistanceMeters": 250,
+      "activityId": "i183857008",
+      "source": "timing export",
+      "start": "gate",
+      "runStarts": {}
+    },
+    "developmentMeters": 8.396,
+    "developmentSource": "gear",
+    "prose": "2:15.22. The block's race benchmark: the gate restored to 22.86 s (equal to the 2025 gate on 170 mm\ncranks) and a back half with 2025's shape rather than Nationals'.\n\n**Contaminated.** The other rider was lapped after lap 4, caught in the banking, with a surge to get\npast. The SRM (`i183857008`) shows it — two surges to 400–411 W at ~77–80 s and ~88–90 s against\n~350 W either side, lap 5 averaging ~372 W where the laps around it sat ~350–363 W. Lap 5 is the\nlargest single-lap deficit against 2025 outside lap 8 (+0.26 s), on a longer line. Cost: the surge\nenergy (~0.3–0.5 kJ) plus the banking line, paid for in laps 6–8. Read every comparison against this\nrecord with that in mind; it cuts the same way for all of them.\n\nSRM over the ride: ~133 s from first pedal stroke, 410 W average, 54.5 kJ, first 23 s at 582 W.\nCadence 78 → 115 → 106 rpm. Those are measurements, not derivations — for per-lap power, join these\nsplits to the activity with `compute_track_lap_power`.",
+    "runs": [
+      {
+        "ref": "2026-09-06-bmrc-ip#race",
+        "run": "race",
+        "start": "gate",
+        "laps": [
+          {
+            "lap": 1,
+            "lapTimeSeconds": 22.86,
+            "cumulativeTimeSeconds": 22.86,
+            "speedMetersPerSecond": 10.936,
+            "cadenceRpm": 78.152,
+            "standingStart": true
+          },
+          {
+            "lap": 2,
+            "lapTimeSeconds": 15.87,
+            "cumulativeTimeSeconds": 38.73,
+            "speedMetersPerSecond": 15.753,
+            "cadenceRpm": 112.575,
+            "standingStart": false
+          },
+          {
+            "lap": 3,
+            "lapTimeSeconds": 15.56,
+            "cumulativeTimeSeconds": 54.29,
+            "speedMetersPerSecond": 16.067,
+            "cadenceRpm": 114.818,
+            "standingStart": false
+          },
+          {
+            "lap": 4,
+            "lapTimeSeconds": 15.64,
+            "cumulativeTimeSeconds": 69.93,
+            "speedMetersPerSecond": 15.985,
+            "cadenceRpm": 114.231,
+            "standingStart": false
+          },
+          {
+            "lap": 5,
+            "lapTimeSeconds": 16.12,
+            "cumulativeTimeSeconds": 86.05,
+            "speedMetersPerSecond": 15.509,
+            "cadenceRpm": 110.829,
+            "standingStart": false
+          },
+          {
+            "lap": 6,
+            "lapTimeSeconds": 16.06,
+            "cumulativeTimeSeconds": 102.11,
+            "speedMetersPerSecond": 15.567,
+            "cadenceRpm": 111.243,
+            "standingStart": false
+          },
+          {
+            "lap": 7,
+            "lapTimeSeconds": 16.31,
+            "cumulativeTimeSeconds": 118.42,
+            "speedMetersPerSecond": 15.328,
+            "cadenceRpm": 109.538,
+            "standingStart": false
+          },
+          {
+            "lap": 8,
+            "lapTimeSeconds": 16.8,
+            "cumulativeTimeSeconds": 135.22,
+            "speedMetersPerSecond": 14.881,
+            "cadenceRpm": 106.343,
+            "standingStart": false
+          }
+        ],
+        "summary": {
+          "totalTimeSeconds": 135.22,
+          "totalDistanceMeters": 2000,
+          "flyingLaps": 7,
+          "flyingTimeSeconds": 112.36,
+          "flyingDistanceMeters": 1750,
+          "meanLapTimeSeconds": 16.05,
+          "meanSpeedMetersPerSecond": 15.575,
+          "lapTimeSdSeconds": 0.423,
+          "opening": {
+            "fromLap": 2,
+            "toLap": 4,
+            "timeSeconds": 47.07,
+            "meanSpeedMetersPerSecond": 15.934
+          },
+          "closing": {
+            "fromLap": 6,
+            "toLap": 8,
+            "timeSeconds": 49.17,
+            "meanSpeedMetersPerSecond": 15.253
+          },
+          "declineRatio": -0.12273,
+          "pacing": {
+            "sumSquaredSpeed": 1701.04,
+            "rmsSpeedMetersPerSecond": 15.589,
+            "flatEquivalentTimeSeconds": 112.26,
+            "gainSeconds": 0.1
+          }
+        }
+      }
+    ]
+  }
+}

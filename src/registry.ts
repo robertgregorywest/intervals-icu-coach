@@ -48,6 +48,7 @@ import { forecastTrainingLoadTool } from "./tools/training-load-forecast.js";
 
 export type { ToolDef } from "./tools/define.js";
 export {
+  runTool,
   READ_ONLY,
   MUTATING,
   DESTRUCTIVE_IDEMPOTENT,

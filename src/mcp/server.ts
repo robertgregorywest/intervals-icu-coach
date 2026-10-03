@@ -3,7 +3,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { IServices } from "../index.js";
 import { logResponse, logError } from "./logger.js";
 import { formatToolError } from "../errors.js";
-import type { ToolDef } from "../registry.js";
+import { runTool, type ToolDef } from "../registry.js";
 
 const require = createRequire(import.meta.url);
 const { version } = require("../../package.json") as { version: string };
@@ -47,7 +47,7 @@ export function createMcpServer(
     const cb = async (args: any) => {
       const start = Date.now();
       try {
-        const data = await t.handler(services, args);
+        const data = await runTool(t, services, args);
         const text = JSON.stringify(data);
         logResponse(t.name, text, Date.now() - start);
         const result: Record<string, unknown> = {

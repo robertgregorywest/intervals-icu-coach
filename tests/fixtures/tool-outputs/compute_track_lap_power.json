@@ -1,0 +1,157 @@
+{
+  "args": {
+    "sessionId": "2026-09-06-bmrc-ip"
+  },
+  "output": {
+    "activityId": "i183857008",
+    "lapDistanceMeters": 250,
+    "samplingIntervalSeconds": 1,
+    "runs": [
+      {
+        "run": "race",
+        "startOffsetSeconds": 1052.92,
+        "durationSeconds": 135.22,
+        "distanceMeters": 2000,
+        "fittedRolloutMeters": 8.3629,
+        "confidence": {
+          "residualRpm": 0.604,
+          "offsetIntervalSeconds": [1052.78, 1053.08],
+          "nextBestOffsetSeconds": 1050.76,
+          "nextBestResidualRpm": 3.542,
+          "residualRatio": 5.86,
+          "verdict": "strong",
+          "lapsFitted": 8,
+          "lapsExcluded": 0
+        },
+        "average": {
+          "watts": 403,
+          "wattsBand": 0.2,
+          "cadence": 106.1,
+          "cadenceBand": 0.22,
+          "heartrate": 119.6,
+          "heartrateBand": 0.01
+        },
+        "laps": [
+          {
+            "index": 0,
+            "lapTimeSeconds": 22.86,
+            "startSeconds": 1052.92,
+            "endSeconds": 1075.78,
+            "reading": {
+              "watts": 537,
+              "wattsBand": 6.2,
+              "cadence": 78.4,
+              "cadenceBand": 1.4,
+              "heartrate": 115.3,
+              "heartrateBand": 0.21
+            }
+          },
+          {
+            "index": 1,
+            "lapTimeSeconds": 15.87,
+            "startSeconds": 1075.78,
+            "endSeconds": 1091.65,
+            "reading": {
+              "watts": 471,
+              "wattsBand": 0.8,
+              "cadence": 113.2,
+              "cadenceBand": 0.11,
+              "heartrate": 126.7,
+              "heartrateBand": 0.06
+            }
+          },
+          {
+            "index": 2,
+            "lapTimeSeconds": 15.56,
+            "startSeconds": 1091.65,
+            "endSeconds": 1107.21,
+            "reading": {
+              "watts": 405,
+              "wattsBand": 0.8,
+              "cadence": 115.4,
+              "cadenceBand": 0.02,
+              "heartrate": 120.5,
+              "heartrateBand": 0.15
+            }
+          },
+          {
+            "index": 3,
+            "lapTimeSeconds": 15.64,
+            "startSeconds": 1107.21,
+            "endSeconds": 1122.85,
+            "reading": {
+              "watts": 362,
+              "wattsBand": 1,
+              "cadence": 114,
+              "cadenceBand": 0.02,
+              "heartrate": 116.8,
+              "heartrateBand": 0.04
+            }
+          },
+          {
+            "index": 4,
+            "lapTimeSeconds": 16.12,
+            "startSeconds": 1122.85,
+            "endSeconds": 1138.97,
+            "reading": {
+              "watts": 369,
+              "wattsBand": 0.8,
+              "cadence": 112.5,
+              "cadenceBand": 0.01,
+              "heartrate": 117.9,
+              "heartrateBand": 0.08
+            }
+          },
+          {
+            "index": 5,
+            "lapTimeSeconds": 16.06,
+            "startSeconds": 1138.97,
+            "endSeconds": 1155.03,
+            "reading": {
+              "watts": 364,
+              "wattsBand": 0,
+              "cadence": 111.2,
+              "cadenceBand": 0.05,
+              "heartrate": 118.5,
+              "heartrateBand": 0.03
+            }
+          },
+          {
+            "index": 6,
+            "lapTimeSeconds": 16.31,
+            "startSeconds": 1155.03,
+            "endSeconds": 1171.34,
+            "reading": {
+              "watts": 346,
+              "wattsBand": 0.3,
+              "cadence": 109.3,
+              "cadenceBand": 0.02,
+              "heartrate": 121.9,
+              "heartrateBand": 0.15
+            }
+          },
+          {
+            "index": 7,
+            "lapTimeSeconds": 16.8,
+            "startSeconds": 1171.34,
+            "endSeconds": 1188.14,
+            "reading": {
+              "watts": 319,
+              "wattsBand": 4.4,
+              "cadence": 107.1,
+              "cadenceBand": 0.11,
+              "heartrate": 121.3,
+              "heartrateBand": 0.14
+            }
+          }
+        ]
+      }
+    ],
+    "thresholds": {
+      "strongResidualRpm": 1,
+      "marginalResidualRpm": 2,
+      "ambiguousResidualRatio": 1.15,
+      "minSamplesPerLap": 8
+    }
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "args": {},
+  "output": {
+    "directory": "./docs/personal/track",
+    "sessions": [
+      {
+        "id": "2025-nationals-ip",
+        "date": "2025-06",
+        "kind": "race",
+        "event": "2 km IP — National Championships",
+        "runs": [
+          {
+            "ref": "2025-nationals-ip#race",
+            "run": "race",
+            "start": "gate",
+            "laps": 8,
+            "distanceMeters": 2000,
+            "durationSeconds": 134.3
+          }
+        ]
+      },
+      {
+        "id": "2026-nationals-ip",
+        "date": "2026-06",
+        "kind": "race",
+        "event": "2 km IP — National Championships",
+        "runs": [
+          {
+            "ref": "2026-nationals-ip#race",
+            "run": "race",
+            "start": "gate",
+            "laps": 8,
+            "distanceMeters": 2000,
+            "durationSeconds": 135.42
+          }
+        ]
+      },
+      {
+        "id": "2026-07-12-training",
+        "date": "2026-07-12",
+        "kind": "training",
+        "event": "Pacing drills — 2×1500 m, 1×2000 m",
+        "runs": [
+          {
+            "ref": "2026-07-12-training#run-1",
+            "run": "run-1",
+            "start": "flying",
+            "laps": 6,
+            "distanceMeters": 1500,
+            "durationSeconds": 97.13
+          },
+          {
+            "ref": "2026-07-12-training#run-2",
+            "run": "run-2",
+            "start": "flying",
+            "laps": 6,
+            "distanceMeters": 1500,
+            "durationSeconds": 96.76
+          },
+          {
+            "ref": "2026-07-12-training#run-3",
+            "run": "run-3",
+            "start": "flying",
+            "laps": 8,
+            "distanceMeters": 2000,
+            "durationSeconds": 132.83
+          }
+        ]
+      },
+      {
+        "id": "2026-09-06-bmrc-ip",
+        "date": "2026-09-06",
+        "kind": "race",
+        "event": "2 km IP — BMRC",
+        "activityId": "i183857008",
+        "runs": [
+          {
+            "ref": "2026-09-06-bmrc-ip#race",
+            "run": "race",
+            "start": "gate",
+            "laps": 8,
+            "distanceMeters": 2000,
+            "durationSeconds": 135.22
+          }
+        ]
+      }
+    ]
+  }
+}

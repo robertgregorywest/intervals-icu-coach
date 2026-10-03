@@ -1,0 +1,256 @@
+{
+  "args": {
+    "oldest": "2026-09-21",
+    "newest": "2026-10-03"
+  },
+  "output": {
+    "oldest": "2026-09-21",
+    "newest": "2026-10-03",
+    "status": "reviewed",
+    "reviewedThrough": "2026-10-03",
+    "middleBand": {
+      "lowW": 217,
+      "highW": 303,
+      "lowPctFtp": 76,
+      "highPctFtp": 106,
+      "plannedSeconds": 1576,
+      "deliveredSeconds": 2193,
+      "deltaSeconds": 617,
+      "deliveredFraction": 1.391497461928934
+    },
+    "zones": [
+      {
+        "zone": "REC",
+        "lowW": 0,
+        "highW": 166,
+        "plannedSeconds": 15660,
+        "deliveredSeconds": 16834,
+        "deltaSeconds": 1174
+      },
+      {
+        "zone": "L1",
+        "lowW": 166,
+        "highW": 208,
+        "plannedSeconds": 18360,
+        "deliveredSeconds": 13376,
+        "deltaSeconds": -4984
+      },
+      {
+        "zone": "L2",
+        "lowW": 208,
+        "highW": 249,
+        "plannedSeconds": 4320,
+        "deliveredSeconds": 3872,
+        "deltaSeconds": -448
+      },
+      {
+        "zone": "L3",
+        "lowW": 249,
+        "highW": 270,
+        "plannedSeconds": 0,
+        "deliveredSeconds": 265,
+        "deltaSeconds": 265
+      },
+      {
+        "zone": "L4",
+        "lowW": 270,
+        "highW": 291,
+        "plannedSeconds": 120,
+        "deliveredSeconds": 243,
+        "deltaSeconds": 123
+      },
+      {
+        "zone": "L5",
+        "lowW": 291,
+        "highW": 332,
+        "plannedSeconds": 0,
+        "deliveredSeconds": 480,
+        "deltaSeconds": 480
+      },
+      {
+        "zone": "L6",
+        "lowW": 332,
+        "highW": 457,
+        "plannedSeconds": 660,
+        "deliveredSeconds": 994,
+        "deltaSeconds": 334
+      },
+      {
+        "zone": "L7",
+        "lowW": 457,
+        "highW": 623,
+        "plannedSeconds": 70,
+        "deliveredSeconds": 101,
+        "deltaSeconds": 31
+      },
+      {
+        "zone": "NMP",
+        "lowW": 623,
+        "plannedSeconds": 0,
+        "deliveredSeconds": 30,
+        "deltaSeconds": 30
+      }
+    ],
+    "boundaries": [
+      {
+        "name": "REC",
+        "lowW": 0,
+        "highW": 166,
+        "coachingHighW": 166
+      },
+      {
+        "name": "L1",
+        "lowW": 166,
+        "highW": 208,
+        "coachingHighW": 228
+      },
+      {
+        "name": "L2",
+        "lowW": 208,
+        "highW": 249,
+        "coachingHighW": 270
+      },
+      {
+        "name": "L3",
+        "lowW": 249,
+        "highW": 270,
+        "coachingHighW": 291
+      },
+      {
+        "name": "L4",
+        "lowW": 270,
+        "highW": 291,
+        "coachingHighW": 311
+      },
+      {
+        "name": "L5",
+        "lowW": 291,
+        "highW": 332,
+        "coachingHighW": 353
+      },
+      {
+        "name": "L6",
+        "lowW": 332,
+        "highW": 457,
+        "coachingHighW": 457
+      },
+      {
+        "name": "L7",
+        "lowW": 457,
+        "highW": 623,
+        "coachingHighW": 623
+      },
+      {
+        "name": "NMP",
+        "lowW": 623,
+        "coachingHighW": 846
+      }
+    ],
+    "sessions": [
+      {
+        "eventId": 137474966,
+        "activityId": "i190533931",
+        "date": "2026-09-26",
+        "name": "Race pace 3x2:00 — race-day warm-up rehearsal",
+        "executionRecord": "device-laps",
+        "alignmentBasis": "duration",
+        "workSteps": 4,
+        "unclassifiedSteps": 17,
+        "flagged": [
+          {
+            "index": 18,
+            "durationSeconds": 120,
+            "target": {
+              "low": 395,
+              "high": 410
+            },
+            "verdict": "over",
+            "verdictBasis": "average-watts",
+            "deltas": {
+              "watts": 7,
+              "wattsFraction": 0.0171,
+              "cadence": -1
+            },
+            "cadenceVerdict": "under"
+          }
+        ],
+        "cadence": {
+          "judged": 4,
+          "missed": 1
+        },
+        "middleBandPlannedSeconds": 116,
+        "middleBandDeliveredSeconds": 156,
+        "middleBandDeliveredFraction": 1.3448275862068966,
+        "platformCompliance": 107.69231
+      },
+      {
+        "eventId": 137474974,
+        "activityId": "i191767941",
+        "date": "2026-09-30",
+        "name": "Race-pace touch 2x1:30 — full race-day dress rehearsal",
+        "executionRecord": "device-laps",
+        "alignmentBasis": "sequential",
+        "workSteps": 3,
+        "unclassifiedSteps": 16,
+        "flagged": [
+          {
+            "index": 16,
+            "repIndex": 2,
+            "repCount": 2,
+            "stepInRep": 1,
+            "durationSeconds": 90,
+            "target": {
+              "low": 395,
+              "high": 410
+            },
+            "verdict": "over",
+            "verdictBasis": "average-watts",
+            "deltas": {
+              "watts": 4,
+              "wattsFraction": 0.0098,
+              "cadence": -5
+            },
+            "cadenceVerdict": "under"
+          }
+        ],
+        "cadence": {
+          "judged": 3,
+          "missed": 1
+        },
+        "middleBandPlannedSeconds": 116,
+        "middleBandDeliveredSeconds": 109,
+        "middleBandDeliveredFraction": 0.9396551724137931,
+        "platformCompliance": 101.818184
+      }
+    ],
+    "excluded": [
+      {
+        "date": "2026-09-21T00:00:00",
+        "activityId": "i188962162",
+        "eventId": 137474710,
+        "name": "Strength — Sharpen (Last Heavy)",
+        "reason": "no-structured-steps"
+      },
+      {
+        "date": "2026-09-28T00:00:00",
+        "activityId": "i191217211",
+        "eventId": 137474722,
+        "name": "Strength — Sharpen (Race Week Primer)",
+        "reason": "no-structured-steps"
+      },
+      {
+        "date": "2026-09-23T10:25:18",
+        "activityId": "i189525843",
+        "name": "Indoor Cycling",
+        "reason": "no-paired-event"
+      },
+      {
+        "date": "2026-10-03T00:00:00",
+        "eventId": 137474989,
+        "name": "Easy 45m",
+        "reason": "no-paired-activity"
+      }
+    ],
+    "nonKeySessions": 11
+  }
+}

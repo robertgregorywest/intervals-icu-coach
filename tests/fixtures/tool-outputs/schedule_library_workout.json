@@ -1,0 +1,18 @@
+{
+  "args": {
+    "id": 14,
+    "date": "2026-10-10"
+  },
+  "output": {
+    "success": true,
+    "created": 1,
+    "events": [
+      {
+        "id": 900000001,
+        "name": "MIET 60min",
+        "start_date_local": "2026-10-10T00:00:00",
+        "description": "More aerobic stimulus per hour when Z2 volume is constrained by life. Masters-friendly.\n\nModerately intensive endurance — masters-friendly aerobic load. Useful when Z2 volume is constrained by life and you want more aerobic stimulus per hour without entering fatigue territory.\n\n- Warm-up 10m 230w\n\n- MIET 45m 250w-290w\n\n- Cooldown 5m 185w\n\n<!-- template: miet-60 -->"
+      }
+    ]
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "args": {},
+  "output": {
+    "dryRun": false,
+    "created": [],
+    "updated": [],
+    "unchanged": [],
+    "skipped": [
+      {
+        "seedId": "20-min-warm-up",
+        "name": "20 Min Warm Up",
+        "reason": "20-min-warm-up is anchored to FTP but no ftpWatts was supplied"
+      },
+      {
+        "seedId": "2s-and-3s",
+        "name": "2's and 3's",
+        "reason": "2s-and-3s is anchored to FTP but no ftpWatts was supplied"
+      },
+      {
+        "seedId": "ftp-20min-test",
+        "name": "FTP 20-min test",
+        "reason": "ftp-20min-test is anchored to FTP but no ftpWatts was supplied"
+      },
+      {
+        "seedId": "in-the-red-pursuit-intervals-2km",
+        "name": "In the red pursuit intervals (2km)",
+        "reason": "in-the-red-pursuit-intervals-2km is anchored to FTP but no ftpWatts was supplied"
+      },
+      {
+        "seedId": "map-ramp-test",
+        "name": "MAP ramp test",
+        "reason": "map-ramp-test is anchored to MAP but no mapWatts was supplied"
+      },
+      {
+        "seedId": "miet-60",
+        "name": "MIET 60min",
+        "reason": "miet-60 is anchored to MAP but no mapWatts was supplied"
+      },
+      {
+        "seedId": "openers",
+        "name": "Openers",
+        "reason": "openers is anchored to FTP but no ftpWatts was supplied"
+      },
+      {
+        "seedId": "recovery-spin",
+        "name": "Recovery spin",
+        "reason": "recovery-spin is anchored to MAP but no mapWatts was supplied"
+      },
+      {
+        "seedId": "sweet-spot-3x12",
+        "name": "Sweet Spot 3×12",
+        "reason": "sweet-spot-3x12 is anchored to FTP but no ftpWatts was supplied"
+      },
+      {
+        "seedId": "threshold-2x20",
+        "name": "Threshold 2×20",
+        "reason": "threshold-2x20 is anchored to FTP but no ftpWatts was supplied"
+      },
+      {
+        "seedId": "vo2-30-30",
+        "name": "VO2 30/30s",
+        "reason": "vo2-30-30 is anchored to MAP but no mapWatts was supplied"
+      },
+      {
+        "seedId": "vo2-4x4",
+        "name": "VO2 4×4",
+        "reason": "vo2-4x4 is anchored to MAP but no mapWatts was supplied"
+      },
+      {
+        "seedId": "vo2-preloaded-shorts",
+        "name": "VO2 preloaded shorts",
+        "reason": "vo2-preloaded-shorts is anchored to MAP but no mapWatts was supplied"
+      },
+      {
+        "seedId": "z2-endurance-2h",
+        "name": "Z2 endurance 2h",
+        "reason": "z2-endurance-2h is anchored to MAP but no mapWatts was supplied"
+      }
+    ],
+    "orphans": [],
+    "warnings": []
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "args": {
+    "activityId": "i192509523"
+  },
+  "output": {
+    "firstHalf": {
+      "avgPower": 145,
+      "avgHR": 110,
+      "hrPowerRatio": 0.7543
+    },
+    "secondHalf": {
+      "avgPower": 154,
+      "avgHR": 116,
+      "hrPowerRatio": 0.7532
+    },
+    "decouplingPercent": -0.14,
+    "interpretation": "Good aerobic fitness — minimal cardiac drift"
+  }
+}

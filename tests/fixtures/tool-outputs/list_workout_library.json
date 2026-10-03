@@ -1,0 +1,217 @@
+{
+  "args": {},
+  "output": {
+    "folders": [
+      {
+        "id": 793437,
+        "name": "Coach: Custom",
+        "num_workouts": 0
+      },
+      {
+        "id": 793413,
+        "name": "Coach: Endurance",
+        "num_workouts": 2
+      },
+      {
+        "id": 897271,
+        "name": "Coach: Race",
+        "num_workouts": 3
+      },
+      {
+        "id": 793414,
+        "name": "Coach: Recovery",
+        "num_workouts": 1
+      },
+      {
+        "id": 793412,
+        "name": "Coach: Sweet Spot",
+        "num_workouts": 1
+      },
+      {
+        "id": 793409,
+        "name": "Coach: Tests",
+        "num_workouts": 2
+      },
+      {
+        "id": 793411,
+        "name": "Coach: Threshold",
+        "num_workouts": 1
+      },
+      {
+        "id": 793410,
+        "name": "Coach: VO2 Max",
+        "num_workouts": 4
+      }
+    ],
+    "workouts": [
+      {
+        "id": 14,
+        "name": "MIET 60min",
+        "type": "Ride",
+        "folder_id": 793413,
+        "folder_name": "Coach: Endurance",
+        "totalSeconds": 3600,
+        "stepCount": 3,
+        "hasTemplate": true,
+        "oneLine": "3 steps, 1h",
+        "purpose": "More aerobic stimulus per hour when Z2 volume is constrained by life. Masters-friendly."
+      },
+      {
+        "id": 13,
+        "name": "Z2 endurance 2h",
+        "type": "Ride",
+        "folder_id": 793413,
+        "folder_name": "Coach: Endurance",
+        "totalSeconds": 7200,
+        "stepCount": 1,
+        "hasTemplate": true,
+        "oneLine": "1 step, 2h",
+        "purpose": "Aerobic durability. Cap NP ≤68% MAP — above that it stops counting as Z2."
+      },
+      {
+        "id": 18,
+        "name": "20 Min Warm Up",
+        "type": "Ride",
+        "folder_id": 897271,
+        "folder_name": "Coach: Race",
+        "totalSeconds": 1655,
+        "stepCount": 13,
+        "hasTemplate": true,
+        "oneLine": "13 steps, 27m35s",
+        "purpose": "Pre-race warm-up. Progressive build to threshold, then short activations to prime the legs."
+      },
+      {
+        "id": 16,
+        "name": "In the red pursuit intervals (2km)",
+        "type": "Ride",
+        "folder_id": 897271,
+        "folder_name": "Coach: Race",
+        "totalSeconds": 3920,
+        "stepCount": 30,
+        "hasTemplate": true,
+        "oneLine": "30 steps, 1h5m",
+        "purpose": "Race-specific 2 km pursuit simulation — sprint start, then decaying power through anaerobic and VO2 zones."
+      },
+      {
+        "id": 21,
+        "name": "Openers",
+        "type": "Ride",
+        "folder_id": 897271,
+        "folder_name": "Coach: Race",
+        "totalSeconds": 5290,
+        "stepCount": 12,
+        "hasTemplate": true,
+        "oneLine": "12 steps, 1h28m",
+        "purpose": "Day before a race or hard test. Opens the legs through to a sprint without accruing fatigue."
+      },
+      {
+        "id": 15,
+        "name": "Recovery spin",
+        "type": "Ride",
+        "folder_id": 793414,
+        "folder_name": "Coach: Recovery",
+        "totalSeconds": 2400,
+        "stepCount": 1,
+        "hasTemplate": true,
+        "oneLine": "1 step, 40m",
+        "purpose": "Circulation, not stimulus. High cadence, very low load; keep it short when fatigue is high."
+      },
+      {
+        "id": 12,
+        "name": "Sweet Spot 3×12",
+        "type": "Ride",
+        "folder_id": 793412,
+        "folder_name": "Coach: Sweet Spot",
+        "totalSeconds": 4200,
+        "stepCount": 8,
+        "hasTemplate": true,
+        "oneLine": "8 steps, 1h10m",
+        "purpose": "Sustained sub-threshold volume in build. Lower fatigue cost than threshold, so more per week."
+      },
+      {
+        "id": 7,
+        "name": "FTP 20-min test",
+        "type": "Ride",
+        "folder_id": 793409,
+        "folder_name": "Coach: Tests",
+        "totalSeconds": 3300,
+        "stepCount": 9,
+        "hasTemplate": true,
+        "oneLine": "9 steps, 55m",
+        "purpose": "Re-establish FTP when threshold targets need recalibrating. FTP = 95% of best 20-min power."
+      },
+      {
+        "id": 17,
+        "name": "MAP ramp test",
+        "type": "Ride",
+        "folder_id": 793409,
+        "folder_name": "Coach: Tests",
+        "totalSeconds": 2220,
+        "stepCount": 20,
+        "hasTemplate": true,
+        "oneLine": "20 steps, 37m",
+        "purpose": "Re-establish MAP every 6–8 weeks or at a mesocycle start. Fixed rungs (140 W, +25 W/min) — only the ladder's length follows MAP, so retests stay comparable."
+      },
+      {
+        "id": 11,
+        "name": "Threshold 2×20",
+        "type": "Ride",
+        "folder_id": 793411,
+        "folder_name": "Coach: Threshold",
+        "totalSeconds": 4500,
+        "stepCount": 6,
+        "hasTemplate": true,
+        "oneLine": "6 steps, 1h15m",
+        "purpose": "Bread-and-butter threshold. Even pacing; if rep 2 drops >5 W the day was too fatigued for it."
+      },
+      {
+        "id": 19,
+        "name": "2's and 3's",
+        "type": "Ride",
+        "folder_id": 793410,
+        "folder_name": "Coach: VO2 Max",
+        "totalSeconds": 4020,
+        "stepCount": 12,
+        "hasTemplate": true,
+        "oneLine": "12 steps, 1h7m",
+        "purpose": "Alternating 2- and 3-min efforts at 120–140% FTP with full recoveries. Repeatability above threshold."
+      },
+      {
+        "id": 10,
+        "name": "VO2 30/30s",
+        "type": "Ride",
+        "folder_id": 793410,
+        "folder_name": "Coach: VO2 Max",
+        "totalSeconds": 2460,
+        "stepCount": 34,
+        "hasTemplate": true,
+        "oneLine": "34 steps, 41m",
+        "purpose": "VO2 stimulus at lower peripheral cost per rep. Use when 4×4 has been overdone, or when targeting repeatability over peak elicitation."
+      },
+      {
+        "id": 9,
+        "name": "VO2 4×4",
+        "type": "Ride",
+        "folder_id": 793410,
+        "folder_name": "Coach: VO2 Max",
+        "totalSeconds": 3420,
+        "stepCount": 10,
+        "hasTemplate": true,
+        "oneLine": "10 steps, 57m",
+        "purpose": "Default VO2 session. Highest fraction of time at VO2max per minute of work."
+      },
+      {
+        "id": 22,
+        "name": "VO2 preloaded shorts",
+        "type": "Ride",
+        "folder_id": 793410,
+        "folder_name": "Coach: VO2 Max",
+        "totalSeconds": 4110,
+        "stepCount": 83,
+        "hasTemplate": true,
+        "oneLine": "83 steps, 1h8m",
+        "purpose": "Advanced VO2 session — only once 30/30s are well tolerated, and never as the first VO2 session of a block."
+      }
+    ]
+  }
+}

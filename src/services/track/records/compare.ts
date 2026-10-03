@@ -84,29 +84,22 @@ export function resolveRunRef(
   };
 }
 
-function delta(
-  value: number | undefined,
-  base: number | undefined,
-  dp: number
-) {
-  return value === undefined || base === undefined
-    ? undefined
-    : round(value - base, dp);
+function delta(value: number | null, base: number | null, dp: number) {
+  return value === null || base === null ? null : round(value - base, dp);
 }
 
 function summaryRow(
   label: string,
   unit: "seconds" | "ratio",
-  values: Array<number | undefined>
+  given: Array<number | undefined>
 ): ComparisonSummaryRow {
   const dp = unit === "seconds" ? SECONDS_DP : RATIO_DP;
+  const values = given.map((v) => v ?? null);
   return {
     label,
     unit,
     values,
-    deltas: values.map((v, i) =>
-      i === 0 ? undefined : delta(v, values[0], dp)
-    ),
+    deltas: values.map((v, i) => (i === 0 ? null : delta(v, values[0], dp))),
   };
 }
 
@@ -168,14 +161,14 @@ export function compareRuns(
     // flying lap.
     const values = resolved.map((r, c) => {
       const idx = i - (maxLeadIn - leadIn[c]);
-      return idx < 0 ? undefined : r.run.laps[idx]?.lapTimeSeconds;
+      return idx < 0 ? null : (r.run.laps[idx]?.lapTimeSeconds ?? null);
     });
     laps.push({
       lap: i + 1,
       standingStart: i < maxLeadIn,
       values,
       deltas: values.map((v, c) =>
-        c === 0 ? undefined : delta(v, values[0], SECONDS_DP)
+        c === 0 ? null : delta(v, values[0], SECONDS_DP)
       ),
     });
   }

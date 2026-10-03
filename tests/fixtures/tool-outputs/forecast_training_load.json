@@ -1,0 +1,272 @@
+{
+  "args": {
+    "oldest": "2026-10-03",
+    "newest": "2026-10-17"
+  },
+  "output": {
+    "oldest": "2026-10-03",
+    "newest": "2026-10-17",
+    "basis": {
+      "ftp": 286,
+      "ftpSource": "athlete-sport-settings",
+      "powerZones": [55, 75, 90, 105, 120, 150, 999],
+      "ctlDays": 42,
+      "atlDays": 7,
+      "timeConstantsSource": "platform-defaults",
+      "seedDate": "2026-10-02",
+      "seedSource": "delivered-wellness",
+      "seedCtl": 53.95,
+      "seedAtl": 45.73,
+      "historyDays": 8
+    },
+    "days": [
+      {
+        "date": "2026-10-03",
+        "load": 25,
+        "ctl": 53.27,
+        "atl": 42.97,
+        "tsb": 10.3,
+        "ramp": -3.01
+      },
+      {
+        "date": "2026-10-04",
+        "load": 28,
+        "ctl": 52.67,
+        "atl": 40.97,
+        "tsb": 11.7,
+        "ramp": -3.84
+      },
+      {
+        "date": "2026-10-05",
+        "load": 30,
+        "ctl": 52.14,
+        "atl": 39.51,
+        "tsb": 12.63,
+        "ramp": -3.04
+      },
+      {
+        "date": "2026-10-06",
+        "load": 15,
+        "ctl": 51.27,
+        "atl": 36.25,
+        "tsb": 15.02,
+        "ramp": -3.63
+      },
+      {
+        "date": "2026-10-07",
+        "load": 53,
+        "ctl": 51.31,
+        "atl": 38.48,
+        "tsb": 12.83,
+        "ramp": -3.61
+      },
+      {
+        "date": "2026-10-08",
+        "load": 36,
+        "ctl": 50.95,
+        "atl": 38.15,
+        "tsb": 12.8,
+        "ramp": -3.46
+      },
+      {
+        "date": "2026-10-09",
+        "load": 25,
+        "ctl": 50.34,
+        "atl": 36.4,
+        "tsb": 13.94,
+        "ramp": -3.61
+      },
+      {
+        "date": "2026-10-10",
+        "load": 28,
+        "ctl": 49.81,
+        "atl": 35.28,
+        "tsb": 14.53,
+        "ramp": -3.46
+      },
+      {
+        "date": "2026-10-11",
+        "load": 0,
+        "ctl": 48.64,
+        "atl": 30.58,
+        "tsb": 18.05,
+        "ramp": -4.03
+      },
+      {
+        "date": "2026-10-12",
+        "load": 0,
+        "ctl": 47.49,
+        "atl": 26.51,
+        "tsb": 20.98,
+        "ramp": -4.65
+      },
+      {
+        "date": "2026-10-13",
+        "load": 0,
+        "ctl": 46.38,
+        "atl": 22.98,
+        "tsb": 23.39,
+        "ramp": -4.89
+      },
+      {
+        "date": "2026-10-14",
+        "load": 0,
+        "ctl": 45.29,
+        "atl": 19.92,
+        "tsb": 25.36,
+        "ramp": -6.02
+      },
+      {
+        "date": "2026-10-15",
+        "load": 0,
+        "ctl": 44.22,
+        "atl": 17.27,
+        "tsb": 26.95,
+        "ramp": -6.73
+      },
+      {
+        "date": "2026-10-16",
+        "load": 0,
+        "ctl": 43.18,
+        "atl": 14.97,
+        "tsb": 28.21,
+        "ramp": -7.16
+      },
+      {
+        "date": "2026-10-17",
+        "load": 0,
+        "ctl": 42.16,
+        "atl": 12.98,
+        "tsb": 29.18,
+        "ramp": -7.65
+      }
+    ],
+    "weeks": [
+      {
+        "weekStart": "2026-09-28",
+        "weekEnd": "2026-10-04",
+        "load": 53,
+        "durationSeconds": 4880,
+        "ctlStart": 53.95,
+        "ctlEnd": 52.67,
+        "ramp": -1.28,
+        "complete": false
+      },
+      {
+        "weekStart": "2026-10-05",
+        "weekEnd": "2026-10-11",
+        "load": 187,
+        "durationSeconds": 15355,
+        "ctlStart": 52.67,
+        "ctlEnd": 48.64,
+        "ramp": -4.03,
+        "complete": true
+      },
+      {
+        "weekStart": "2026-10-12",
+        "weekEnd": "2026-10-18",
+        "load": 0,
+        "durationSeconds": 0,
+        "ctlStart": 48.64,
+        "ctlEnd": 42.16,
+        "ramp": -6.47,
+        "complete": false
+      }
+    ],
+    "sessions": [
+      {
+        "date": "2026-10-03",
+        "name": "Easy 45m",
+        "type": "Ride",
+        "eventId": 137474989,
+        "origin": "planned",
+        "durationSeconds": 2700,
+        "load": 25,
+        "source": "platform"
+      },
+      {
+        "date": "2026-10-04",
+        "name": "Openers - race eve (AM, before travel)",
+        "type": "Ride",
+        "eventId": 137474998,
+        "origin": "planned",
+        "durationSeconds": 2180,
+        "load": 28,
+        "source": "platform"
+      },
+      {
+        "date": "2026-10-05",
+        "name": "Worlds IP",
+        "type": "TrackRide",
+        "eventId": 131079450,
+        "origin": "planned",
+        "durationSeconds": 1800,
+        "load": 30,
+        "source": "platform"
+      },
+      {
+        "date": "2026-10-06",
+        "name": "Recovery spin — day after IP",
+        "type": "Ride",
+        "eventId": 140978719,
+        "origin": "planned",
+        "durationSeconds": 2100,
+        "load": 15,
+        "source": "platform"
+      },
+      {
+        "date": "2026-10-07",
+        "name": "TP-pace touch 2x2:00",
+        "type": "Ride",
+        "eventId": 140978738,
+        "origin": "planned",
+        "durationSeconds": 2975,
+        "load": 53,
+        "source": "platform"
+      },
+      {
+        "date": "2026-10-08",
+        "name": "Easy endurance 60m",
+        "type": "Ride",
+        "eventId": 140978755,
+        "origin": "planned",
+        "durationSeconds": 3600,
+        "load": 36,
+        "source": "platform"
+      },
+      {
+        "date": "2026-10-09",
+        "name": "Easy 45m",
+        "type": "Ride",
+        "eventId": 140978760,
+        "origin": "planned",
+        "durationSeconds": 2700,
+        "load": 25,
+        "source": "platform"
+      },
+      {
+        "date": "2026-10-10",
+        "name": "Openers — TP eve",
+        "type": "Ride",
+        "eventId": 140978774,
+        "origin": "planned",
+        "durationSeconds": 2180,
+        "load": 28,
+        "source": "platform"
+      },
+      {
+        "date": "2026-10-11",
+        "name": "Worlds TP",
+        "type": "TrackRide",
+        "eventId": 137475936,
+        "origin": "planned",
+        "load": 0,
+        "source": "underivable",
+        "note": "The platform assigned no load and the prescription could not be resolved to watts, so this session contributes none."
+      }
+    ],
+    "notes": [
+      "Strength sessions contribute no load, matching Intervals.icu, which assigns none either. A block running two gym sessions a week is therefore under-read on fatigue by this forecast — a stated limit, not a modelling claim."
+    ]
+  }
+}

@@ -71,9 +71,9 @@ describe("compareSessions — the season.md benchmark table", () => {
 
     const total = row(c.summary, "Total");
     expect(total.values).toEqual([135.22, 135.42, 134.3]);
-    expect(total.deltas).toEqual([undefined, 0.2, -0.92]);
+    expect(total.deltas).toEqual([null, 0.2, -0.92]);
 
-    expect(row(c.summary, "Flying").deltas).toEqual([undefined, -0.15, -0.94]);
+    expect(row(c.summary, "Flying").deltas).toEqual([null, -0.15, -0.94]);
 
     // The openings were near-identical; the difference is all in the close.
     expect(row(c.summary, "Opening").values).toEqual([47.07, 46.64, 46.72]);
@@ -165,7 +165,7 @@ describe("compareSessions — the season.md benchmark table", () => {
     });
     expect(c.laps).toHaveLength(8);
     expect(c.laps[0].standingStart).toBe(true);
-    expect(c.laps[0].values[1]).toBeUndefined();
+    expect(c.laps[0].values[1]).toBeNull();
     // Lap 2 of the race — its first flying lap — lines up with lap 1 of the
     // flying effort.
     expect(c.laps[1].values).toEqual([15.59, 16.0]);

@@ -1,0 +1,105 @@
+{
+  "args": {
+    "activityId": "i192509523"
+  },
+  "output": {
+    "activityId": "i192509523",
+    "eventId": 137474983,
+    "activityName": "Cycling",
+    "eventName": "Easy endurance 60m",
+    "date": "2026-10-02T06:37:56",
+    "tolerance": 0.05,
+    "executionRecord": "device-laps",
+    "alignmentBasis": "sequential",
+    "matchedFraction": 1,
+    "steps": [
+      {
+        "index": 0,
+        "label": "Warm up",
+        "planned": {
+          "durationSeconds": 480,
+          "target": {
+            "watts": 145
+          }
+        },
+        "verdict": "on-target",
+        "verdictBasis": "average-watts",
+        "delivered": {
+          "intervalIndex": 0,
+          "durationSeconds": 482,
+          "averageWatts": 138,
+          "averageCadence": 77,
+          "averageHeartrate": 101,
+          "normalizedWatts": 143,
+          "coastingFraction": 0.024896265560165973
+        },
+        "deltas": {
+          "durationSeconds": 2,
+          "watts": -7,
+          "wattsFraction": -0.0483
+        }
+      },
+      {
+        "index": 1,
+        "label": "Endurance, genuinely easy. Travel to the venue is tomorrow, not today - just an ordinary easy race-week ride.",
+        "planned": {
+          "durationSeconds": 2700,
+          "target": {
+            "low": 170,
+            "high": 190
+          }
+        },
+        "verdict": "under",
+        "verdictBasis": "normalized-power",
+        "delivered": {
+          "intervalIndex": 1,
+          "durationSeconds": 2700,
+          "averageWatts": 152,
+          "averageCadence": 80,
+          "averageHeartrate": 114,
+          "normalizedWatts": 168,
+          "coastingFraction": 0.07629629629629629
+        },
+        "deltas": {
+          "durationSeconds": 0,
+          "watts": -2,
+          "wattsFraction": -0.0118
+        }
+      },
+      {
+        "index": 2,
+        "label": "Cool down",
+        "planned": {
+          "durationSeconds": 420,
+          "target": {
+            "watts": 135
+          }
+        },
+        "verdict": "over",
+        "verdictBasis": "average-watts",
+        "delivered": {
+          "intervalIndex": 2,
+          "durationSeconds": 681,
+          "averageWatts": 146,
+          "averageCadence": 90,
+          "averageHeartrate": 116,
+          "normalizedWatts": 153,
+          "coastingFraction": 0.030837004405286344
+        },
+        "deltas": {
+          "durationSeconds": 261,
+          "watts": 11,
+          "wattsFraction": 0.0815
+        }
+      }
+    ],
+    "rollup": {
+      "plannedLoad": 36,
+      "actualLoad": 35,
+      "plannedDurationSeconds": 3600,
+      "actualDurationSeconds": 3861,
+      "platformCompliance": 97.22222,
+      "unplannedIntervals": []
+    }
+  }
+}

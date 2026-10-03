@@ -1,0 +1,94 @@
+{
+  "args": {
+    "runs": ["2026-07-12-training#run-1", "2026-07-12-training#run-2"]
+  },
+  "output": {
+    "refs": ["2026-07-12-training#run-1", "2026-07-12-training#run-2"],
+    "columns": [
+      {
+        "ref": "2026-07-12-training#run-1",
+        "date": "2026-07-12",
+        "event": "Pacing drills — 2×1500 m, 1×2000 m",
+        "gear": "65x16",
+        "start": "flying"
+      },
+      {
+        "ref": "2026-07-12-training#run-2",
+        "date": "2026-07-12",
+        "event": "Pacing drills — 2×1500 m, 1×2000 m",
+        "gear": "65x16",
+        "start": "flying"
+      }
+    ],
+    "laps": [
+      {
+        "lap": 1,
+        "standingStart": false,
+        "values": [16.36, 16.63],
+        "deltas": [null, 0.27]
+      },
+      {
+        "lap": 2,
+        "standingStart": false,
+        "values": [16.23, 16.39],
+        "deltas": [null, 0.16]
+      },
+      {
+        "lap": 3,
+        "standingStart": false,
+        "values": [16.11, 16.07],
+        "deltas": [null, -0.04]
+      },
+      {
+        "lap": 4,
+        "standingStart": false,
+        "values": [16.1, 16.07],
+        "deltas": [null, -0.03]
+      },
+      {
+        "lap": 5,
+        "standingStart": false,
+        "values": [16.09, 15.79],
+        "deltas": [null, -0.3]
+      },
+      {
+        "lap": 6,
+        "standingStart": false,
+        "values": [16.24, 15.81],
+        "deltas": [null, -0.43]
+      }
+    ],
+    "summary": [
+      {
+        "label": "Total",
+        "unit": "seconds",
+        "values": [97.13, 96.76],
+        "deltas": [null, -0.37]
+      },
+      {
+        "label": "Flying",
+        "unit": "seconds",
+        "values": [97.13, 96.76],
+        "deltas": [null, -0.37]
+      },
+      {
+        "label": "Opening",
+        "unit": "seconds",
+        "values": [32.59, 33.02],
+        "deltas": [null, 0.43]
+      },
+      {
+        "label": "Closing",
+        "unit": "seconds",
+        "values": [32.33, 31.6],
+        "deltas": [null, -0.73]
+      },
+      {
+        "label": "Decline",
+        "unit": "ratio",
+        "values": [0.02432, 0.14096],
+        "deltas": [null, 0.11664]
+      }
+    ]
+  }
+}

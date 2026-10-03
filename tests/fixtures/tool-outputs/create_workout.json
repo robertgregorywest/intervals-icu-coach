@@ -1,0 +1,26 @@
+{
+  "args": {
+    "name": "Endurance",
+    "date": "2026-10-10",
+    "sportType": "Ride",
+    "steps": [
+      {
+        "label": "Easy",
+        "duration": "40m",
+        "target": "125w-165w"
+      }
+    ]
+  },
+  "output": {
+    "success": true,
+    "created": 1,
+    "events": [
+      {
+        "id": 900000000,
+        "name": "Endurance",
+        "start_date_local": "2026-10-10T00:00:00",
+        "description": "- Easy 40m 125w-165w"
+      }
+    ]
+  }
+}
