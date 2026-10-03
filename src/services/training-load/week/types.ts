@@ -13,8 +13,8 @@ export interface TrainingWeekDeps {
    * frame.
    */
   anchors?: IAthleteAnchors;
-  /** "Today" as YYYY-MM-DD; defaults to the system clock (UTC). */
-  today?: () => string;
+  /** "Today" as YYYY-MM-DD. */
+  today: () => string;
 }
 
 export interface SportTotals {

@@ -1,6 +1,5 @@
 import type { IAthleteApi } from "../athlete/index.js";
 import type { IPowerCurvesApi } from "../power-curves/index.js";
-import { isoToday } from "../../shared/clock.js";
 import type { IMap } from "../map/index.js";
 import { readAthlete } from "./fields.js";
 import { computeMapZones } from "../../shared/map-zones.js";
@@ -10,8 +9,8 @@ export interface AthleteAnchorsDeps {
   athleteApi: IAthleteApi;
   map: IMap;
   powerCurvesApi: IPowerCurvesApi;
-  /** "Today" as YYYY-MM-DD; defaults to the system clock (UTC). */
-  today?: () => string;
+  /** "Today" as YYYY-MM-DD. */
+  today: () => string;
 }
 
 /**
@@ -65,18 +64,18 @@ export function createAthleteAnchors(
   return createAthleteAnchorsFrom({
     athlete: async () => readAthlete(await deps.athleteApi.getAthlete()),
     map: (today) => deriveMapAnchors(deps, today),
-    today: deps.today ?? isoToday,
+    today: deps.today,
   });
 }
 
 /** The anchors over any source — pinned values in a test. */
 export function createAthleteAnchorsFrom(
-  sources: Partial<AnchorSources>
+  sources: Partial<AnchorSources> & Pick<AnchorSources, "today">
 ): IAthleteAnchors {
   return new AthleteAnchorsService({
     athlete: sources.athlete ?? (async () => ({})),
     map: sources.map ?? (async () => ({ map: null, mapZones: null })),
-    today: sources.today ?? isoToday,
+    today: sources.today,
   });
 }
 

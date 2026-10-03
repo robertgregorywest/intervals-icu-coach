@@ -52,6 +52,7 @@ function createDeps(): TrainingLoadDeps {
         },
       ]),
     },
+    today: () => "2026-04-29",
   } as unknown as TrainingLoadDeps;
 }
 
@@ -87,7 +88,7 @@ describe("TrainingLoad.summarizeWeek", () => {
     );
   });
 
-  it("defaults weekStart to current Monday when omitted", async () => {
+  it("defaults weekStart to the Monday of today when omitted", async () => {
     const deps = createDeps();
     const trainingWeek = createTrainingLoad(deps);
     await trainingWeek.summarizeWeek();
@@ -95,10 +96,7 @@ describe("TrainingLoad.summarizeWeek", () => {
     const [oldest, newest] = (
       deps.activitiesApi.getActivities as ReturnType<typeof vi.fn>
     ).mock.calls[0];
-    expect(oldest).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-    expect(newest).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-    const startDay = new Date(`${oldest}T00:00:00Z`).getUTCDay();
-    expect(startDay).toBe(1);
+    expect([oldest, newest]).toEqual(["2026-04-27", "2026-05-03"]);
   });
 
   it.each([

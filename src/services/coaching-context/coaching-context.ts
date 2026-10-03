@@ -1,5 +1,4 @@
 import type { IWellnessApi, WellnessRecord } from "../wellness/index.js";
-import { isoToday } from "../../shared/clock.js";
 import { shiftDate } from "../../shared/dates.js";
 import type {
   AthleteAnchors,
@@ -45,10 +44,10 @@ export function createCoachingContext(
 
 export async function buildCoachingContext(
   deps: CoachingContextDeps,
-  opts: CoachingContextOptions = {}
+  opts: CoachingContextOptions & { today: string }
 ): Promise<CoachingContext> {
   const days = clampDays(opts.days);
-  const today = opts.today ?? isoToday();
+  const { today } = opts;
   const oldest = shiftDate(today, -(days - 1));
 
   // The athlete record and the MAP zones both come from the Athlete anchors

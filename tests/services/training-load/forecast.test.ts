@@ -106,8 +106,10 @@ function build(stub: StubOptions = {}) {
       athleteApi: createAthleteApi(httpClient, config.athleteId),
       map: createMap({ activitiesApi: {} as IActivitiesApi }),
       powerCurvesApi: {} as IPowerCurvesApi,
+      today: () => "2026-09-06",
     }),
     prescription: createPrescription({ workoutParser: createWorkoutParser() }),
+    today: () => "2026-09-06",
   });
   return { service, fetchFn };
 }

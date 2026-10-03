@@ -1,4 +1,3 @@
-import { isoToday } from "../../../shared/clock.js";
 import { mondayOf, shiftDate } from "../../../shared/dates.js";
 import type { Activity } from "../../activities/index.js";
 import type { WellnessRecord } from "../../wellness/index.js";
@@ -26,7 +25,7 @@ export class TrainingWeek {
   async getTrainingWeekSummary(
     weekStart?: string
   ): Promise<TrainingWeekSummary> {
-    const start = weekStart ?? mondayOf((this.deps.today ?? isoToday)());
+    const start = weekStart ?? mondayOf(this.deps.today());
     const end = shiftDate(start, 6);
 
     const [activities, wellness, events] = await Promise.all([

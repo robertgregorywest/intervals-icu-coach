@@ -50,6 +50,7 @@ function read(record: unknown) {
     athleteApi: { getAthlete: async () => record as never },
     map: createMap({ activitiesApi: {} as IActivitiesApi }),
     powerCurvesApi: {} as IPowerCurvesApi,
+    today: () => "2026-09-10",
   }).getAthleteAnchors();
 }
 

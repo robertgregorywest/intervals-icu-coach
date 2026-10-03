@@ -1,6 +1,5 @@
 import type { IPowerCurvesApi } from "../power-curves/index.js";
 import type { IAthleteAnchors } from "../athlete-anchors/index.js";
-import { isoToday } from "../../shared/clock.js";
 import type {
   InputField,
   InputSource,
@@ -17,7 +16,8 @@ export interface PowerProfileDeps {
 }
 
 export interface ResolveOptions {
-  today?: string;
+  /** "Today" as YYYY-MM-DD, the date the age and MAP are resolved at. */
+  today: string;
 }
 
 const field = <T>(
@@ -31,9 +31,9 @@ const missing = <T>(): InputField<T> => ({ value: null, source: "missing" });
 export async function resolveInputs(
   deps: PowerProfileDeps,
   overrides: PowerProfileOverrides = {},
-  opts: ResolveOptions = {}
+  opts: ResolveOptions
 ): Promise<ResolvedInputs> {
-  const today = opts.today ?? isoToday();
+  const { today } = opts;
   const warnings: string[] = [];
 
   const [fields, mapDerivation] = await Promise.all([

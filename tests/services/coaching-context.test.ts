@@ -94,6 +94,7 @@ describe("buildCoachingContext", () => {
           athleteApi,
           map: createMap({ activitiesApi: emptyActivitiesApi }),
           powerCurvesApi: emptyPowerCurvesApi,
+          today: () => "2026-05-01",
         }),
         wellnessApi,
       },
@@ -127,6 +128,7 @@ describe("buildCoachingContext", () => {
           athleteApi,
           map: createMap({ activitiesApi: emptyActivitiesApi }),
           powerCurvesApi: emptyPowerCurvesApi,
+          today: () => "2026-05-01",
         }),
         wellnessApi,
       },
@@ -177,6 +179,7 @@ describe("buildCoachingContext", () => {
           athleteApi,
           map: createMap({ activitiesApi: emptyActivitiesApi }),
           powerCurvesApi: emptyPowerCurvesApi,
+          today: () => "2026-05-01",
         }),
         wellnessApi,
       },
@@ -216,6 +219,7 @@ describe("buildCoachingContext", () => {
           athleteApi,
           map: createMap({ activitiesApi }),
           powerCurvesApi,
+          today: () => "2026-05-01",
         }),
         wellnessApi,
       },
@@ -243,10 +247,11 @@ describe("buildCoachingContext", () => {
             athleteApi,
             map: createMap({ activitiesApi: emptyActivitiesApi }),
             powerCurvesApi: emptyPowerCurvesApi,
+            today: () => "2026-05-01",
           }),
           wellnessApi,
         },
-        { days: 0 }
+        { days: 0, today: "2026-05-01" }
       )
     ).rejects.toThrow(/days must be >= 1/);
     await expect(
@@ -256,10 +261,11 @@ describe("buildCoachingContext", () => {
             athleteApi,
             map: createMap({ activitiesApi: emptyActivitiesApi }),
             powerCurvesApi: emptyPowerCurvesApi,
+            today: () => "2026-05-01",
           }),
           wellnessApi,
         },
-        { days: 31 }
+        { days: 31, today: "2026-05-01" }
       )
     ).rejects.toThrow(/days must be <= 30/);
   });

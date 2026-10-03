@@ -18,8 +18,8 @@ export interface TrainingLoadDeps {
   anchors: IAthleteAnchors;
   /** Reads each prescription into the steps its forecast load is derived from. */
   prescription: IPrescription;
-  /** "Today" as YYYY-MM-DD; defaults to the system clock (UTC). */
-  today?: () => string;
+  /** "Today" as YYYY-MM-DD. */
+  today: () => string;
 }
 
 /**
