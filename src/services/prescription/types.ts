@@ -63,6 +63,11 @@ export interface FlatPlannedStep {
 export interface PlannedStep extends FlatPlannedStep {
   role: StepRole;
   /**
+   * Set on an **Open-ended work step**: a test or primer whose target is a
+   * floor, so delivering over it is the step working, not an exceedance.
+   */
+  openEnded?: true;
+  /**
    * A point target's watts, or a band's midpoint — unrounded, since a half watt
    * is what the load arithmetic reproduces the platform with. Absent when the
    * target is unresolved or there is none.

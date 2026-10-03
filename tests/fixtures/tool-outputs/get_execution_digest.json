@@ -18,140 +18,13 @@
       "deltaSeconds": 617,
       "deliveredFraction": 1.391497461928934
     },
-    "zones": [
-      {
-        "zone": "REC",
-        "lowW": 0,
-        "highW": 166,
-        "plannedSeconds": 15660,
-        "deliveredSeconds": 16834,
-        "deltaSeconds": 1174
-      },
-      {
-        "zone": "L1",
-        "lowW": 166,
-        "highW": 208,
-        "plannedSeconds": 18360,
-        "deliveredSeconds": 13376,
-        "deltaSeconds": -4984
-      },
-      {
-        "zone": "L2",
-        "lowW": 208,
-        "highW": 249,
-        "plannedSeconds": 4320,
-        "deliveredSeconds": 3872,
-        "deltaSeconds": -448
-      },
-      {
-        "zone": "L3",
-        "lowW": 249,
-        "highW": 270,
-        "plannedSeconds": 0,
-        "deliveredSeconds": 265,
-        "deltaSeconds": 265
-      },
-      {
-        "zone": "L4",
-        "lowW": 270,
-        "highW": 291,
-        "plannedSeconds": 120,
-        "deliveredSeconds": 243,
-        "deltaSeconds": 123
-      },
-      {
-        "zone": "L5",
-        "lowW": 291,
-        "highW": 332,
-        "plannedSeconds": 0,
-        "deliveredSeconds": 480,
-        "deltaSeconds": 480
-      },
-      {
-        "zone": "L6",
-        "lowW": 332,
-        "highW": 457,
-        "plannedSeconds": 660,
-        "deliveredSeconds": 994,
-        "deltaSeconds": 334
-      },
-      {
-        "zone": "L7",
-        "lowW": 457,
-        "highW": 623,
-        "plannedSeconds": 70,
-        "deliveredSeconds": 101,
-        "deltaSeconds": 31
-      },
-      {
-        "zone": "NMP",
-        "lowW": 623,
-        "plannedSeconds": 0,
-        "deliveredSeconds": 30,
-        "deltaSeconds": 30
-      }
-    ],
-    "boundaries": [
-      {
-        "name": "REC",
-        "lowW": 0,
-        "highW": 166,
-        "coachingHighW": 166
-      },
-      {
-        "name": "L1",
-        "lowW": 166,
-        "highW": 208,
-        "coachingHighW": 228
-      },
-      {
-        "name": "L2",
-        "lowW": 208,
-        "highW": 249,
-        "coachingHighW": 270
-      },
-      {
-        "name": "L3",
-        "lowW": 249,
-        "highW": 270,
-        "coachingHighW": 291
-      },
-      {
-        "name": "L4",
-        "lowW": 270,
-        "highW": 291,
-        "coachingHighW": 311
-      },
-      {
-        "name": "L5",
-        "lowW": 291,
-        "highW": 332,
-        "coachingHighW": 353
-      },
-      {
-        "name": "L6",
-        "lowW": 332,
-        "highW": 457,
-        "coachingHighW": 457
-      },
-      {
-        "name": "L7",
-        "lowW": 457,
-        "highW": 623,
-        "coachingHighW": 623
-      },
-      {
-        "name": "NMP",
-        "lowW": 623,
-        "coachingHighW": 846
-      }
-    ],
     "sessions": [
       {
         "eventId": 137474966,
         "activityId": "i190533931",
         "date": "2026-09-26",
         "name": "Race pace 3x2:00 — race-day warm-up rehearsal",
+        "outcome": "partial",
         "executionRecord": "device-laps",
         "alignmentBasis": "duration",
         "workSteps": 4,
@@ -159,11 +32,13 @@
         "flagged": [
           {
             "index": 18,
+            "workRep": 4,
             "durationSeconds": 120,
             "target": {
               "low": 395,
               "high": 410
             },
+            "outcome": "missed",
             "verdict": "over",
             "verdictBasis": "average-watts",
             "deltas": {
@@ -174,20 +49,16 @@
             "cadenceVerdict": "under"
           }
         ],
-        "cadence": {
-          "judged": 4,
-          "missed": 1
-        },
         "middleBandPlannedSeconds": 116,
         "middleBandDeliveredSeconds": 156,
-        "middleBandDeliveredFraction": 1.3448275862068966,
-        "platformCompliance": 107.69231
+        "middleBandDeliveredFraction": 1.3448275862068966
       },
       {
         "eventId": 137474974,
         "activityId": "i191767941",
         "date": "2026-09-30",
         "name": "Race-pace touch 2x1:30 — full race-day dress rehearsal",
+        "outcome": "partial",
         "executionRecord": "device-laps",
         "alignmentBasis": "sequential",
         "workSteps": 3,
@@ -195,6 +66,7 @@
         "flagged": [
           {
             "index": 16,
+            "workRep": 3,
             "repIndex": 2,
             "repCount": 2,
             "stepInRep": 1,
@@ -203,6 +75,7 @@
               "low": 395,
               "high": 410
             },
+            "outcome": "missed",
             "verdict": "over",
             "verdictBasis": "average-watts",
             "deltas": {
@@ -213,14 +86,9 @@
             "cadenceVerdict": "under"
           }
         ],
-        "cadence": {
-          "judged": 3,
-          "missed": 1
-        },
         "middleBandPlannedSeconds": 116,
         "middleBandDeliveredSeconds": 109,
-        "middleBandDeliveredFraction": 0.9396551724137931,
-        "platformCompliance": 101.818184
+        "middleBandDeliveredFraction": 0.9396551724137931
       }
     ],
     "excluded": [

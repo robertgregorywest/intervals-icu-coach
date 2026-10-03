@@ -69,3 +69,19 @@ export const WORK_WORDS: ReadonlySet<string> = new Set([
   "max",
   "peak",
 ]);
+
+/**
+ * The work words whose target is a floor, not a band: a test, a maximal effort
+ * and a primer ridden hard on purpose. Riding over one is the step working, so
+ * the execution review never reports it as exceeded — only falling short of it
+ * counts. A subset of `WORK_WORDS`.
+ */
+export const OPEN_ENDED_WORK_WORDS: ReadonlySet<string> = new Set([
+  "opener",
+  "openers",
+  "activation",
+  "primer",
+  "test",
+  "max",
+  "peak",
+]);

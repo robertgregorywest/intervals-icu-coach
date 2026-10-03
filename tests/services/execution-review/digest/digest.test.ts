@@ -3,12 +3,16 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { createExecutionReview } from "../../../../src/services/execution-review/index.js";
 import { pinnedAnchors } from "../../../helpers/anchors.js";
-import { digestSession } from "../../../../src/services/execution-review/digest/digest.js";
+import {
+  digestSession,
+  markRecurrence,
+} from "../../../../src/services/execution-review/digest/digest.js";
 import { readPlannedSteps } from "../../../helpers/planned-steps.js";
 import type {
   PlannedVsActualResult,
   AlignedStep,
 } from "../../../../src/services/execution-review/steps/types.js";
+import type { DigestSession } from "../../../../src/services/execution-review/digest/types.js";
 import type { IntervalsEvent, PlannedDocStep } from "../../../../src/types.js";
 import type { Activity } from "../../../../src/services/activities/index.js";
 import {
@@ -323,18 +327,32 @@ describe("getExecutionDigest — both lenses over one ride", () => {
     expect(session).toMatchObject({
       eventId: 1,
       activityId: "i1",
+      outcome: "missed",
       executionRecord: "detected-intervals",
       alignmentBasis: "sequential",
       workSteps: 2,
       unclassifiedSteps: 2,
-      cadence: { judged: 2, missed: 1 },
     });
     expect(
-      session!.flagged.map((f) => [f.index, f.verdict, f.cadenceVerdict])
+      session!.flagged.map((f) => [
+        f.index,
+        f.outcome,
+        f.verdict,
+        f.cadenceVerdict,
+      ])
     ).toEqual([
-      [1, "under", "on-target"],
-      [3, "on-target", "under"],
+      [1, "missed", "under", "on-target"],
+      [3, "missed", "on-target", "under"],
     ]);
+  });
+
+  it("returns the window's middle band, and no zone rows", async () => {
+    const { service } = digest({ events: [threshold], rides: [ridden] });
+
+    const result = await service.getExecutionDigest(WINDOW);
+    expect(result.middleBand).toBeDefined();
+    expect(result).not.toHaveProperty("zones");
+    expect(result).not.toHaveProperty("boundaries");
   });
 
   it("joins each session to its own middle-band dose", async () => {
@@ -513,19 +531,32 @@ describe("digestSession — the mechanical filter", () => {
       aligned({ index: 3, verdict: "on-target", cadenceVerdict: "on-target" }),
     ]);
 
-    expect(session.flagged.map((f) => f.index)).toEqual([1]);
-    expect(session.cadence).toEqual({ judged: 2, missed: 1 });
+    expect(session.flagged.map((f) => [f.index, f.outcome])).toEqual([
+      [1, "missed"],
+    ]);
+    expect(session.outcome).toBe("partial");
   });
 
-  it("rolls cadence up across the work steps, so a session-wide miss reads as one", () => {
+  it("reads a cadence missed on every work rep as a missed session", () => {
     const session = filter([
       aligned({ index: 0, cadenceVerdict: "under" }),
-      aligned({ index: 1, cadenceVerdict: "under" }),
+      aligned({ index: 1, verdict: "over", cadenceVerdict: "under" }),
       aligned({ index: 3, cadenceVerdict: "under" }),
     ]);
 
-    // Step 0 is the warm-up: its cadence verdict is not part of the roll-up.
-    expect(session.cadence).toEqual({ judged: 2, missed: 2 });
+    // Step 0 is the warm-up, and a cadence miss outranks power ridden over.
+    expect(session.outcome).toBe("missed");
+    expect(session.flagged.map((f) => f.outcome)).toEqual(["missed", "missed"]);
+  });
+
+  it("leaves a cadence ridden over its target out of the outcome", () => {
+    const session = filter([
+      aligned({ index: 1, cadenceVerdict: "over" }),
+      aligned({ index: 3 }),
+    ]);
+
+    expect(session.outcome).toBe("landed");
+    expect(session.flagged).toEqual([]);
   });
 
   it("keeps an unmatched or not-attempted work step", () => {
@@ -534,10 +565,12 @@ describe("digestSession — the mechanical filter", () => {
       aligned({ index: 3, verdict: "not-attempted" }),
     ]);
 
-    expect(session.flagged.map((f) => f.verdict)).toEqual([
-      "unmatched",
-      "not-attempted",
+    expect(session.flagged.map((f) => [f.verdict, f.outcome])).toEqual([
+      ["unmatched", "unjudged"],
+      ["not-attempted", "missed"],
     ]);
+    // The one paired work step missed, so every judged step did.
+    expect(session.outcome).toBe("missed");
   });
 
   it("carries a coasting fraction only where it qualifies the reading", () => {
@@ -580,5 +613,206 @@ describe("digestSession — the mechanical filter", () => {
     ]).flagged;
 
     expect(flagged).not.toHaveProperty("label");
+  });
+});
+
+describe("digestSession — the Session outcome", () => {
+  const twoReps = readPlannedSteps(
+    event(1, "Threshold 2×10", [
+      step("Warm-up", 150, 600),
+      step("Threshold", FLOOR + 10, 600),
+      step("Recovery", 150, 300),
+      step("Threshold", FLOOR + 10, 600),
+    ]).workout_doc,
+    { ftp: FTP }
+  );
+
+  function aligned(
+    over: Partial<AlignedStep> & { index: number }
+  ): AlignedStep {
+    return {
+      planned: { target: { watts: FLOOR + 10 } },
+      verdict: "on-target",
+      verdictBasis: "average-watts",
+      ...over,
+    } as AlignedStep;
+  }
+
+  function review(
+    steps: AlignedStep[],
+    over: Partial<PlannedVsActualResult> = {}
+  ): PlannedVsActualResult {
+    return {
+      eventId: 1,
+      tolerance: 0.05,
+      executionRecord: "device-laps",
+      alignmentBasis: "sequential",
+      matchedFraction: 1,
+      steps,
+      rollup: { unplannedIntervals: [] },
+      ...over,
+    } as PlannedVsActualResult;
+  }
+
+  const outcomeOf = (
+    steps: AlignedStep[],
+    planned = twoReps,
+    over: Partial<PlannedVsActualResult> = {}
+  ) => digestSession(review(steps, over), planned, new Map());
+
+  it("reads every work step on target as landed", () => {
+    const session = outcomeOf([aligned({ index: 1 }), aligned({ index: 3 })]);
+    expect(session.outcome).toBe("landed");
+    expect(session.flagged).toEqual([]);
+  });
+
+  it("reads work ridden over its target, with nothing missed, as exceeded", () => {
+    const session = outcomeOf([
+      aligned({ index: 1, verdict: "over", deltas: { watts: 20 } }),
+      aligned({ index: 3 }),
+    ]);
+    expect(session.outcome).toBe("exceeded");
+    expect(session.flagged.map((f) => [f.index, f.outcome])).toEqual([
+      [1, "exceeded"],
+    ]);
+  });
+
+  it("never reads a test ridden over its floor as exceeded", () => {
+    const planned = readPlannedSteps(
+      event(1, "MAP test", [step("Warm-up", 150, 600), step("Test", 400, 60)])
+        .workout_doc,
+      { ftp: FTP }
+    );
+    const session = outcomeOf(
+      [aligned({ index: 1, verdict: "over", deltas: { watts: 105 } })],
+      planned
+    );
+    expect(session.outcome).toBe("landed");
+    expect(session.flagged).toEqual([]);
+  });
+
+  it("reads one missed rep among landed ones as partial", () => {
+    const session = outcomeOf([
+      aligned({ index: 1, verdict: "under", deltas: { watts: -20 } }),
+      aligned({ index: 3, verdict: "over", deltas: { watts: 20 } }),
+    ]);
+    expect(session.outcome).toBe("partial");
+    expect(session.fade).toBeUndefined();
+  });
+
+  it("is unverified where the step lens refused or could not be trusted", () => {
+    const steps = [aligned({ index: 1 }), aligned({ index: 3 })];
+    expect(
+      outcomeOf([], twoReps, {
+        alignmentBasis: "none",
+        reason: "no-paired-activity",
+      }).outcome
+    ).toBe("unverified");
+    expect(
+      outcomeOf(steps, twoReps, {
+        executionRecord: "detected-intervals",
+        executionRecordNote: "the derived intervals have drifted",
+      }).outcome
+    ).toBe("unverified");
+    expect(
+      outcomeOf([
+        aligned({ index: 1, verdict: "unmatched" }),
+        aligned({ index: 3, verdict: "unmatched" }),
+      ]).outcome
+    ).toBe("unverified");
+    // A session whose labels declared no work: nothing for the step lens to read.
+    const undeclared = readPlannedSteps(
+      event(1, "Threshold", [step("Build", FLOOR + 10, 600)]).workout_doc,
+      { ftp: FTP }
+    );
+    expect(outcomeOf([aligned({ index: 0 })], undeclared).outcome).toBe(
+      "unverified"
+    );
+  });
+
+  describe("a fade", () => {
+    // 4×(2:30 race pace / 2:30 easy), as a repeat block.
+    const fourReps = readPlannedSteps(
+      {
+        steps: [
+          step("Warm-up", 150, 600),
+          {
+            reps: 4,
+            steps: [step("Race pace", 400, 150, 100), step("Easy", 150, 150)],
+          } as PlannedDocStep,
+        ],
+      },
+      { ftp: FTP }
+    );
+    const workIndexes = fourReps
+      .filter((s) => s.role === "work")
+      .map((s) => s.index);
+    const ridden = (missed: number[]) =>
+      workIndexes.map((index, i) =>
+        aligned({
+          index,
+          ...(missed.includes(i + 1)
+            ? { verdict: "under" as const, deltas: { watts: -50 } }
+            : {}),
+        })
+      );
+
+    it("is set when the misses are the last two reps and nothing earlier", () => {
+      const session = outcomeOf(ridden([3, 4]), fourReps);
+      expect(session).toMatchObject({ outcome: "partial", fade: true });
+      expect(session.flagged.map((f) => f.workRep)).toEqual([3, 4]);
+    });
+
+    it("is not set on one light last rep, or on misses with a landed rep after", () => {
+      expect(outcomeOf(ridden([4]), fourReps).fade).toBeUndefined();
+      expect(outcomeOf(ridden([2, 3]), fourReps).fade).toBeUndefined();
+    });
+
+    it("is not set when every rep missed — that is a missed session", () => {
+      const session = outcomeOf(ridden([1, 2, 3, 4]), fourReps);
+      expect(session.outcome).toBe("missed");
+      expect(session.fade).toBeUndefined();
+    });
+  });
+});
+
+describe("markRecurrence — the same rep missed twice in the window", () => {
+  function session(
+    outcome: DigestSession["outcome"],
+    missedReps: number[]
+  ): DigestSession {
+    return {
+      outcome,
+      executionRecord: "device-laps",
+      alignmentBasis: "sequential",
+      workSteps: 3,
+      unclassifiedSteps: 0,
+      flagged: missedReps.map((workRep) => ({
+        index: workRep,
+        workRep,
+        outcome: "missed",
+        verdict: "under",
+        verdictBasis: "average-watts",
+      })),
+    };
+  }
+
+  it("marks both partial sessions that missed rep 1", () => {
+    const [a, b, c] = markRecurrence([
+      session("partial", [1]),
+      session("partial", [1, 3]),
+      session("partial", [2]),
+    ]);
+    expect(a!.recursInWindow).toBe(true);
+    expect(b!.recursInWindow).toBe(true);
+    expect(c!.recursInWindow).toBeUndefined();
+  });
+
+  it("does not count a missed session, which misses every position", () => {
+    const [partial] = markRecurrence([
+      session("partial", [1]),
+      session("missed", [1, 2, 3]),
+    ]);
+    expect(partial!.recursInWindow).toBeUndefined();
   });
 });

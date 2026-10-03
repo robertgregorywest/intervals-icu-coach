@@ -270,6 +270,16 @@ describe("read — the Work step role", () => {
     }
   });
 
+  it("marks a test or primer open-ended, and a rep word not", () => {
+    expect(readOne("- Test 1m 600w")).toMatchObject({
+      role: "work",
+      openEnded: true,
+    });
+    expect(readOne("- Opener 15s 700w").openEnded).toBe(true);
+    expect(readOne("- VO2 3m 350w")).not.toHaveProperty("openEnded");
+    expect(readOne("- Warm-up 10m 150w")).not.toHaveProperty("openEnded");
+  });
+
   it("classifies every word in the vocabulary as work", () => {
     for (const word of WORK_WORDS) {
       const doc: WorkoutDoc = {

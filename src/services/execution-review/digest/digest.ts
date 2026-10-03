@@ -14,10 +14,11 @@ import type {
 import type { AthleteAnchors } from "../../athlete-anchors/index.js";
 import type { LoadedWindow } from "../paired/types.js";
 import type {
-  CadenceRollup,
   DigestSession,
   ExecutionDigestResult,
   FlaggedStep,
+  SessionOutcome,
+  StepOutcome,
 } from "./types.js";
 
 /**
@@ -32,14 +33,21 @@ export const RANGE_TARGET_NOISE_FRACTION = 0.03;
 const COASTING_WORTH_REPORTING = 0.05;
 
 /**
+ * The fewest trailing missed reps that read as a fade. One light last rep is
+ * as likely noise as one light first rep; two in a row at the end is the work
+ * running out.
+ */
+export const FADE_MIN_REPS = 2;
+
+/**
  * The execution review's deterministic half over one loaded **Review window**.
  *
- * Selecting key sessions, running both lenses and dropping what the lenses call
- * an artefact is mechanical, and used to be re-derived by a forked model on
- * every review. What is left — recurrence, whether a test's overshoot is the
- * test working, what to change — is judgement, and stays with the coaching
- * thread that has the athlete's context loaded. See
- * `docs/adr/0010-work-steps-declared-in-the-label.md`.
+ * Selecting key sessions, running both lenses, dropping what the lenses call
+ * an artefact and reading each session to a **Session outcome** is mechanical.
+ * What is left — whether a partial miss continues an open thread, and what to
+ * change — is judgement, and stays with the coaching thread that has the
+ * athlete's context loaded. See `docs/adr/0010-work-steps-declared-in-the-label.md`
+ * and `docs/adr/0015-session-outcome-computed-in-the-digest.md`.
  *
  * `athlete` is the athlete's anchors read once for the call, `prescription`
  * reads each plan against them, and
@@ -104,8 +112,10 @@ export async function digestWindow(
     if (row.eventId !== undefined) doseByEvent.set(row.eventId, row);
   }
 
-  const sessions = reviews.map((review, i) =>
-    digestSession(review, key[i]!.steps, doseByEvent)
+  const sessions = markRecurrence(
+    reviews.map((review, i) =>
+      digestSession(review, key[i]!.steps, doseByEvent)
+    )
   );
 
   return {
@@ -113,7 +123,7 @@ export async function digestWindow(
     newest,
     status: "reviewed",
     reviewedThrough: newest,
-    ...windowDose(dose),
+    ...(dose.middleBand ? { middleBand: dose.middleBand } : {}),
     sessions,
     excluded: dose.excluded.map(({ message: _message, ...rest }) => ({
       ...rest,
@@ -152,74 +162,202 @@ function plannedSummary(
 }
 
 /**
- * Reduce one comparison to the work steps that missed their prescription.
+ * Reduce one comparison to its **Session outcome** and the work steps behind it.
  *
  * Every drop here is one the lenses call an artefact: a step whose label
  * declares no work role (a warm-up, a recovery step, a cool-down), a step that
- * met both its power and its cadence, and a band step outside its band by less
- * than noise. What survives is a rep that did not do what it was asked to.
+ * met both its power and its cadence, a band step outside its band by less
+ * than noise, and an open-ended step ridden over its floor. What survives is a
+ * rep that did not do what it was asked to, or did more.
  */
 export function digestSession(
   review: PlannedVsActualResult,
   planned: PlannedStep[],
   doseByEvent: Map<number, RangeSessionRow>
 ): DigestSession {
-  const workIndexes = new Set(
-    planned.filter((s) => s.role === "work").map((s) => s.index)
-  );
-  const work = review.steps.filter((s) => workIndexes.has(s.index));
+  const work = planned.filter((s) => s.role === "work");
+  const byIndex = new Map(work.map((s) => [s.index, s]));
+  const judged = review.steps.flatMap((step) => {
+    const plan = byIndex.get(step.index);
+    return plan ? [{ step, plan, outcome: stepOutcome(step, plan) }] : [];
+  });
+  const flagged = judged.filter((j) => j.outcome !== undefined);
   const dose =
     review.eventId !== undefined ? doseByEvent.get(review.eventId) : undefined;
+  const outcome = sessionOutcome(review, work.length, judged);
 
   return {
     eventId: review.eventId,
     activityId: review.activityId,
     date: review.date?.slice(0, 10),
     name: review.eventName,
+    outcome,
+    ...(outcome === "partial" && fades(work, judged) ? { fade: true } : {}),
     executionRecord: review.executionRecord,
     ...(review.executionRecordNote
       ? { executionRecordNote: review.executionRecordNote }
       : {}),
     alignmentBasis: review.alignmentBasis,
-    workSteps: workIndexes.size,
-    unclassifiedSteps: planned.length - workIndexes.size,
-    flagged: work.filter(flagged).map(reduceStep),
-    ...cadenceRollup(work),
+    workSteps: work.length,
+    unclassifiedSteps: planned.length - work.length,
+    flagged: flagged.map(({ step, outcome }) =>
+      reduceStep(step, outcome!, workRepOf(work, step.index))
+    ),
     middleBandPlannedSeconds: dose?.middleBandPlannedSeconds,
     middleBandDeliveredSeconds: dose?.middleBandDeliveredSeconds,
     middleBandDeliveredFraction: dose?.middleBandDeliveredFraction,
-    platformCompliance: review.rollup.platformCompliance,
     ...(review.reason
       ? { reason: review.reason, message: review.message }
       : {}),
   };
 }
 
-/** Whether a work step missed its prescription by more than noise. */
-function flagged(step: AlignedStep): boolean {
-  if (step.cadenceVerdict && step.cadenceVerdict !== "on-target") return true;
-  if (step.verdict === "on-target") return false;
-  if (step.verdict === "unmatched" || step.verdict === "not-attempted")
-    return true;
+interface JudgedStep {
+  step: AlignedStep;
+  plan: PlannedStep;
+  outcome: StepOutcome | undefined;
+}
 
+/**
+ * What one work step's delivery means, or undefined when it met its
+ * prescription. A cadence miss outranks a power exceedance: a rep ridden hard
+ * at the wrong cadence was not the rep prescribed. A cadence ridden over its
+ * target is neither — it says nothing about whether the work can progress.
+ */
+function stepOutcome(
+  step: AlignedStep,
+  plan: PlannedStep
+): StepOutcome | undefined {
+  if (step.verdict === "unmatched") return "unjudged";
+  if (step.verdict === "not-attempted") return "missed";
+  if (step.cadenceVerdict === "under") return "missed";
+  if (!beyondNoise(step)) return undefined;
+  if (step.verdict === "under") return "missed";
+  if (step.verdict === "over" && !plan.openEnded) return "exceeded";
+  return undefined;
+}
+
+/**
+ * Whether a power verdict is more than noise. A point target carries the
+ * comparison's own tolerance and is not re-filtered.
+ */
+function beyondNoise(step: AlignedStep): boolean {
+  if (step.verdict === "on-target") return false;
   const isRange =
     step.planned.target?.low !== undefined && step.planned.target.ramp !== true;
   if (!isRange) return true;
-
   const fraction = Math.abs(step.deltas?.wattsFraction ?? 0);
   return fraction >= RANGE_TARGET_NOISE_FRACTION;
 }
 
-function reduceStep(step: AlignedStep): FlaggedStep {
+/**
+ * The **Session outcome**. Drifted rep boundaries make the step lens
+ * unverified rather than caveated: a rep merged into its recovery reads as a
+ * miss that never happened.
+ */
+function sessionOutcome(
+  review: PlannedVsActualResult,
+  workSteps: number,
+  judged: JudgedStep[]
+): SessionOutcome {
+  const paired = judged.filter((j) => j.outcome !== "unjudged");
+  if (
+    review.reason !== undefined ||
+    review.alignmentBasis === "none" ||
+    review.executionRecordNote !== undefined ||
+    workSteps === 0 ||
+    paired.length === 0
+  ) {
+    return "unverified";
+  }
+  const missed = paired.filter((j) => j.outcome === "missed").length;
+  if (missed === paired.length) return "missed";
+  if (missed > 0) return "partial";
+  if (paired.some((j) => j.outcome === "exceeded")) return "exceeded";
+  return "landed";
+}
+
+/**
+ * A work step's rep: its 1-based position among the session's work reps. The
+ * work steps of one repetition of a repeat block (the over and the under) are
+ * one rep; a work step written out on its own is a rep by itself.
+ */
+function workRepOf(work: PlannedStep[], index: number): number {
+  const keys: string[] = [];
+  for (const s of work) {
+    const key =
+      s.repIndex !== undefined
+        ? `${s.sourceIndex}:${s.repIndex}`
+        : `${s.index}`;
+    if (keys.at(-1) !== key) keys.push(key);
+    if (s.index === index) return keys.length;
+  }
+  return keys.length;
+}
+
+/** The session's missed work reps, by position. */
+function missedReps(work: PlannedStep[], judged: JudgedStep[]): Set<number> {
+  return new Set(
+    judged
+      .filter((j) => j.outcome === "missed")
+      .map((j) => workRepOf(work, j.plan.index))
+  );
+}
+
+/**
+ * Whether the misses are the session's last reps and nothing before them — at
+ * least `FADE_MIN_REPS` of them, with an earlier rep that landed.
+ */
+function fades(work: PlannedStep[], judged: JudgedStep[]): boolean {
+  const missed = missedReps(work, judged);
+  const reps = work.length ? workRepOf(work, work.at(-1)!.index) : 0;
+  if (missed.size < FADE_MIN_REPS || missed.size >= reps) return false;
+  for (let r = reps - missed.size + 1; r <= reps; r++) {
+    if (!missed.has(r)) return false;
+  }
+  return true;
+}
+
+/**
+ * Mark the `partial` sessions that missed a rep in the same position as
+ * another `partial` session in the window. A `missed` session misses every
+ * position, so it would make every partial one recur — it is left out.
+ */
+export function markRecurrence(sessions: DigestSession[]): DigestSession[] {
+  const positions = sessions.map(
+    (s) =>
+      new Set(
+        s.outcome === "partial"
+          ? s.flagged
+              .filter((f) => f.outcome === "missed")
+              .map((f) => f.workRep)
+          : []
+      )
+  );
+  return sessions.map((s, i) => {
+    const recurs = sessions.some(
+      (_, j) => j !== i && [...positions[i]!].some((p) => positions[j]!.has(p))
+    );
+    return recurs ? { ...s, recursInWindow: true } : s;
+  });
+}
+
+function reduceStep(
+  step: AlignedStep,
+  outcome: StepOutcome,
+  workRep: number
+): FlaggedStep {
   const coasting = step.delivered?.coastingFraction;
   return {
     index: step.index,
+    workRep,
     ...(step.repIndex !== undefined
       ? { repIndex: step.repIndex, repCount: step.repCount }
       : {}),
     ...(step.stepInRep !== undefined ? { stepInRep: step.stepInRep } : {}),
     durationSeconds: step.planned.durationSeconds,
     target: step.planned.target,
+    outcome,
     verdict: step.verdict,
     verdictBasis: step.verdictBasis,
     ...(step.deltas
@@ -235,31 +373,5 @@ function reduceStep(step: AlignedStep): FlaggedStep {
     ...(coasting !== undefined && coasting >= COASTING_WORTH_REPORTING
       ? { coastingFraction: coasting }
       : {}),
-  };
-}
-
-/**
- * Cadence across the session's work steps. A cadence missed on every rep is one
- * finding about the session, not a detail on each rep, so the count travels
- * beside the steps rather than only inside them.
- */
-function cadenceRollup(work: AlignedStep[]): { cadence?: CadenceRollup } {
-  const judged = work.filter((s) => s.cadenceVerdict !== undefined);
-  if (judged.length === 0) return {};
-  return {
-    cadence: {
-      judged: judged.length,
-      missed: judged.filter((s) => s.cadenceVerdict !== "on-target").length,
-    },
-  };
-}
-
-function windowDose(
-  distribution: IntensityDistributionRangeResult
-): Pick<ExecutionDigestResult, "middleBand" | "zones" | "boundaries"> {
-  return {
-    ...(distribution.middleBand ? { middleBand: distribution.middleBand } : {}),
-    ...(distribution.zones ? { zones: distribution.zones } : {}),
-    ...(distribution.boundaries ? { boundaries: distribution.boundaries } : {}),
   };
 }

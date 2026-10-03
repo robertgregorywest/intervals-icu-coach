@@ -15,7 +15,7 @@
  * all fall out the same way, so nothing is ever guessed into a finding.
  */
 
-import { WORK_WORDS } from "../../shared/work-words.js";
+import { OPEN_ENDED_WORK_WORDS, WORK_WORDS } from "../../shared/work-words.js";
 
 export type StepRole = "work" | "unclassified";
 
@@ -42,4 +42,13 @@ export function isWorkLabel(label: string | undefined): boolean {
  */
 export function stepRole(label: string | undefined): StepRole {
   return isWorkLabel(label) ? "work" : "unclassified";
+}
+
+/**
+ * Whether a step label declares an **Open-ended work step** — a test or primer
+ * whose target is a floor, so riding over it is the step working.
+ */
+export function isOpenEndedLabel(label: string | undefined): boolean {
+  const word = firstWord(label);
+  return word !== undefined && OPEN_ENDED_WORK_WORDS.has(word);
 }

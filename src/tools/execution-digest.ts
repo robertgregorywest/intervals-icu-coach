@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { dateString, zoneName } from "./common.js";
+import { dateString } from "./common.js";
 import { defineTool, READ_ONLY } from "./define.js";
 
 const getExecutionDigestSchema = z.object({
@@ -21,11 +21,23 @@ const powerTarget = z.object({
 
 const flaggedStep = z.object({
   index: z.number(),
+  workRep: z
+    .number()
+    .describe(
+      "1-based position of this step's rep among the session's work reps."
+    ),
   repIndex: z.number().optional(),
   repCount: z.number().optional(),
   stepInRep: z.number().optional(),
   durationSeconds: z.number().optional(),
   target: powerTarget.optional(),
+  outcome: z
+    .enum(["missed", "exceeded", "unjudged"])
+    .describe(
+      "missed: under its power by more than noise, under its cadence, or not " +
+        "attempted. exceeded: over its power by more than noise at its cadence — " +
+        "never set on a test or primer, whose target is a floor. unjudged: unpaired."
+    ),
   verdict: z.enum(["on-target", "over", "under", "not-attempted", "unmatched"]),
   verdictBasis: z.enum([
     "average-watts",
@@ -48,23 +60,35 @@ const digestSession = z.object({
   activityId: z.string().optional(),
   date: z.string().optional(),
   name: z.string().optional(),
+  outcome: z
+    .enum(["landed", "exceeded", "partial", "missed", "unverified"])
+    .describe(
+      "The Session outcome. unverified: no alignment, no work steps, none paired, " +
+        "or drifted rep boundaries — never evidence the session was not ridden. " +
+        "missed: every work step missed. partial: some did. exceeded: none missed, " +
+        "at least one over. landed: every work step met its prescription."
+    ),
+  fade: z
+    .literal(true)
+    .optional()
+    .describe(
+      "partial only: the misses are the last two or more reps and nothing earlier."
+    ),
+  recursInWindow: z
+    .literal(true)
+    .optional()
+    .describe(
+      "partial only: another partial session in the window missed a rep in the same position."
+    ),
   executionRecord: z.enum(["device-laps", "detected-intervals"]),
   executionRecordNote: z.string().optional(),
   alignmentBasis: z.enum(["sequential", "duration", "none"]),
   workSteps: z.number(),
   unclassifiedSteps: z.number(),
   flagged: z.array(flaggedStep),
-  cadence: z
-    .object({ judged: z.number(), missed: z.number() })
-    .optional()
-    .describe(
-      "Cadence across the session's work steps. A cadence missed on every rep " +
-        "is one finding about the session, not a detail on each rep."
-    ),
   middleBandPlannedSeconds: z.number().optional(),
   middleBandDeliveredSeconds: z.number().optional(),
   middleBandDeliveredFraction: z.number().optional(),
-  platformCompliance: z.number().optional(),
   reason: z
     .enum([
       "no-paired-event",
@@ -95,28 +119,6 @@ const getExecutionDigestOutputSchema = z.object({
       deliveredFraction: z.number().optional(),
     })
     .optional(),
-  zones: z
-    .array(
-      z.object({
-        zone: zoneName,
-        lowW: z.number(),
-        highW: z.number().optional(),
-        plannedSeconds: z.number(),
-        deliveredSeconds: z.number(),
-        deltaSeconds: z.number(),
-      })
-    )
-    .optional(),
-  boundaries: z
-    .array(
-      z.object({
-        name: zoneName,
-        lowW: z.number(),
-        highW: z.number().optional(),
-        coachingHighW: z.number(),
-      })
-    )
-    .optional(),
   sessions: z.array(digestSession),
   excluded: z.array(
     z.object({
@@ -141,7 +143,7 @@ export const getExecutionDigestTool = defineTool({
   description:
     "The execution review for a coaching window, computed in one call: which " +
     "key sessions the window held, how much of the prescribed dose landed, and " +
-    "the work steps that missed their prescription. Runs both lenses — " +
+    "each session's outcome with the work steps behind it. Runs both lenses — " +
     "compare_intensity_distribution over the window and compare_planned_vs_actual " +
     "per key session — and returns only what a coach reads. " +
     "Key sessions are selected on the planned side (a declared work step " +
@@ -153,15 +155,16 @@ export const getExecutionDigestTool = defineTool({
     "intensity. A step whose label declares no work role is never judged, and " +
     "unclassifiedSteps counts them so a work step with an unrecognised label is " +
     "visible rather than silently dropped. " +
-    "Mechanically filtered out: steps meeting both their power and cadence, and " +
-    "band steps outside their own band by under 3% (directional noise, since a " +
-    "range target carries no tolerance). What survives is a rep that did not do " +
-    "what it was asked to. Interpreting it — recurrence across sessions, whether " +
-    "a test's overshoot is the test working, what to change — is the caller's, " +
-    "with the coaching context loaded. " +
-    "Returns: { status, reviewedThrough?, middleBand, zones, sessions: [{ date, " +
-    "name, executionRecord, alignmentBasis, workSteps, unclassifiedSteps, " +
-    "flagged: [...], cadence?, middleBand*, reason? }], excluded, nonKeySessions }.",
+    "Mechanically filtered out: steps meeting both their power and cadence, band " +
+    "steps outside their own band by under 3% (directional noise, since a range " +
+    "target carries no tolerance), and a test or primer ridden over its floor. " +
+    "Each session is read to an outcome — landed, exceeded, partial, missed or " +
+    "unverified — with fade and recursInWindow on a partial one. Whether a " +
+    "partial miss continues an open thread, and what to change, is the caller's. " +
+    "Returns: { status, reviewedThrough?, middleBand, sessions: [{ date, name, " +
+    "outcome, fade?, recursInWindow?, executionRecord, alignmentBasis, workSteps, " +
+    "unclassifiedSteps, flagged: [...], middleBand*, reason? }], excluded, " +
+    "nonKeySessions }.",
   schema: getExecutionDigestSchema,
   annotations: READ_ONLY,
   outputSchema: getExecutionDigestOutputSchema,

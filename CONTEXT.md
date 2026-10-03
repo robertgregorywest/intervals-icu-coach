@@ -57,6 +57,10 @@ _Avoid_: support step, recovery step (it may be neither)
 The closed list of label first words that declare a Work step.
 _Avoid_: keywords, tags
 
+**Open-ended work step**:
+A Work step whose target is a floor, not a band — a test, a maximal effort, a primer ridden hard on purpose — declared by its own work word. Riding over it is the step working.
+_Avoid_: max effort (as the category name)
+
 **Key session**:
 A session with a Work step prescribed at or above the sweet-spot floor (88% of FTP).
 _Avoid_: hard session, quality session
@@ -99,8 +103,16 @@ One band of the frame an Intensity distribution counts into: a MAP zone narrowed
 _Avoid_: the MAP zone of the same name (the partition's band is narrower)
 
 **Execution digest**:
-The mechanical half of reviewing a Review window: its key sessions, its Middle-band dose, and the work steps that missed by more than noise — leaving the interpretation to the coaching.
+The mechanical half of reviewing a Review window: its key sessions, each read to a Session outcome, the work steps that missed or exceeded by more than noise, and its Middle-band dose — leaving the reporting to the coaching.
 _Avoid_: review, findings
+
+**Session outcome**:
+One key session's work steps read to one word: landed, exceeded (nothing missed, a rep ridden over), partial (some missed), missed (every work step missed), or unverified (the step lens could not be trusted). Computed in the digest, so the coaching applies a reporting policy instead of re-reading steps.
+_Avoid_: verdict (that is one step's), compliance
+
+**Fade**:
+A partial session whose misses are its last two or more reps and nothing before them: the work ran out, rather than missing at random.
+_Avoid_: decay (as a field name)
 
 ## Training load
 

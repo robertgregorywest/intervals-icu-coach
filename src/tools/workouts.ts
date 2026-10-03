@@ -3,7 +3,7 @@ import { SPORT_TYPES } from "../types.js";
 import { defineTool, UPSERT } from "./define.js";
 import type { ScheduledWorkouts } from "../services/workout-scheduling/index.js";
 import { colorField, dateString, externalIdField } from "./common.js";
-import { WORK_WORDS } from "../shared/work-words.js";
+import { OPEN_ENDED_WORK_WORDS, WORK_WORDS } from "../shared/work-words.js";
 
 const sportTypeEnum = z.enum(SPORT_TYPES);
 
@@ -15,6 +15,8 @@ export const workoutStepSchema = z.object({
       "The step's cue, and its role: the FIRST WORD declares the step as the " +
         "session's work, and only work steps are judged by get_execution_digest. " +
         `Work words: ${[...WORK_WORDS].join(", ")}. ` +
+        `Of those, ${[...OPEN_ENDED_WORK_WORDS].join(", ")} declare a test or primer: ` +
+        "its target is a floor, so riding over it is never reported as exceeded. " +
         'Support steps take any other word ("Warm-up", "Recovery", "Easy", "Cool down"); ' +
         '"Endurance" and "Steady" are deliberately not work words. ' +
         'Plain words only — a number+unit or zone token ("60s", "220w", "90rpm", "75%", "Z2") ' +

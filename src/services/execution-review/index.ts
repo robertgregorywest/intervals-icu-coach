@@ -36,5 +36,6 @@ export type {
   DigestSession,
   DigestStatus,
   FlaggedStep,
-  CadenceRollup,
+  SessionOutcome,
+  StepOutcome,
 } from "./digest/types.js";

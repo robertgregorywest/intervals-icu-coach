@@ -1,7 +1,7 @@
 import type { IWorkoutParser, ParseAnchors } from "../workout-parser/index.js";
 import type { WorkoutDoc } from "../../types.js";
 import { flattenPlannedSteps, plannedDuration } from "./planned.js";
-import { stepRole } from "./roles.js";
+import { isOpenEndedLabel, stepRole } from "./roles.js";
 import { unreviewableWorkSteps } from "./authoring.js";
 import { planFtp } from "../../shared/plan-ftp.js";
 import type {
@@ -66,6 +66,7 @@ function readPrescription(
     return {
       ...step,
       role: stepRole(step.label),
+      ...(isOpenEndedLabel(step.label) ? { openEnded: true as const } : {}),
       ...(midpointWatts !== undefined ? { midpointWatts } : {}),
     };
   });
