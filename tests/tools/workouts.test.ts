@@ -1,366 +1,116 @@
 import { describe, it, expect, vi } from "vitest";
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { createPrescription } from "../../src/services/prescription/index.js";
 import {
   createWorkoutTool,
   createStrengthWorkoutTool,
   scheduleLibraryWorkoutTool,
 } from "../../src/tools/workouts.js";
 import type { IServices } from "../../src/index.js";
-import { createWorkoutScheduling } from "../../src/services/workout-scheduling/index.js";
-import type { WorkoutSchedulingDeps } from "../../src/services/workout-scheduling/index.js";
+import type {
+  IWorkoutScheduling,
+  ScheduledWorkouts,
+} from "../../src/services/workout-scheduling/index.js";
 import type { IntervalsEvent } from "../../src/types.js";
-import { createWorkoutParser } from "../../src/services/workout-parser/index.js";
+import { stubWorkoutScheduling } from "../helpers/stub-workout-scheduling.js";
 
-const workoutParser = createWorkoutParser();
+const written: IntervalsEvent = {
+  id: 42,
+  category: "WORKOUT",
+  start_date_local: "2024-03-30T00:00:00",
+  type: "Ride",
+  name: "Threshold Intervals",
+  description: "- Warmup 10m 60%\n\n- Threshold 10m 100%",
+  external_id: "mcp-2024-03-30-threshold-intervals",
+};
 
-/** The real scheduling module over mocked APIs; no FTP unless a test sets one. */
-function createMockServices(
-  returnEvents: IntervalsEvent[] = [],
-  deps: Partial<WorkoutSchedulingDeps> = {}
-) {
-  const scheduling = {
-    eventsApi: { createEvents: vi.fn().mockResolvedValue(returnEvents) },
-    workoutLibrary: { get: vi.fn() },
-    anchors: { getAthleteAnchors: vi.fn().mockResolvedValue({ ftp: null }) },
-    prescription: createPrescription({ workoutParser }),
-    workoutParser,
-    ...deps,
-  } as unknown as WorkoutSchedulingDeps;
+function servicesWith(methods: Partial<IWorkoutScheduling>) {
   return {
-    events: scheduling.eventsApi,
-    workoutLibrary: scheduling.workoutLibrary,
-    anchors: scheduling.anchors,
-    workoutScheduling: createWorkoutScheduling(scheduling),
+    workoutScheduling: stubWorkoutScheduling(methods),
   } as unknown as IServices;
 }
 
-const createWorkout = createWorkoutTool.handler;
-const createStrengthWorkout = createStrengthWorkoutTool.handler;
-const scheduleLibraryWorkout = scheduleLibraryWorkoutTool.handler;
+const scheduled = (extra: Partial<ScheduledWorkouts> = {}) =>
+  vi.fn(async () => ({ events: [written], ...extra }));
 
-describe("createWorkout tool handler", () => {
-  it("builds an event and calls createEvents", async () => {
-    const returnedEvents: IntervalsEvent[] = [
-      {
-        id: 42,
-        category: "WORKOUT",
-        start_date_local: "2024-03-30T00:00:00",
-        type: "Ride",
-        name: "Threshold Intervals",
-        description: "- Warmup 10m 60%\n\n3x\n- 4m 100%\n- 4m 55%",
-      },
-    ];
-    const services = createMockServices(returnedEvents);
+const reshaped = {
+  success: true,
+  created: 1,
+  events: [
+    {
+      id: 42,
+      name: "Threshold Intervals",
+      start_date_local: "2024-03-30T00:00:00",
+      description: "- Warmup 10m 60%\n\n- Threshold 10m 100%",
+    },
+  ],
+};
 
-    const result = await createWorkout(services, {
+describe("create_workout", () => {
+  it("hands the plan to schedulePlan and reshapes what was written", async () => {
+    const schedulePlan = scheduled();
+    const args = {
       name: "Threshold Intervals",
       date: "2024-03-30",
-      sportType: "Ride",
-      steps: [
-        { label: "Warmup", duration: "10m", target: "60%" },
-        {
-          iterations: 3,
-          steps: [
-            { duration: "4m", target: "100%" },
-            { duration: "4m", target: "55%" },
-          ],
-        },
-      ],
-    });
+      sportType: "Ride" as const,
+      steps: [{ label: "Warmup", duration: "10m", target: "60%" }],
+      notes: "Hold it.",
+    };
 
-    const parsed = result;
-    expect(parsed.success).toBe(true);
-    expect(parsed.created).toBe(1);
-    expect(parsed.events[0].name).toBe("Threshold Intervals");
+    const result = await createWorkoutTool.handler(
+      servicesWith({ schedulePlan }),
+      args
+    );
 
-    expect(services.events.createEvents).toHaveBeenCalledWith([
-      expect.objectContaining({
-        category: "WORKOUT",
-        type: "Ride",
-        name: "Threshold Intervals",
-        start_date_local: "2024-03-30T00:00:00",
-        description: expect.stringContaining("- Warmup 10m 60%"),
-      }),
-    ]);
+    expect(schedulePlan).toHaveBeenCalledWith(args);
+    expect(result).toEqual(reshaped);
   });
 
-  it("passes through externalId and color", async () => {
-    const services = createMockServices([
+  it("passes the unreviewable-step warning through", async () => {
+    const unreviewableSteps = [{ index: 1, label: "Hard bit", watts: 300 }];
+    const result = await createWorkoutTool.handler(
+      servicesWith({ schedulePlan: scheduled({ unreviewableSteps }) }),
       {
-        id: 1,
-        category: "WORKOUT",
-        start_date_local: "2024-01-01T00:00:00",
-        type: "Run",
-        name: "Easy Run",
-        description: "- 30m Z2",
-      },
-    ]);
-
-    await createWorkout(services, {
-      name: "Easy Run",
-      date: "2024-01-01",
-      sportType: "Run",
-      steps: [{ duration: "30m", target: "Z2" }],
-      externalId: "custom-123",
-      color: "blue",
-    });
-
-    expect(services.events.createEvents).toHaveBeenCalledWith([
-      expect.objectContaining({
-        external_id: "custom-123",
-        color: "blue",
-      }),
-    ]);
+        name: "Threshold",
+        date: "2024-03-30",
+        sportType: "Ride",
+        steps: [{ label: "Hard bit", duration: "10m", target: "100%" }],
+      }
+    );
+    expect(result.unreviewableSteps).toEqual(unreviewableSteps);
   });
 });
 
-describe("createStrengthWorkout tool handler", () => {
-  it("creates a WeightTraining event with free-form description", async () => {
-    const returnedEvents: IntervalsEvent[] = [
-      {
-        id: 99,
-        category: "WORKOUT",
-        start_date_local: "2024-04-01T00:00:00",
-        type: "WeightTraining",
-        name: "Strength Session",
-        description: "Box Squat 3×5 @ RPE 7\nTrap Bar Deadlift 3×5 @ RPE 8",
-      },
-    ];
-    const services = createMockServices(returnedEvents);
+describe("schedule_library_workout", () => {
+  it("hands the placement to scheduleLibraryWorkout and reshapes", async () => {
+    const scheduleLibraryWorkout = scheduled();
+    const args = { id: 15, date: "2026-09-20", color: "blue" };
 
-    const result = await createStrengthWorkout(services, {
-      name: "Strength Session",
-      date: "2024-04-01",
-      description: "Box Squat 3×5 @ RPE 7\nTrap Bar Deadlift 3×5 @ RPE 8",
-    });
+    const result = await scheduleLibraryWorkoutTool.handler(
+      servicesWith({ scheduleLibraryWorkout }),
+      args
+    );
 
-    const parsed = result;
-    expect(parsed.success).toBe(true);
-    expect(parsed.created).toBe(1);
-    expect(parsed.events[0].name).toBe("Strength Session");
-    expect(parsed.events[0].description).toContain("Box Squat");
-
-    expect(services.events.createEvents).toHaveBeenCalledWith([
-      expect.objectContaining({
-        category: "WORKOUT",
-        type: "WeightTraining",
-        name: "Strength Session",
-        start_date_local: "2024-04-01T00:00:00",
-        description: "Box Squat 3×5 @ RPE 7\nTrap Bar Deadlift 3×5 @ RPE 8",
-        external_id: "mcp-2024-04-01-strength-session",
-      }),
-    ]);
+    expect(scheduleLibraryWorkout).toHaveBeenCalledWith(args);
+    expect(result).toEqual(reshaped);
   });
+});
 
-  it("passes through externalId and color", async () => {
-    const services = createMockServices([
-      {
-        id: 1,
-        category: "WORKOUT",
-        start_date_local: "2024-04-01T00:00:00",
-        type: "WeightTraining",
-        name: "Gym",
-        description: "Squats 3×5",
-      },
-    ]);
-
-    await createStrengthWorkout(services, {
+describe("create_strength_workout", () => {
+  it("hands the session to scheduleStrength and reshapes", async () => {
+    const scheduleStrength = scheduled();
+    const args = {
       name: "Gym",
       date: "2024-04-01",
       description: "Squats 3×5",
       externalId: "gym-123",
-      color: "red",
-    });
+    };
 
-    expect(services.events.createEvents).toHaveBeenCalledWith([
-      expect.objectContaining({
-        external_id: "gym-123",
-        color: "red",
-      }),
-    ]);
-  });
-});
+    const result = await createStrengthWorkoutTool.handler(
+      servicesWith({ scheduleStrength }),
+      args
+    );
 
-describe("createWorkout notes", () => {
-  it("emits notes above the step lines", async () => {
-    const services = createMockServices();
-    await createWorkout(services, {
-      name: "Recovery",
-      date: "2026-09-20",
-      sportType: "Ride",
-      notes: "Circulation, not stimulus.",
-      steps: [{ label: "Easy", duration: "40m", target: "125w-165w" }],
-    });
-    expect(services.events.createEvents).toHaveBeenCalledWith([
-      expect.objectContaining({
-        description: "Circulation, not stimulus.\n\n- Easy 40m 125w-165w",
-      }),
-    ]);
-  });
-});
-
-describe("scheduleLibraryWorkout", () => {
-  it("copies the library description verbatim, prose and trailer included", async () => {
-    const description =
-      "Circulation, not stimulus.\n\n- Easy 40m 125w-165w 95rpm\n\n<!-- template: recovery-spin -->";
-    const services = createMockServices([], {
-      workoutLibrary: {
-        get: vi.fn().mockResolvedValue({
-          workout: { id: 15, name: "Recovery spin", type: "Ride", description },
-        }),
-      },
-    } as unknown as Partial<WorkoutSchedulingDeps>);
-
-    await scheduleLibraryWorkout(services, { id: 15, date: "2026-09-20" });
-
-    expect(services.events.createEvents).toHaveBeenCalledWith([
-      {
-        category: "WORKOUT",
-        start_date_local: "2026-09-20T00:00:00",
-        type: "Ride",
-        name: "Recovery spin",
-        description,
-        external_id: "mcp-2026-09-20-recovery-spin",
-      },
-    ]);
-  });
-});
-
-/**
- * Round trip through Intervals.icu's server-side reparse (#42).
- *
- * `tests/fixtures/events/scheduled-library-workout.json` is a real capture: the
- * library item "Sweet Spot 3×12" scheduled with `schedule_library_workout`, then
- * re-read with `get_event`. Its `capture` block records the date and event id.
- * The mocked-fetch test above only sees the POST body; this sees what the
- * platform kept.
- *
- * To refresh (writes to the live calendar, so by hand):
- *   1. ./bin/icu get_workout_library_item --json '{"id":12}'   # libraryDescription
- *   2. ./bin/icu schedule_library_workout --json '{"id":12,"date":"<spare future date>"}' --yes
- *   3. ./bin/icu get_event --json '{"id":<event id>}'          # event
- *   4. ./bin/icu delete_events --json '{"ids":[{"id":<event id>}]}' --yes
- *   5. Keep only id, start_date_local, type, category, name, description,
- *      moving_time, external_id and workout_doc.{steps,duration,distance};
- *      update `capture`. If a test fails after recapturing, the platform's
- *      parsing changed.
- */
-describe("scheduleLibraryWorkout — round trip through Intervals.icu", () => {
-  const { libraryDescription, event } = JSON.parse(
-    readFileSync(
-      fileURLToPath(
-        new URL(
-          "../fixtures/events/scheduled-library-workout.json",
-          import.meta.url
-        )
-      ),
-      "utf8"
-    )
-  );
-
-  it("keeps the description — notes, steps and trailer — verbatim", () => {
-    expect(event.description).toBe(libraryDescription);
-    expect(event.description).toContain("Hold cadence ≥ 85 on the reps.");
-    expect(event.description).toContain("<!-- template: sweet-spot-3x12 -->");
-  });
-
-  it("parses workout_doc.steps to the expected labels, durations and targets", () => {
-    const [warmup, block, cooldown] = event.workout_doc.steps;
-    expect(event.workout_doc.steps).toHaveLength(3);
-    expect(event.workout_doc.duration).toBe(4200);
-    expect(warmup).toMatchObject({
-      text: "Warm-up",
-      duration: 720,
-      power: { start: 155, end: 200, units: "w" },
-    });
-    expect(block.reps).toBe(3);
-    expect(block.steps).toMatchObject([
-      {
-        text: "SST",
-        duration: 720,
-        power: { start: 88, end: 94, units: "%ftp" },
-      },
-      { text: "Recovery", duration: 240, power: { value: 155, units: "w" } },
-    ]);
-    expect(cooldown).toMatchObject({
-      text: "Cooldown",
-      duration: 600,
-      power: { value: 145, units: "w" },
-    });
-  });
-
-  it("reads back through the prescription with every label intact", () => {
-    const prescription = createPrescription({ workoutParser });
-    const read = prescription.read(event.workout_doc, { ftp: 300 });
-    expect(read.steps.map((s) => s.label)).toEqual([
-      "Warm-up",
-      "SST",
-      "Recovery",
-      "SST",
-      "Recovery",
-      "SST",
-      "Recovery",
-      "Cooldown",
-    ]);
-    expect(read.totalSeconds).toBe(4200);
-  });
-});
-
-describe("createWorkout — the unreviewable-step warning", () => {
-  it("reads FTP from the athlete anchors, and warns on an unlabelled hard step", async () => {
-    const services = createMockServices([], {
-      anchors: {
-        getAthleteAnchors: vi
-          .fn()
-          .mockResolvedValue({ ftp: 300, weight: 70, powerZones: null }),
-      },
-    } as unknown as Partial<WorkoutSchedulingDeps>);
-
-    const result = await createWorkout(services, {
-      name: "Threshold",
-      date: "2024-03-30",
-      sportType: "Ride",
-      steps: [
-        { label: "Warmup", duration: "10m", target: "60%" },
-        { label: "Hard bit", duration: "10m", target: "100%" },
-      ],
-    });
-
-    expect(services.anchors.getAthleteAnchors).toHaveBeenCalledOnce();
-    expect(result.unreviewableSteps).toEqual([
-      { index: 1, label: "Hard bit", watts: 300 },
-    ]);
-  });
-});
-
-describe("the warning is best-effort", () => {
-  it("writes the workout with no warning when the anchors lookup throws", async () => {
-    const services = createMockServices([], {
-      anchors: {
-        getAthleteAnchors: vi.fn().mockRejectedValue(new Error("down")),
-      },
-    } as unknown as Partial<WorkoutSchedulingDeps>);
-
-    const result = await createWorkout(services, {
-      name: "Threshold",
-      date: "2024-03-30",
-      sportType: "Ride",
-      steps: [{ label: "Hard bit", duration: "10m", target: "300w" }],
-    });
-
-    expect(services.events.createEvents).toHaveBeenCalledOnce();
+    expect(scheduleStrength).toHaveBeenCalledWith(args);
+    expect(result).toEqual(reshaped);
     expect(result).not.toHaveProperty("unreviewableSteps");
-  });
-
-  it("never looks up the anchors for a strength session", async () => {
-    const services = createMockServices();
-    await createStrengthWorkout(services, {
-      name: "Gym",
-      date: "2024-04-01",
-      description: "Squats 3×5",
-    });
-    expect(services.anchors.getAthleteAnchors).not.toHaveBeenCalled();
   });
 });
