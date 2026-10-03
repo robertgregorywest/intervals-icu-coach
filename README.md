@@ -153,10 +153,11 @@ Coach mode + workout library (from a clone, once `docs/personal/` is set up):
 
 ## Environment Variables
 
-| Variable               | Required | Default | Description                               |
-| ---------------------- | -------- | ------- | ----------------------------------------- |
-| `INTERVALS_API_KEY`    | Yes      | —       | API key from Intervals.icu Settings → API |
-| `INTERVALS_ATHLETE_ID` | No       | `0`     | Athlete ID (0 = authenticated user)       |
+| Variable               | Required | Default | Description                                                                                             |
+| ---------------------- | -------- | ------- | ------------------------------------------------------------------------------------------------------- |
+| `INTERVALS_API_KEY`    | Yes      | —       | API key from Intervals.icu Settings → API                                                               |
+| `INTERVALS_ATHLETE_ID` | No       | `0`     | Athlete ID (0 = authenticated user)                                                                     |
+| `TYPESAFE_API_KEY`     | No       | —       | Skill evals only: the TypeSafe key the `noulRubric` grader judges with ([docs/evals.md](docs/evals.md)) |
 
 ## Development
 

@@ -4,6 +4,7 @@ import type { CapturedWrite } from "../../../src/cassette.js";
 import { TOOLS } from "../../../src/registry.js";
 import { defineGrader, target } from "../lib/grader.js";
 import { judge } from "../lib/judge.js";
+import { noulJudge } from "../lib/noul-judge.js";
 import { icuCalls, skillMatches, targetText } from "../lib/transcript.js";
 import type { GradeOutcome, RunArtifacts } from "../lib/types.js";
 
@@ -278,4 +279,36 @@ export const llmRubric = defineGrader(
   }),
   (o, run, ctx) =>
     judge(o.judgeModel ?? ctx.judgeModel, o.criteria, targetText(run, o.target))
+);
+
+/**
+ * A rubric as separate yes/no checks, each a TypeSafe Noul over the output:
+ * one request returns a yes-probability per check, and the run passes when
+ * every check reaches its threshold. Phrase each check so yes is a pass.
+ */
+export const noulRubric = defineGrader(
+  z.strictObject({
+    checks: z
+      .array(
+        z.strictObject({
+          question: z.string().min(1),
+          yes: z.string().min(1).optional(),
+          no: z.string().min(1).optional(),
+          threshold: z.number().gt(0).lt(1).optional(),
+        })
+      )
+      .min(1),
+    context: z.string().min(1).optional(),
+    threshold: z.number().gt(0).lt(1).optional(),
+    target,
+  }),
+  (o, run) =>
+    noulJudge(
+      o.checks.map((c) => ({
+        ...c,
+        threshold: c.threshold ?? o.threshold ?? 0.5,
+      })),
+      targetText(run, o.target),
+      o.context
+    )
 );

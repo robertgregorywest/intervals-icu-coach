@@ -8,8 +8,8 @@
 //     npm run eval:grade -- --case <id> --writes bad.jsonl [--final bad.md]
 //
 // A hand-made run has no transcript, so graders that read one (completed,
-// skillInvoked, noReplayMisses) are skipped. llmRubric is skipped unless
-// --judge is given, since it costs money.
+// skillInvoked, noReplayMisses) are skipped. The judged graders (llmRubric,
+// noulRubric) are skipped unless --judge is given, since they cost money.
 
 import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -93,10 +93,11 @@ const NEEDS_TRANSCRIPT = new Set([
   "skillInvoked",
   "noReplayMisses",
 ]);
+const JUDGED = new Set(["llmRubric", "noulRubric"]);
 const skipped = evalCase.graders.filter(
   (g) =>
     (!args.run && NEEDS_TRANSCRIPT.has(g.type)) ||
-    (!args.judge && g.type === "llmRubric")
+    (!args.judge && JUDGED.has(g.type))
 );
 run.evalCase = {
   ...evalCase,
@@ -114,7 +115,7 @@ for (const g of grades) {
 }
 for (const g of skipped) {
   console.log(
-    `– ${String(g.name ?? g.type)}: skipped (${g.type === "llmRubric" ? "pass --judge" : "needs a transcript"})`
+    `– ${String(g.name ?? g.type)}: skipped (${JUDGED.has(g.type) ? "pass --judge" : "needs a transcript"})`
   );
 }
 const s = score(grades);
