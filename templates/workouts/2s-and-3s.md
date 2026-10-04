@@ -18,5 +18,4 @@ Alternating 2- and 3-minute efforts well above threshold with long, genuine reco
 - Effort 3m 120-130%
 - Recovery 5m 50-60%
 - Effort 2m 130-140%
-- Cool Down 10m 40-50%
 - Cooldown 10m Z1

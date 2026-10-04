@@ -70,8 +70,6 @@ Alternating 2- and 3-minute efforts well above threshold with long, genuine reco
 
 - Effort 2m 375w-405w
 
-- Cool Down 10m 115w-145w
-
 - Cooldown 10m Z1
 
 <!-- template: 2s-and-3s -->
@@ -254,8 +252,6 @@ Pre-race opener. Long steady base, one threshold block, then two short supra-thr
 - 3m 155w-190w
 
 - Sprint 0m10s 655w-800w
-
-- Cool Down 15m 105w-130w
 
 - Cooldown 10m Z1
 

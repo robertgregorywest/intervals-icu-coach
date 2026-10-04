@@ -18,5 +18,4 @@ Pre-race opener. Long steady base, one threshold block, then two short supra-thr
 - Opener 1m 113-138%
 - 3m 54-66%
 - Sprint 0m10s 225-275%
-- Cool Down 15m 36-44%
 - Cooldown 10m Z1
