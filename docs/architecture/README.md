@@ -2,7 +2,7 @@
 
 How the code is laid out and the rules that keep it that way. Read it before changing anything under
 `src/`, `tests/`, `evals/` or `scripts/`. The domain language lives in the
-[glossary](../../CONTEXT.md) — read it before naming something new.
+[glossary](../../GLOSSARY.md) — read it before naming something new.
 
 ## Layout
 
@@ -17,7 +17,7 @@ How the code is laid out and the rules that keep it that way. Read it before cha
 - **Tests** (`tests/`) — mirror `src/` structure. Use injectable fetch (not global mocks).
 - **Skill evals** (`evals/skills/`) — score the coaching skills against recorded scenarios. See below.
 
-The terms above are defined under _Tool surface_ in the [glossary](../../CONTEXT.md).
+The terms above are defined under _Tool surface_ in the [glossary](../../GLOSSARY.md).
 
 ## Adding behaviour
 
@@ -56,8 +56,8 @@ node ~/.claude/skills/archify/bin/archify.mjs deliver architecture \
 Keep in mind when editing:
 
 - Edges are the `createServices` wiring in `src/index.ts`: each module points at the modules it takes through its `Deps`. Consumers sit below the deep core, so edges to Athlete anchors and Prescription run upward.
-- Selecting a module opens its Semantic Passport: upstream and downstream connections plus its `sources` (interface and glossary). The five guided views in `meta.views` highlight one connection theme each. A module's glossary source is the root `CONTEXT.md`.
+- Selecting a module opens its Semantic Passport: upstream and downstream connections plus its `sources` (interface and glossary). The five guided views in `meta.views` highlight one connection theme each. A module's glossary source is the root `GLOSSARY.md`.
 - The `standard` profile is used because the showcase profile rejects the shared edge corridors this many connections need. Consumer → wrapper edges are drawn only where they say something (calendar writes, CTL/ATL, device laps); the rest are in the cards.
 - `map` and `workout-parser` are folded into **Athlete anchors** and **Prescription**, the only modules that use them. `fit` is drawn beside the API wrappers.
 - `meta.repository.revision` pins the `sources` links; bump it to a recent commit when rebuilding.
-- Update the diagram when a service is added, merged or split, using the names from the [glossary](../../CONTEXT.md).
+- Update the diagram when a service is added, merged or split, using the names from the [glossary](../../GLOSSARY.md).

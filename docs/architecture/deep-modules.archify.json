@@ -129,7 +129,7 @@
           "label": "IExecutionReview"
         },
         {
-          "path": "CONTEXT.md",
+          "path": "GLOSSARY.md",
           "label": "glossary"
         }
       ]
@@ -147,7 +147,7 @@
           "label": "ITrainingLoad"
         },
         {
-          "path": "CONTEXT.md",
+          "path": "GLOSSARY.md",
           "label": "glossary"
         }
       ]
@@ -207,7 +207,7 @@
           "label": "ITrack"
         },
         {
-          "path": "CONTEXT.md",
+          "path": "GLOSSARY.md",
           "label": "glossary"
         }
       ]
@@ -240,7 +240,7 @@
           "label": "IPrescription"
         },
         {
-          "path": "CONTEXT.md",
+          "path": "GLOSSARY.md",
           "label": "glossary"
         }
       ]
@@ -259,7 +259,7 @@
           "label": "IAthleteAnchors"
         },
         {
-          "path": "CONTEXT.md",
+          "path": "GLOSSARY.md",
           "label": "glossary"
         }
       ]

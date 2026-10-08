@@ -4,12 +4,12 @@ How the engineering skills should consume this repo's domain documentation when 
 
 ## Before exploring, read these
 
-- **`CONTEXT.md`** at the repo root — the one glossary, grouped by area. Read the areas relevant to the topic.
+- **`GLOSSARY.md`** at the repo root — the one glossary, grouped by area. Read the areas relevant to the topic.
 - **`docs/adr/`** — read ADRs that touch the area you're about to work in.
 
-This repo has one language, so there is no `CONTEXT-MAP.md`. Keep it that way: add a term under the area it belongs to, and add an area rather than a second `CONTEXT.md`.
+This repo has one language, so there is no `GLOSSARY-MAP.md`. Keep it that way: add a term under the area it belongs to, and add an area rather than a second `GLOSSARY.md`.
 
-## What a CONTEXT.md holds
+## What a GLOSSARY.md holds
 
 Terms, each defined in one or two sentences as what it _is_; `_Avoid_` lists the synonyms not to use. Nothing else — when writing to one, put everything else where it belongs:
 
@@ -25,9 +25,9 @@ A glossary entry that needs a paragraph is usually a module's description or a d
 
 ## Use the glossary's vocabulary
 
-When your output names a domain concept (in an issue title, a refactor proposal, a hypothesis, a test name), use the term as defined in `CONTEXT.md`. Don't drift to synonyms the glossary explicitly avoids.
+When your output names a domain concept (in an issue title, a refactor proposal, a hypothesis, a test name), use the term as defined in `GLOSSARY.md`. Don't drift to synonyms the glossary explicitly avoids.
 
-If the concept you need isn't in the glossary yet, that's a signal — either you're inventing language the project doesn't use (reconsider) or there's a real gap (note it for `/grill-with-docs`).
+If the concept you need isn't in the glossary yet, that's a signal — either you're inventing language the project doesn't use (reconsider) or there's a real gap (note it for `/domain-modeling`).
 
 ## Flag ADR conflicts
 

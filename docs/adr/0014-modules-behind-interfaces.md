@@ -64,7 +64,7 @@ and tools used (#46). Three questions came out of trimming them.
   with one adapter, which nothing ever substitutes. A Tool's schema is built at import time, before
   any service exists, so it could not reach one through `deps` anyway.
 
-`src/shared/` holds one file per domain concept, named from CONTEXT.md, never `utils` or `helpers`.
+`src/shared/` holds one file per domain concept, named from GLOSSARY.md, never `utils` or `helpers`.
 Its files are pure (no I/O, no `deps`) and import only each other, so `src/shared/` stays below every
 module. `npm run check:imports` enforces the import rule. A helper moves there only once a second
 module or tool needs it; until then it stays inside its module. Files left at the top of `src/` are

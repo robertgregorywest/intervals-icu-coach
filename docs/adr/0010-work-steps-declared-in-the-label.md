@@ -77,7 +77,7 @@ wait a turn for.
 
 ## Consequences
 
-- `CONTEXT.md`'s invariant inverted: a work-step classification used to be one no Tool could return,
+- `GLOSSARY.md`'s invariant inverted: a work-step classification used to be one no Tool could return,
   precisely so an inference never travelled as data. It is now data, because it is no longer an
   inference — it is a declaration the author made.
 - The templates were audited against the vocabulary and relabelled where they fell outside it

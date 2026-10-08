@@ -1,5 +1,5 @@
 /**
- * The **MAP zones** (CONTEXT.md, ADR 0003): the zone model every coaching lens
+ * The **MAP zones** (GLOSSARY.md, ADR 0003): the zone model every coaching lens
  * reasons in. Shared because the Athlete anchors derive them live, the power
  * profile computes them for a what-if MAP, and a tool's schema names them.
  */
