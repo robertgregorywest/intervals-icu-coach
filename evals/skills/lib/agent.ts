@@ -81,6 +81,8 @@ export async function runAgent(opts: AgentRunOptions): Promise<AgentRunResult> {
     effort: opts.effort,
     // Project skills, agents and CLAUDE.md; nothing from the user's own setup.
     settingSources: ["project"],
+    // The run's own transcript.jsonl is the record; keep it out of ~/.claude/projects.
+    persistSession: false,
     permissionMode: "dontAsk",
     allowedTools: [
       "Read",

@@ -26,6 +26,8 @@ async function vote(model: string, prompt: string): Promise<Vote> {
       maxTurns: 1,
       permissionMode: "dontAsk",
       allowedTools: [],
+      // One-shot vote; keep it out of ~/.claude/projects.
+      persistSession: false,
     },
   })) {
     if (m.type === "result") {
