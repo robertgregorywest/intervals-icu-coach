@@ -59,7 +59,7 @@ Power output — the thing that drives the bike — needs stimulus from **both**
 
 - **Multi-joint / compound over isolation.** Cycling drives force through the whole kinetic chain,
   hips and knees together. Isolation (e.g. leg extensions) is for hypertrophy or rehab, not a
-  performance staple — a poor use of an endurance athlete's limited recovery. → [exercises.md](../compose-strength-session/exercises.md)
+  performance staple — a poor use of an endurance athlete's limited recovery. → [exercises.md](exercises.md)
 - **Stable over unstable.** BOSU / wobble surfaces down-regulate force production as a protective
   response — every rep is limited by balance, not force, so you get weaker and transfer little.
   Build a **strong, stable chain from foot to hip**: more stability → more force → more power →
@@ -68,7 +68,7 @@ Power output — the thing that drives the bike — needs stimulus from **both**
   get **stronger** through loaded hip extension, not endless banded abduction. Bands have a place in
   context, but if band work is the _whole_ programme you've set a ceiling on what you can become.
 - **Specificity.** Every pedal stroke is a single-leg action — spend real time under load in that
-  pattern (see single-leg work in [exercises.md](../compose-strength-session/exercises.md)).
+  pattern (see single-leg work in [exercises.md](exercises.md)).
 
 ## 5. Individualise · evidence-informed, not evidence-blind
 

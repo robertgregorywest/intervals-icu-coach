@@ -284,7 +284,7 @@ The span an execution review covers: from the date the Coaching log was last rev
 _Avoid_: since last time, recent sessions
 
 **Workout brief**:
-The decision a planning skill hands to its build skill: what to build, the context that shapes it, and when. A **strength brief** is the gym session's equivalent.
+The decision `plan-workout` hands to its build skill, `compose-workout`: what to build, the context that shapes it, and when.
 _Avoid_: prompt, spec
 
 ## Skill evals

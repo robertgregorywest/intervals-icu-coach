@@ -1,14 +1,13 @@
 ---
 name: plan-strength-training
-description: Plan a gym / strength session on Intervals.icu — decide block dose, template tier and placement, then hand the build to compose-strength-session — and reason about how strength supports the bike. Use when the user asks to plan, build, schedule, or review a gym / strength / lifting / S&C session, mentions squats/deadlifts/step-ups/jumps, asks how many gym sessions to run, or how strength transfers to the standing start or the pursuit.
+description: Plan a gym / strength session on Intervals.icu — decide block dose, template tier and placement, fill in the exercises and schedule it — and reason about how strength supports the bike. Use when the user asks to plan, build, schedule, or review a gym / strength / lifting / S&C session, mentions squats/deadlifts/step-ups/jumps, asks how many gym sessions to run, or how strength transfers to the standing start or the pursuit.
 ---
 
 # plan-strength-training
 
-Strength-and-conditioning skill for the `intervals-icu-coach` project. Decides the gym session and
-hands the build to the forked **`compose-strength-session`** skill, which schedules it as a
-`WeightTraining` event. It is the strength sibling of `plan-workout` (which handles bike/run
-workouts).
+Strength-and-conditioning skill for the `intervals-icu-coach` project. Decides the gym session,
+agrees it with the athlete and schedules it as a `WeightTraining` event. It is the strength sibling
+of `plan-workout` (which handles bike/run workouts).
 
 The method here is distilled from **Chris Peden (@chr1speden)** — S&C coach for the Decathlon CMA
 CGM WorldTour team, owner of Combined Athletic Performance — whose whole message is: strength
@@ -16,21 +15,20 @@ _serves_ the endurance goal, and the coach's real job is deciding what **not** t
 the operational "how"; the durable "why" lives in the `coaching-philosophy` skill's
 [strength pillar](../coaching-philosophy/strength.md).
 
-## Decide here, build in the fork
+## Decide, draft, confirm, write — all here
 
-Block, frequency, intent, readiness, template tier and placement — the decision tree below — are
-decided here, with the athlete in the conversation and the season and philosophy context loaded.
-The build always goes to the **`compose-strength-session`** skill, which runs forked, out of this
-conversation: invoke it with the **strength brief** its "Your input" section defines. It reads the
-exercise, session and periodization subfiles itself to fill the template in and schedules the
-session. The same holds whether you arrived from a `coaching-session` or the athlete asked you
-directly.
+Unlike `plan-workout`, there is no forked build. A gym session is a few free-text lines, and what
+goes into them — a substitution for a niggle, a set cut for a readiness flag, a lift left out before
+track — is coaching judgement that needs the season, philosophy and log context loaded here. So
+block, frequency, intent, readiness, template tier, placement _and_ the exercise lines are all
+decided in this conversation, shown to the athlete, and written once they agree. The same holds
+whether you arrived from a `coaching-session` or the athlete asked you directly.
 
 ## Session-start moves
 
 Read `docs/agents/icu-cli.md` (from the project root) before your first CLI call — working
-directory, piping, `describe`. You run at its **Read-only** tier: the build is
-`compose-strength-session`'s.
+directory, piping, `describe`. You run at its **Build** tier — or **Build, replacing an event**
+when the athlete has agreed in this conversation that the session replaces a planned one.
 
 **Reuse, don't repeat.** If you arrived from a `coaching-session` (or already gathered these this
 turn), the `get_coaching_context` snapshot and the personal files are already in context — reuse them,
@@ -69,16 +67,17 @@ Place it right (stack on a hard ride day; never before track;
     never a HI bike day after heavy lifting)
     │
     ▼
-strength brief  →  compose-strength-session (forked)  →  one holding line, end turn
-    │
+Fill the template in by stimulus-to-fatigue ratio          → exercises.md
+    │  (adjust for readiness, niggles, the day's placement)
     ▼
-report arrives  →  relay it
+Show the athlete the exercise lines  →  agreed?  →  write it
 ```
 
-**The build is a barrier.** `compose-strength-session` runs in the background: invoking it returns
-only an agent name, and its report arrives later as a notification. After dispatching, write one
-holding line ("Building <session> for <date>…") and end the turn. Relay what was written — or why the
-build stopped — only from the report itself.
+**Writing it.** Schedule with `create_strength_workout` — name, date, description =
+`exercise · sets×reps · RPE` lines, `\n`-separated — with an `externalId` (e.g.
+`strength-2026-08-05`) so a re-plan upserts rather than duplicates. When the session replaces a
+planned event the athlete has agreed to drop, write onto that id with `update_event --yes` instead.
+Confirm what was written from the tool's response, not from the draft.
 
 ## The five principles (the lens for every decision)
 
@@ -87,7 +86,7 @@ One line each; the reasoning and source posts are in [principles.md](principles.
 1. **Strength serves the bike** — aerobic work is always the higher priority; strength and fitness are built _together_, never traded off.
 2. **Minimum effective dose** — as much as necessary, not as much as possible. Ask "what can I _remove_?" before "what can I add?"
 3. **Train both ends of the force–velocity curve** — heavy builds the force ceiling; speed/jumps train how fast you reach it (RFD).
-4. **Pick exercises by stimulus-to-fatigue ratio for the phase** — multi-joint over isolation, stable over unstable, specificity over novelty. → [exercises.md](../compose-strength-session/exercises.md)
+4. **Pick exercises by stimulus-to-fatigue ratio for the phase** — multi-joint over isolation, stable over unstable, specificity over novelty. → [exercises.md](exercises.md)
 5. **Individualise; evidence-informed, not evidence-blind** — no fixed template; decide for the athlete and the moment in the season.
 
 ## Constraints (respect the coaching-philosophy execution rules)

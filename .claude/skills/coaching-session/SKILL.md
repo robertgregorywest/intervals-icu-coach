@@ -47,7 +47,7 @@ The `coaching-philosophy` skill ships with the repo, so it's always present. If 
 | Recovery guidance    | Wellness trend from `get_coaching_context` (fatigue, soreness, HRV, sleep)                                                                                                                         |
 | Race prep            | Align current fitness + taper logic with season.md A/B races                                                                                                                                       |
 | Track / IP analysis  | `list_track_sessions`, `get_track_session` (lap table, segments, decline, Σv²), `compare_track_sessions` (head-to-head) — records live in `docs/personal/track/`; see the session-start note above |
-| Workout composition  | Delegated — bike/run to `plan-workout`, gym to `plan-strength-training`, which hand the build to the forked `compose-workout` / `compose-strength-session` skills (see Constraints)                |
+| Workout composition  | Delegated — bike/run to `plan-workout` (which hands the build to the forked `compose-workout`), gym to `plan-strength-training` (which writes it directly) — see Constraints                       |
 | Ride deep-dive       | Delegated — `ride-analysis` skill (forked) for raw-stream work across activities (see _Tool access_ below)                                                                                         |
 
 ## Tool access — use the CLI
@@ -56,11 +56,10 @@ The `coaching-philosophy` skill ships with the repo, so it's always present. If 
 [docs/agents/icu-cli.md](../../../docs/agents/icu-cli.md) before your first call — working directory,
 piping, the scratchpad, `describe`. This skill runs at the **Coaching** tier there.
 
-**Forks run in the background.** `ride-analysis` and the `compose-workout` /
-`compose-strength-session` builds behind the planning skills return only an agent name when
-invoked; the report arrives later as a notification that re-invokes you. So every fork is a
-**barrier**: dispatch it, write one holding line naming what it is doing, and end the turn. Reason
-about the question it serves only once its report is in context — a pass made before then is spent
+**Forks run in the background.** `ride-analysis` and the `compose-workout` build behind
+`plan-workout` return only an agent name when invoked; the report arrives later as a notification
+that re-invokes you. So every fork is a **barrier**: dispatch it, write one holding line naming
+what it is doing, and end the turn. Reason about the question it serves only once its report is in context — a pass made before then is spent
 without the facts and redone after.
 
 **Invoke the `ride-analysis` skill for multi-activity stream work.** It runs forked, out of this
@@ -112,4 +111,4 @@ Keep `coaching-log.md` current so future sessions inherit this one's decisions a
 - Season position from `season.md` governs what kind of work is appropriate — don't prescribe VO2 in a recovery week.
 - **Show projected load with every plan.** State the week's projected CTL ramp vs the `season.md` target before the athlete signs off — an under-target build week may be right, but only as a visible, deliberate choice, never an accident. See _Load check_ above.
 - When MAP is null, follow `mapWarning` before prescribing %MAP-anchored work.
-- **Don't author structured workouts in this skill.** Plan and discuss freely here, but any _write_ of a session to Intervals.icu must go through the matching skill (invoke it with the Skill tool): **bike/run** — `create_workout` or a `steps`-bearing `update_event` — through `plan-workout` (library-first, then its forked `compose-workout` build: syntax cheatsheet, power-conversion, head-unit ramp-splitting); **gym/strength** — `create_strength_workout` — through `plan-strength-training` (season-phase dose, placement rules, then its forked `compose-strength-session` build: exercise selection by stimulus-to-fatigue ratio). Calling the write tools directly skips all of that. Delegation is cheap: the matching skill reuses the `get_coaching_context` snapshot and personal files you've already loaded this session rather than re-fetching. Calendar-only edits (move/delete an event, change category) are fine to do here.
+- **Don't author structured workouts in this skill.** Plan and discuss freely here, but any _write_ of a session to Intervals.icu must go through the matching skill (invoke it with the Skill tool): **bike/run** — `create_workout` or a `steps`-bearing `update_event` — through `plan-workout` (library-first, then its forked `compose-workout` build: syntax cheatsheet, power-conversion, head-unit ramp-splitting); **gym/strength** — `create_strength_workout` — through `plan-strength-training` (season-phase dose, placement rules, exercise selection by stimulus-to-fatigue ratio, shown to the athlete before it writes — no fork, no barrier). Calling the write tools directly skips all of that. Delegation is cheap: the matching skill reuses the `get_coaching_context` snapshot and personal files you've already loaded this session rather than re-fetching. Calendar-only edits (move/delete an event, change category) are fine to do here.

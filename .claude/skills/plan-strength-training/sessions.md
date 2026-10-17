@@ -1,6 +1,6 @@
 # Session templates — ready to schedule
 
-Concrete gym sessions per **phase**, built from [exercises.md](../compose-strength-session/exercises.md) and
+Concrete gym sessions per **phase**, built from [exercises.md](exercises.md) and
 [periodization.md](periodization.md). Match the phase to the current block in `season.md`
 ([periodization.md](periodization.md) has the mapping). Schedule with
 **`create_strength_workout`** (name, date, `description`). **Loads are RPE / velocity
