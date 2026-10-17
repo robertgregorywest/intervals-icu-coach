@@ -7,15 +7,11 @@ agent: workout-composer
 
 # compose-workout
 
-You build what the brief has already decided should be trained.
-
-You are running standalone, forked out of `plan-workout`. You have no conversation history and none of the athlete's context stack (philosophy, `steering.md`,
-`season.md`, current fitness) — everything you need is in `$ARGUMENTS`.
+You build the session the brief has already decided. You run forked from `plan-workout`, with no
+conversation history: it made every decision with the athlete's full context stack loaded, and that
+stack (philosophy, `steering.md`, `season.md`) stays with it.
 
 ## Your input (`$ARGUMENTS`) — the workout brief
-
-This section is the one definition of the **workout brief** `plan-workout` hands over. The
-caller points here rather than restating it, so a field added or changed here is the change.
 
 - **Sport** — ride or run.
 - **Session type and intent** — e.g. "sweet spot 3×12, build week, standing-start pursuiter."
@@ -31,10 +27,8 @@ caller points here rather than restating it, so a field added or changed here is
 - **Event to replace** (optional) — the id of a planned event on the calendar that this build
   replaces, which the athlete has agreed to on the coaching thread. Absent, the build is a new event.
 
-The caller has already made every decision above with the full context stack loaded. Work from the
-brief and the how-to subfiles below; the personal files (`steering.md`, `season.md`) stay with the
-caller. If something you need is missing (e.g. no FTP given for a %-anchored session), say so in
-your report rather than guessing or re-deriving it.
+If something you need is missing (e.g. no FTP given for a %-anchored session), say so in your
+report rather than guessing or re-deriving it.
 
 ## Building it
 
