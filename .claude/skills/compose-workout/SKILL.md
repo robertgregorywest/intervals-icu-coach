@@ -8,15 +8,14 @@ agent: workout-composer
 # compose-workout
 
 You build the session the brief has already decided. You run forked from `plan-workout`, with no
-conversation history: it made every decision with the athlete's full context stack loaded, and that
-stack (philosophy, `steering.md`, `season.md`) stays with it.
+conversation history: it made every decision with the athlete's full context stack loaded.
 
 ## Your input (`$ARGUMENTS`) — the workout brief
 
 - **Sport** — ride or run.
 - **Session type and intent** — e.g. "sweet spot 3×12, build week, standing-start pursuiter."
-- **Block context** — current block and its intent, and anything from `steering.md` that overrides
-  default philosophy for this session.
+- **Block context** — current block and its intent, anything from `steering.md` that overrides
+  default philosophy for this session, and, for race-prep, the target event and its demands.
 - **Constraints** — weekly caps, placement rules, an injury flag.
 - **Anchors** — FTP/MAP and the relevant zone bands.
 - **Recent load** — today's CTL/ATL/TSB and any readiness flag (fatigue, soreness, poor sleep). It

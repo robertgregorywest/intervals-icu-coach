@@ -27,7 +27,7 @@ Driven by event demands — not a fixed template, though the library's `Coach: R
 - Pursuit / TT specific: 3×6m at race power (~MAP 95–98%) with full recovery.
 - Crit / road race specific: race-pace tempo with hard efforts on top (5×30s @ 130% on a Z2 ride).
 
-Pull race details from `docs/personal/season.md`; shape the session around demands.
+Shape the session around the target event's demands, which the brief carries.
 
 ## Recovery
 
