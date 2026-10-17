@@ -22,7 +22,8 @@ The framework underneath every decision. One line each; the rationale is in the 
 1. **Consistency** — progress compounds from showing up; frequency over heroics. Have a "minimum
    viable week" and a plan B. → [consistency.md](consistency.md)
 2. **Structure** — sessions serve a bigger picture; default to a pyramidal mix; progress one
-   variable at a time. → [structure.md](structure.md)
+   variable at a time. → [structure.md](structure.md); inside four weeks of an A race the build
+   rules invert → [peaking.md](peaking.md)
 3. **Recovery** — adaptation happens between sessions; easy must be truly easy; plan rest. For
    masters, recovery quality is the rate-limiter. → [recovery.md](recovery.md)
 4. **Strength** — non-optional past 35; low-rep heavy, whole body; periodised with the season.
@@ -65,6 +66,9 @@ How to think about training trade-offs.
   its **time in the 76–106% FTP band** (tempo through threshold, stated with its block-length floor),
   load number second. Watch for **polarisation by subtraction** — volume and CTL rising while the
   middle quietly empties. → [structure.md](structure.md)
+- **Session design serves the block goal, not the open questions.** A measurement thread informs
+  _why_ a session is shaped as it is, never why it exists; an actionable finding becomes a standing
+  cue in the workout text (a cadence target on race-pace reps), not a test to pass.
 - **Durability > fresh peak** (late-ride / back-half power) when forced to choose.
 - **Frequency over duration** when life is busy — preserve the rhythm.
 - **Masters: recovery quality is the rate-limiter** — protect it before adding load.

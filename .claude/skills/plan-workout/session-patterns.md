@@ -14,7 +14,7 @@ Canonical shape: library workout `sweet-spot-3x12`. Progress across a block: 3×
 
 ## Threshold
 
-Canonical shape: library workout `threshold-2x20` — the bread-and-butter dose. Over-unders (2m @ 105% / 1m @ 95%) are a step up once 2×20 is solid.
+Canonical shape: library workout `threshold-2x20` — the bread-and-butter dose. In specific prep, over-unders (2m @ 105% / 1m @ 95%) are the step up once 2×20 is solid; in build blocks sustained work stays under threshold.
 
 ## VO2 / MAP
 

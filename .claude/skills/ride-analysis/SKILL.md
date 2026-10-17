@@ -1,6 +1,6 @@
 ---
 name: ride-analysis
-description: Quantitative deep-dive on one or more Intervals.icu activities — stream pulls, matched-window comparisons, decoupling, CP/W' fits, ramp-test validation. Invoked by coaching-session when a question needs raw time-series across activities; a single figure off a single ride stays on the coaching thread.
+description: Quantitative deep-dive on one or more Intervals.icu activities — stream pulls, matched-window comparisons, decoupling, CP/W' fits, ramp-test validation, track lap power. Invoked by coaching-session when a question needs raw time-series across activities; a single figure off a single ride stays on the coaching thread.
 context: fork
 agent: ride-analyst
 ---
@@ -9,70 +9,68 @@ agent: ride-analyst
 
 You compute; the caller interprets.
 
-You are running standalone, forked out of a coaching session. You have no conversation history and
-none of the athlete's context stack (philosophy, `steering.md`, `season.md`, `coaching-log.md`) —
-everything you need is in `$ARGUMENTS`. Your job is to turn raw activity streams into the handful of
-numbers the caller needs, and to be explicit about how you got them.
+You are running standalone, forked out of a coaching session, with no conversation history.
+Everything you need is in `$ARGUMENTS`: the question — the figures asked for and the activity IDs
+involved — and anything already known that bears on the computation, such as a prior figure to
+compare against. Turn raw activity data into the handful of numbers the caller needs, each with its
+**basis**: the record it was read from and the arithmetic applied to it.
 
-## Your input (`$ARGUMENTS`)
+## Pulling data
 
-- **The question** — the figures asked for and the activity ID(s) involved.
-- **Anything already known** that bears on the computation (e.g. a prior figure to compare against).
+Read `docs/agents/icu-cli.md` (from the project root) before your first CLI call. You run at its
+**Read-only** tier. Stream work nearly always takes a second pass, so save every stream payload to
+the scratchpad and compute from the file.
 
-## Before you compute
+## Measurement rules
 
-Read `docs/personal/steering.md` — the three **Measurement discipline** sections are binding on
-your output. The rules that bite most often:
+These decide the basis of every figure you return.
 
-- **Device laps before derived windows.** If the activity carries recorded laps for the effort,
-  read the effort off those laps. Never substitute a threshold-derived window when a lap exists.
-- **Outdoor efforts: normalised power, with the coasting fraction beside it.** Average watts alone
-  understates a long outdoor step, and the error grows with step length. Point targets stay on
-  average watts.
-- **Cite the activity ID** beside any figure that depends on the session's conditions.
-- **Decoupling is only comparable between rides matched on opening intensity** — compare the same
-  elapsed window from each ride's start, and check the opening averages agree before quoting a delta.
-- **Track work: the SRM is the reference.** Modelled power is not a measurement.
-- **Timed laps come from the record, not from the streams.** A timed track session is stored in
-  `docs/personal/track/`; `list_track_sessions` says what is on file and `get_track_session` returns
-  the lap table with speed, cadence, the flying portion, the opening/closing segments, the decline
-  and the Σv² pacing figures, all computed from the timing export. `compare_track_sessions` builds a
-  head-to-head. **Do not re-derive lap times from GPS or speed streams when a record exists** — the
-  helper's lap timer is the measurement and the streams are not accurate enough to reproduce it.
-  Power for those laps still comes from the SRM, joined by `compute_track_lap_power` — pass it
-  `sessionId` rather than pasting the export, and it takes the splits, the activity and the lap
-  length from the record.
+- **An effort's window is its device lap.** Read it from `get_activity_laps` and slice the streams
+  on the lap's `startSeconds`/`elapsedSeconds`. Intervals.icu's detected intervals are the fallback
+  when no lap exists; a window thresholded off the power stream is the last resort, and is named as
+  derived beside the figure. Average power forgives a clipped window; the opening, the quarters and
+  the fade do not, and those are usually the finding.
+- **A device lap's average reads a little above the same window re-averaged from the stream, and
+  both are right.** The head unit averages over `timerSeconds` while the lap spans `elapsedSeconds`:
+  same energy, smaller denominator (605 W against 598 W over one 60 s lap). Quote the lap figure for
+  execution and say so; the gap is not a clipped window.
+- **Outdoors, quote normalised power with the coasting fraction beside it.** Every coasting second
+  counts as zero in an average, and a long block cannot avoid junctions and descents, so the gap
+  grows with step length — a 25-min block coasting 12% read 164 W average against 185 W NP. Near-zero
+  coasting means the two agree. A point target — a step whose intent is to hold one exact number —
+  stays on average watts.
+- **Read a ride's conditions from its fields.** `type` (`Ride` / `VirtualRide`), `trainer`, and the
+  `distance` and `total_elevation_gain` a road ride carries settle indoor or out in one
+  `get_activities` call. Cite the activity ID beside any figure whose meaning depends on them.
+- **Decoupling compares only between rides matched on opening intensity.** It divides a late
+  power:HR ratio by an early one, so a harder opening inflates it with no change in the athlete.
+  Take the same elapsed window from each ride's start, confirm the opening averages agree, and give
+  the HR drift and closing power beside the percentage.
 
-## How to pull data
+Two branches carry rules of their own. Read the file before computing on that branch:
 
-Read `docs/agents/icu-cli.md` (from the project root) before your first CLI call — working
-directory, piping, which streams to request. You run at its **Read-only** tier.
-
-**Save each stream payload to the scratchpad, then compute from the file** — stream work nearly
-always takes a second pass:
-
-```
-cd <repo root> && \
-  ./bin/icu get_activity_streams --json '{"id":"iNNNNNNNNN","types":["watts","heartrate"]}' \
-  > "$SCRATCHPAD/iNNNNNNNNN.json"
-```
+- **Track** — any velodrome session, lap times, SRM power, modelled power: `track.md` (this skill's
+  folder).
+- **Power models** — CP/W′ fits, W′ balance, power-curve points, ramp tests: `power-models.md`
+  (this skill's folder).
 
 ## What to return
 
-A short report, numbers first. Include:
+A short report, numbers first:
 
 1. **The figures asked for**, each with the activity ID it came from.
-2. **The basis** — device laps or a derived window; full resolution or downsampled and at what
-   stride; NP or average watts, and the coasting fraction for outdoor efforts.
+2. **The basis** — device laps, detected intervals or a derived window; full resolution or
+   downsampled and at what stride; NP or average watts, with the coasting fraction for outdoor
+   efforts; the model behind any modelled figure.
 3. **Anything that would make a figure not mean what it appears to mean** — an unmatched opening
    intensity, a lap boundary that clips an effort, a stride coarse enough to blur a short rep, a
-   ride whose conditions differ from the one it is being compared against. This is the highest-value
-   thing you produce: a number the caller trusts wrongly is worse than no number.
+   ride whose conditions differ from the one it is compared against, a margin smaller than the
+   uncertainty of the conversion that produced it. This is the highest-value thing you produce: a
+   number the caller trusts wrongly is worse than no number.
 
-**Never return raw streams or long JSON.** If a figure needs a hundred samples to justify, plot the
-shape in words ("steps 333/339/365/368/409/420 W, final step ridden to completion") rather than
-pasting the array.
+Describe a shape in words ("steps 333/339/365/368/409/420 W, final step ridden to completion")
+rather than pasting the samples behind it; raw streams and long JSON stay in the scratchpad.
 
 **State what the data shows and stop there** — training advice, session design and any verdict on
-the athlete's fitness are the caller's, made with the context stack loaded. If a computation is ambiguous — two defensible windows, a fit that is
-poorly constrained — say so and give both, rather than silently choosing.
+the athlete's fitness are the caller's. If a computation is ambiguous — two defensible windows, a
+poorly constrained fit — give both and say why, rather than choosing silently.

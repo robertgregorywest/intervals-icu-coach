@@ -39,6 +39,6 @@ ride on a hot day with light fuelling isn't a base-fitness signal.
 - Route the **durability check** in [testing.md](testing.md) through this tool when a long steady
   ride is available, instead of eyeballing fresh-vs-late power.
 - A trend of rising decoupling across a block on comparable rides (similar duration, terrain,
-  temperature) is the actionable signal — more so than any single ride's number.
+  temperature, opening intensity) is the actionable signal — more so than any single ride's number.
 - Persistent > 10% decoupling on well-fuelled, well-paced long rides argues for more Z2 volume
   before adding intensity, consistent with the pyramidal-default bias.

@@ -20,8 +20,20 @@ that says fitness is up. The specific failure mode to watch for is **polarisatio
 the middle band is evacuated, the hours reappear as endurance, the HIT dose never changes, and total
 volume and CTL both _rise_. Nothing in a load-based dashboard flags it.
 
+**Build the middle from below.** Most in-band time sits at tempo (76–88% FTP), below sweetspot — in
+the athlete's strongest years, about two-thirds of it. Heavy-domain work buys the most accumulable
+dose per unit of recovery for a masters athlete, and pursuit/MAP work keeps the ceiling trained, so
+fractional utilisation is what the middle builds. Sustained _supra_threshold work (over-unders,
+100–110% FTP) is a specific-prep and pre-TT delivery tool, not a base ingredient.
+
+**When time is short, cut hours and keep the dose.** A week that holds its in-band time on less
+riding keeps most of the engine — an efficient fallback, not a free lunch, since base hours on top
+add something of their own. The reverse trade, hours kept and in-band time cut, is polarisation by
+subtraction: power falls at every duration from 20 min up while CTL rises.
+
 In build blocks, HIT/track work is a _maintenance_ dose and the hard-day budget goes to the sustained
-middle; specific-prep and sharpening blocks deliberately flip that emphasis.
+middle; specific-prep and sharpening blocks deliberately flip that emphasis, and the last four weeks before
+an A race invert the build rules outright ([peaking.md](peaking.md)).
 
 **Count the band, not just the session.** A session count can be met with scattered surges that
 never accumulate. Track in-band time per week as the primary number and the session counts as the
