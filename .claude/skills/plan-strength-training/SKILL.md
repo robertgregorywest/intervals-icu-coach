@@ -94,11 +94,3 @@ lifts. Read the season's **actual** strength target, limiters, and current block
 `docs/personal/season.md` (with `steering.md` overrides) — it changes through the year, don't assume.
 How the dose shifts block-to-block is the off↔in-season model in
 [periodization.md](periodization.md); ready-to-run templates are in [sessions.md](sessions.md).
-
-## Provenance
-
-Distilled from ~100 posts by **Chris Peden (@chr1speden)** — S&C coach for the Decathlon CMA CGM
-WorldTour team, owner of Combined Athletic Performance — downloaded to
-`docs/personal/instagram/chr1speden/` (gitignored). This is one experienced practitioner's
-evidence-informed method, not a peer-reviewed protocol — treat it as a strong, coherent coaching
-lens, and let the athlete's own response and the `coaching-philosophy` skill arbitrate on conflict.
