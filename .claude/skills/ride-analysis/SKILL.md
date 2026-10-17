@@ -30,10 +30,6 @@ These decide the basis of every figure you return.
   when no lap exists; a window thresholded off the power stream is the last resort, and is named as
   derived beside the figure. Average power forgives a clipped window; the opening, the quarters and
   the fade do not, and those are usually the finding.
-- **A device lap's average reads a little above the same window re-averaged from the stream, and
-  both are right.** The head unit averages over `timerSeconds` while the lap spans `elapsedSeconds`:
-  same energy, smaller denominator (605 W against 598 W over one 60 s lap). Quote the lap figure for
-  execution and say so; the gap is not a clipped window.
 - **Outdoors, quote normalised power with the coasting fraction beside it.** Every coasting second
   counts as zero in an average, and a long block cannot avoid junctions and descents, so the gap
   grows with step length — a 25-min block coasting 12% read 164 W average against 185 W NP. Near-zero

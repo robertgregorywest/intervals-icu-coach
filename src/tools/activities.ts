@@ -192,6 +192,9 @@ export const getActivityLapsTool = defineTool({
     "where no planned event exists for compare_planned_vs_actual. " +
     "Per lap: startSeconds (offset from first lap), elapsedSeconds, timerSeconds, distanceMeters, " +
     "avgWatts, npWatts, maxWatts, avgHr, avgCadence. " +
+    "avgWatts is the device's own average over timerSeconds while the lap spans elapsedSeconds, so it reads a little above " +
+    "the same window re-averaged from get_activity_streams (same energy, smaller denominator) — both are right; " +
+    "quote the lap figure for execution, and take points for a CP/W′ fit from get_power_curve. " +
     "Returns: { record: 'device-laps' | 'absent', note?, count, laps: [...] }. " +
     "record 'absent' (e.g. Strava-synced, no FIT file) returns no laps and a reason; nothing derived is substituted.",
   schema: getActivityLapsSchema,
