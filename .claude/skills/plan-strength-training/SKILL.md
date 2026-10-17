@@ -1,17 +1,13 @@
 ---
 name: plan-strength-training
-description: Plan a gym / strength session on Intervals.icu — decide block dose, template tier and placement, fill in the exercises and schedule it — and reason about how strength supports the bike. Use when the user asks to plan, build, schedule, or review a gym / strength / lifting / S&C session, mentions squats/deadlifts/step-ups/jumps, asks how many gym sessions to run, or how strength transfers to the standing start or the pursuit.
+description: Plan, schedule or review a gym / strength session on Intervals.icu, and reason about how strength supports the bike. Use when the user asks for a gym / lifting / S&C session, mentions squats/deadlifts/step-ups/jumps, asks how many gym sessions to run, or how strength transfers to the standing start or the pursuit.
 ---
 
 # plan-strength-training
 
 Strength-and-conditioning skill for the `intervals-icu-coach` project. Decides the gym session,
-agrees it with the athlete and schedules it as a `WeightTraining` event.
-
-The method here is distilled from **Chris Peden (@chr1speden)** — S&C coach for the Decathlon CMA
-CGM WorldTour team, owner of Combined Athletic Performance — whose whole message is: strength
-_serves_ the endurance goal, and the coach's real job is deciding what **not** to prescribe. It is
-the operational "how"; the durable "why" lives in the `coaching-philosophy` skill's
+agrees it with the athlete and schedules it as a `WeightTraining` event. It is the operational
+"how"; the durable "why" lives in the `coaching-philosophy` skill's
 [strength pillar](../coaching-philosophy/strength.md).
 
 ## Session-start moves
@@ -53,8 +49,7 @@ Readiness OK + which bike days are hard this week?
 Pick the template tier for the phase                       → sessions.md
     │
     ▼
-Place it right (stack on a hard ride day; never before track;
-    never a HI bike day after heavy lifting)
+Place it right                                             → Constraints
     │
     ▼
 Fill the template in by stimulus-to-fatigue ratio          → exercises.md
@@ -102,7 +97,8 @@ How the dose shifts block-to-block is the off↔in-season model in
 
 ## Provenance
 
-Source: ~100 posts from @chr1speden downloaded to `docs/personal/instagram/chr1speden/` (gitignored)
-and distilled here. This is one experienced practitioner's evidence-informed method, not a
-peer-reviewed protocol — treat it as a strong, coherent coaching lens, and let the athlete's own
-response and the `coaching-philosophy` skill arbitrate on conflict.
+Distilled from ~100 posts by **Chris Peden (@chr1speden)** — S&C coach for the Decathlon CMA CGM
+WorldTour team, owner of Combined Athletic Performance — downloaded to
+`docs/personal/instagram/chr1speden/` (gitignored). This is one experienced practitioner's
+evidence-informed method, not a peer-reviewed protocol — treat it as a strong, coherent coaching
+lens, and let the athlete's own response and the `coaching-philosophy` skill arbitrate on conflict.

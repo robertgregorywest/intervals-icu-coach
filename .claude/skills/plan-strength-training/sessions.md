@@ -2,9 +2,8 @@
 
 Concrete gym sessions per **phase**, built from [exercises.md](exercises.md) and
 [periodization.md](periodization.md). Match the phase to the current block in `season.md`
-([periodization.md](periodization.md) has the mapping). Schedule with
-**`create_strength_workout`** (name, date, `description`). **Loads are RPE / velocity
-auto-regulated — never fixed kg** (SKILL.md Constraints). Adapt the pick to the athlete's readiness, limiters, and
+([periodization.md](periodization.md) has the mapping). **Loads are RPE / velocity auto-regulated —
+never fixed kg** (SKILL.md Constraints). Adapt the pick to the athlete's readiness, limiters, and
 equipment; these are starting points, not a fixed programme.
 
 Every session: **6–8 min general warm-up + ramp-up sets** on the first heavy lift; **maximal
@@ -89,12 +88,8 @@ Trap-Bar Deadlift    2×2   @ RPE 7   (crisp heavy singles/doubles, well short o
 
 ---
 
-## Scheduling notes
+## Auto-regulating on the day
 
-- **Placement + date:** ask which bike/track days are hard this week (or `get_events`) before picking
-  a date — placement is a hard constraint (see SKILL.md Constraints).
-- **Auto-regulate on the day:** if readiness/HRV is down (`get_coaching_context`), cut the last set of
-  each exercise or drop RPE by a point — a session that wrecks tomorrow's key ride is the worse error.
-- **Recovery weeks:** halve the sets or skip the second session.
-- **`externalId`** the event (e.g. `strength-2026-08-05`) so re-scheduling upserts rather than
-  duplicates.
+If readiness/HRV is down (`get_coaching_context`), cut the last set of each exercise or drop RPE by
+a point — a session that wrecks tomorrow's key ride is the worse error. Recovery-week cuts are in
+[periodization.md](periodization.md).

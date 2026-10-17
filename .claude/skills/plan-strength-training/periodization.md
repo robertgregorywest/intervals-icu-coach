@@ -64,9 +64,8 @@ Read the **current block, its strength frequency, and phase intent** from `docs/
 
 ## Placement within the week
 
-Placement is a hard constraint, governed by the **`coaching-philosophy` execution rules** (stack on a
-hard ride day; no HI bike day after heavy lifting; never before track; two-a-days weekends/WFH only) —
-summarised in SKILL.md Constraints. Two strength-specific applications:
+Placement is a hard constraint — the rules are in SKILL.md Constraints. Two strength-specific
+applications:
 
 - With **2×/week**, both gym sessions usually land on or beside the two weekend quality days.
 - **Recovery weeks** (every 3–4 build weeks) cut gym volume too — drop a session or halve the sets.
