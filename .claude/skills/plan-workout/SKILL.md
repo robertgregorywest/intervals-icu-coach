@@ -5,8 +5,6 @@ description: Plan a single cycling/running workout on Intervals.icu — decide t
 
 # plan-workout
 
-Workout-planning skill for the `intervals-icu-coach` project. Activates when the user asks for a workout — planning, building, scheduling, designing intervals — for Intervals.icu.
-
 ## Decide here, build in the fork
 
 This skill decides _what_ to build — the session for the day, and whether a library workout fits —

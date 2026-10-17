@@ -5,9 +5,8 @@ description: Plan, schedule or review a gym / strength session on Intervals.icu,
 
 # plan-strength-training
 
-Strength-and-conditioning skill for the `intervals-icu-coach` project. Decides the gym session,
-agrees it with the athlete and schedules it as a `WeightTraining` event. It is the operational
-"how"; the durable "why" lives in the `coaching-philosophy` skill's
+Decides the gym session, agrees it with the athlete and schedules it as a `WeightTraining`
+event. It is the operational "how"; the durable "why" lives in the `coaching-philosophy` skill's
 [strength pillar](../coaching-philosophy/strength.md).
 
 ## Session-start moves
