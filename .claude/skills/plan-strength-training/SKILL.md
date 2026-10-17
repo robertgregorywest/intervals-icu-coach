@@ -6,23 +6,13 @@ description: Plan a gym / strength session on Intervals.icu — decide block dos
 # plan-strength-training
 
 Strength-and-conditioning skill for the `intervals-icu-coach` project. Decides the gym session,
-agrees it with the athlete and schedules it as a `WeightTraining` event. It is the strength sibling
-of `plan-workout` (which handles bike/run workouts).
+agrees it with the athlete and schedules it as a `WeightTraining` event.
 
 The method here is distilled from **Chris Peden (@chr1speden)** — S&C coach for the Decathlon CMA
 CGM WorldTour team, owner of Combined Athletic Performance — whose whole message is: strength
 _serves_ the endurance goal, and the coach's real job is deciding what **not** to prescribe. It is
 the operational "how"; the durable "why" lives in the `coaching-philosophy` skill's
 [strength pillar](../coaching-philosophy/strength.md).
-
-## Decide, draft, confirm, write — all here
-
-Unlike `plan-workout`, there is no forked build. A gym session is a few free-text lines, and what
-goes into them — a substitution for a niggle, a set cut for a readiness flag, a lift left out before
-track — is coaching judgement that needs the season, philosophy and log context loaded here. So
-block, frequency, intent, readiness, template tier, placement _and_ the exercise lines are all
-decided in this conversation, shown to the athlete, and written once they agree. The same holds
-whether you arrived from a `coaching-session` or the athlete asked you directly.
 
 ## Session-start moves
 
