@@ -37,6 +37,8 @@ const getSubmaxFatigueTestsOutputSchema = z.object({
       finalBpm: z.number(),
       efficiencyFactor: z.number(),
       hrrc: z.number().nullable(),
+      rpe: z.number().nullable(),
+      tteMins: z.number().nullable(),
       averageTemp: z.number().nullable(),
       indoor: z.boolean(),
       valid: z.boolean(),
@@ -69,11 +71,16 @@ export const getSubmaxFatigueTestsTool = defineTool({
     "range — fixed power for a few minutes, read as end-of-test HR — one row " +
     `per non-ignored test on ${SFT_SPORT_TYPE_LIST}, oldest first, from one ` +
     "activity-list read (no streams). Ignored tests give no row and are " +
-    "counted in summary.ignored. efficiencyFactor is averageWatts / finalBpm " +
-    "(the test's end HR), not the ride's icu_efficiency_factor. hrrc null " +
-    "means no recovery window was captured, never a recovery of 0. " +
+    "counted in summary.ignored. finalBpm is mean HR over the test's last " +
+    "minute. efficiencyFactor is averageWatts / finalBpm, not the ride's " +
+    "icu_efficiency_factor. hrrc null means Intervals.icu saw too little HR " +
+    "drop after the test to measure one (the athlete kept riding), never a " +
+    "recovery of 0. rpe (Intervals.icu's 1–10 scale) and tteMins (minutes " +
+    "longer the athlete reckons the target could have been held) are what " +
+    "the athlete logged in the test's dialog, null when unlogged. " +
     "averageTemp is the head unit's own sensor, °C. indoor is a VirtualRide " +
-    "or a trainer ride. valid means comparable with the series: outdoor, " +
+    "or a trainer ride. valid means comparable with the series: outdoor, a " +
+    "power (not pace) test, " +
     `average power within ${SFT_POWER_TOLERANCE_PCT}% of target and CV ≤ ` +
     `${SFT_MAX_CV}; invalidReasons says which failed. baseline is the valid ` +
     `tests at the same target from ${SFT_BASELINE_DAYS} days before the test ` +
@@ -87,7 +94,8 @@ export const getSubmaxFatigueTestsTool = defineTool({
     `${SFT_TREND_MIN_TESTS} tests; a note also appears when the range spans ` +
     "more than one target. " +
     "Returns: { oldest, newest, lookbackFrom, tests: [{ date, activityId, " +
-    "target, averageWatts, cv, finalBpm, efficiencyFactor, hrrc, averageTemp, " +
+    "target, averageWatts, cv, finalBpm, efficiencyFactor, hrrc, rpe, " +
+    "tteMins, averageTemp, " +
     "indoor, valid, invalidReasons, baseline: { count, meanBpm, sdBpm }, " +
     "deviationBpm, deviationNote? }], summary: { count, valid, ignored, " +
     "indoor, trendBpmPerWeek, trendTarget, trendTests, trendNote? } }.",

@@ -98,6 +98,8 @@ describe("getSubmaxFatigueTests", () => {
         finalBpm: 154,
         efficiencyFactor: 1.86,
         hrrc: null,
+        rpe: null,
+        tteMins: null,
         averageTemp: 15.8,
         indoor: false,
         valid: false,
@@ -118,6 +120,17 @@ describe("getSubmaxFatigueTests", () => {
       "2026-11-16"
     );
     expect(tests[0].hrrc).toBe(31);
+  });
+
+  it("reports the athlete's logged rpe and tteMins", async () => {
+    const { analysis } = analysisOver([
+      ride("2026-11-16", { rpe: 5, tte_mins: 12 }),
+    ]);
+    const { tests } = await analysis.getSubmaxFatigueTests(
+      "2026-11-16",
+      "2026-11-16"
+    );
+    expect(tests[0]).toMatchObject({ rpe: 5, tteMins: 12 });
   });
 
   it("gives null averageTemp when the head unit recorded none", async () => {
@@ -179,6 +192,15 @@ describe("getSubmaxFatigueTests", () => {
     it("refuses power 2.1% off target", async () => {
       const { row } = await one({ average_watts: 306.3 });
       expect(row.invalidReasons).toEqual(["power 2.1% over target (limit 2%)"]);
+    });
+
+    it("refuses a pace test without a power check", async () => {
+      const { row } = await one({
+        type: "PACE",
+        average_watts: 0,
+        target: 4.2,
+      });
+      expect(row.invalidReasons).toEqual(["detected by PACE, not power"]);
     });
 
     it("refuses a CV of 10.1", async () => {

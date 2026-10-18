@@ -17,6 +17,8 @@
         "finalBpm": 154,
         "efficiencyFactor": 1.86,
         "hrrc": null,
+        "rpe": null,
+        "tteMins": null,
         "averageTemp": 15.8,
         "indoor": false,
         "valid": false,

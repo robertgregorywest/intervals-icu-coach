@@ -56,8 +56,12 @@ export interface SubmaxFatigueTestRow {
   cv: number;
   finalBpm: number;
   efficiencyFactor: number;
-  /** HR recovery; `null` when no recovery window was captured. */
+  /** HR recovery; `null` when Intervals.icu measured none. */
   hrrc: number | null;
+  /** The athlete's logged RPE (1–10); `null` when unlogged. */
+  rpe: number | null;
+  /** The athlete's logged time-to-exhaustion estimate, minutes; `null` when unlogged. */
+  tteMins: number | null;
   averageTemp: number | null;
   indoor: boolean;
   valid: boolean;
@@ -138,12 +142,16 @@ function toDetected(activity: Activity): Detected {
   const indoor = activity.type === "VirtualRide" || activity.trainer === true;
   const invalidReasons: string[] = [];
   if (indoor) invalidReasons.push("indoor");
+  // A PACE test's target is m/s and its average_watts 0, so the power check
+  // below would refuse it for the wrong reason.
+  const power = test.type === "POWER";
+  if (!power) invalidReasons.push(`detected by ${test.type}, not power`);
   // Compared in watts × 100 so a test exactly on the limit is not pushed over
   // it by a float division.
   const offWatts = test.average_watts - test.target;
   if (
-    Math.abs(offWatts) * 100 >
-    SFT_POWER_TOLERANCE_PCT * Math.abs(test.target)
+    power &&
+    Math.abs(offWatts) * 100 > SFT_POWER_TOLERANCE_PCT * Math.abs(test.target)
   ) {
     const pct = (Math.abs(offWatts) / test.target) * 100;
     invalidReasons.push(
@@ -164,9 +172,12 @@ function toDetected(activity: Activity): Detected {
       cv: round(test.cv, 2),
       finalBpm: test.final_bpm,
       efficiencyFactor: round(test.efficiency_factor, 2),
-      // Intervals.icu writes hrrc 0 when it captured no recovery window; that
-      // is "not measured", never a recovery of 0 bpm.
+      // Intervals.icu writes hrrc 0 when the HR drop after the test was too
+      // small to measure (the athlete kept riding); that is "not measured",
+      // never a recovery of 0 bpm. rpe and tte_mins are 0 until logged.
       hrrc: test.end_index_hrrc ? test.hrrc : null,
+      rpe: test.rpe || null,
+      tteMins: test.tte_mins || null,
       averageTemp:
         typeof activity.average_temp === "number"
           ? round(activity.average_temp, 1)

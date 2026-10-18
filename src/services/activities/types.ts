@@ -34,10 +34,13 @@ export interface Activity {
 
 /**
  * A submaximal fatigue test as the activity list carries it. Only the fields
- * read here are typed; `hrrc` stays 0 with `end_index_hrrc` 0 when no recovery
- * window was captured, so 0 there means "not measured", not a recovery of 0.
+ * read here are typed. Unset fields come back 0, not null: `hrrc` with
+ * `end_index_hrrc` 0 (Intervals.icu saw too little HR drop to measure — the
+ * athlete kept riding), and `rpe` / `tte_mins` until the athlete logs them in
+ * the test's dialog.
  */
 export interface SubmaxFatigueTest {
+  /** `POWER` or `PACE` — the sport's "Detect Using" setting. */
   type: string;
   start_index: number;
   end_index: number;
@@ -45,9 +48,15 @@ export interface SubmaxFatigueTest {
   duration: number;
   average_watts: number;
   cv: number;
+  /** Mean HR over the test's last minute, not its last sample. */
   final_bpm: number;
   hrrc: number;
+  /** Watts on a `POWER` test, m/s on a `PACE` one. */
   target: number;
+  /** Intervals.icu's 1–10 scale, logged after the test; 0 when unlogged. */
+  rpe: number;
+  /** Minutes longer the athlete reckons the target could have been held; 0 when unlogged. */
+  tte_mins: number;
   /** `average_watts / final_bpm` — not the ride-level `icu_efficiency_factor`. */
   efficiency_factor: number;
   ignore: boolean;
