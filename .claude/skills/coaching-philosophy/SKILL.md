@@ -31,7 +31,7 @@ The framework underneath every decision. One line each; the rationale is in the 
 5. **Nutrition** — fuel the work required; carbs periodised to demand; protein spread across the
    day. → [nutrition.md](nutrition.md)
 6. **Durability** — what matters is the power held at hour 3, not fresh FTP; built over months.
-   → [durability.md](durability.md); measure it objectively with [decoupling.md](decoupling.md).
+   Measure it objectively with aerobic decoupling. → [durability.md](durability.md)
 
 ## Intensity anchor
 
@@ -85,7 +85,7 @@ When and how to retest. → [testing.md](testing.md)
   activity with "(skip)".
 - **FTP/threshold benchmark** early in each build and again mid-build.
 - **Durability check** — fresh vs. late-ride (after 2–3 h) sweetspot every block or two; or run
-  `get_aerobic_decoupling` on a qualifying steady long ride. → [decoupling.md](decoupling.md)
+  `get_aerobic_decoupling` on a qualifying steady long ride. → [durability.md](durability.md)
 - **On-track** — 2 km IP time-trial and schedule-paced efforts to track pacing and the standing
   start.
 

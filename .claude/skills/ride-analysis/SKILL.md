@@ -39,7 +39,7 @@ These decide the basis of every figure you return.
   `distance` and `total_elevation_gain` a road ride carries settle indoor or out in one
   `get_activities` call. Cite the activity ID beside any figure whose meaning depends on them.
 - **Decoupling compares only between rides matched on opening intensity.** It divides a late
-  power:HR ratio by an early one, so a harder opening inflates it with no change in the athlete.
+  HR:power ratio by an early one, so a harder opening inflates it with no change in the athlete.
   Take the same elapsed window from each ride's start, confirm the opening averages agree, and give
   the HR drift and closing power beside the percentage.
 

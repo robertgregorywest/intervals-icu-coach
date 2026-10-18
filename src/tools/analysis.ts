@@ -86,7 +86,10 @@ export const getAerobicDecouplingTool = defineTool({
     "Calculate aerobic decoupling (Pw:Hr ratio) for an activity. " +
     "Compares HR:power ratio between first and second halves of a ride. " +
     "<5% = good aerobic fitness, 5-10% = developing, >10% = needs work. " +
-    "Useful for assessing aerobic base fitness from steady-state efforts. " +
+    "The halves split the whole recording, warm-up included, so the figure reads aerobic fitness only " +
+    "on a steady Z1–Z2 ride of ~60–90 min or more without surges (climbs, intervals, attacks); under ~40 min " +
+    "there is too little drift to read, and on a variable ride the halves differ in demand, not efficiency. " +
+    "A coasting second with HR counts as zero watts, so more coasting in one half shifts the figure outdoors. " +
     "Returns: { firstHalf, secondHalf, decouplingPercent, interpretation }.",
   schema: getAerobicDecouplingSchema,
   annotations: READ_ONLY,
