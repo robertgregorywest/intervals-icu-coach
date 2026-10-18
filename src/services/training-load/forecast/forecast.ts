@@ -32,6 +32,19 @@ import type {
  */
 const UNMODELLED_SPORTS = new Set(["WeightTraining"]);
 
+/**
+ * Calendar entries that are training. Everything else — notes, holidays,
+ * sickness and injury spans, season markers — is a marker with no sport and no
+ * load, and is not a session: costing one yields a phantom "underivable" entry
+ * on its first day, and a null sport the output schema rejects.
+ */
+const SESSION_CATEGORIES = new Set<string>([
+  "WORKOUT",
+  "RACE_A",
+  "RACE_B",
+  "RACE_C",
+]);
+
 const STRENGTH_NOTE =
   "Strength sessions contribute no load, matching Intervals.icu, which assigns " +
   "none either. A block running two gym sessions a week is therefore " +
@@ -182,7 +195,7 @@ export class TrainingLoadForecast {
     const replaced = new Set(proposed.map((p) => p.date));
 
     const planned = events
-      .filter((e) => e.category !== "NOTE")
+      .filter((e) => SESSION_CATEGORIES.has(e.category))
       .map((e) => ({ event: e, date: e.start_date_local.slice(0, 10) }))
       .filter(
         ({ date }) => date >= oldest && date <= newest && !replaced.has(date)

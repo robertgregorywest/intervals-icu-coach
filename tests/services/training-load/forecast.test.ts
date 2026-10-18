@@ -15,6 +15,7 @@ import { createAthleteAnchors } from "../../../src/services/athlete-anchors/inde
 import { createMap } from "../../../src/services/map/index.js";
 import type { IActivitiesApi } from "../../../src/services/activities/index.js";
 import type { IPowerCurvesApi } from "../../../src/services/power-curves/index.js";
+import { forecastTrainingLoadTool } from "../../../src/tools/training-load-forecast.js";
 import { createWorkoutParser } from "../../../src/services/workout-parser/index.js";
 
 const FIXTURE = JSON.parse(
@@ -132,6 +133,24 @@ const ride = (
   start_date_local: `${date}T00:00:00`,
   description: "- 60m 200w",
   ...extra,
+});
+
+/** A calendar marker as Intervals.icu returns it: a span, no sport, no load. */
+const marker = (
+  category: string,
+  name: string,
+  start: string,
+  end: string
+): Record<string, unknown> => ({
+  id: 2,
+  category,
+  type: null,
+  name,
+  start_date_local: `${start}T00:00:00`,
+  end_date_local: `${end}T00:00:00`,
+  description: null,
+  icu_training_load: null,
+  moving_time: null,
 });
 
 describe("forecast — deriving a session's load", () => {
@@ -255,6 +274,56 @@ describe("forecast — merging with the calendar", () => {
       }
     );
     expect(result.sessions).toHaveLength(0);
+  });
+
+  it("ignores a holiday, which spans days and carries no sport", async () => {
+    const { result } = await run(
+      {},
+      { events: [marker("HOLIDAY", "Japan trip", "2026-08-11", "2026-08-14")] }
+    );
+    expect(result.sessions).toHaveLength(0);
+    expect(result.days.every((d) => d.load === 0)).toBe(true);
+  });
+
+  it.each(["SICK", "INJURED", "SEASON_START"])(
+    "ignores a %s marker, which is not a session",
+    async (category) => {
+      const { result } = await run(
+        {},
+        { events: [marker(category, "Marker", "2026-08-11", "2026-08-12")] }
+      );
+      expect(result.sessions).toHaveLength(0);
+    }
+  );
+
+  it("keeps the sessions around a holiday and leaves its days empty", async () => {
+    const { result } = await run(
+      {},
+      {
+        events: [
+          ride("2026-08-10", { icu_training_load: 70 }),
+          marker("HOLIDAY", "Japan trip", "2026-08-11", "2026-08-14"),
+          ride("2026-08-14", { icu_training_load: 50 }),
+        ],
+      }
+    );
+    expect(result.sessions.map((s) => s.date)).toEqual([
+      "2026-08-10",
+      "2026-08-14",
+    ]);
+    const loads = result.days.map((d) => d.load);
+    expect(loads.slice(0, 5)).toEqual([70, 0, 0, 0, 50]);
+  });
+
+  it("returns a payload the tool's output schema accepts when a holiday is on the calendar", async () => {
+    const { result } = await run(
+      {},
+      { events: [marker("HOLIDAY", "Japan trip", "2026-08-11", "2026-08-14")] }
+    );
+    const payload = JSON.parse(JSON.stringify(result));
+    expect(() =>
+      forecastTrainingLoadTool.outputSchema.parse(payload)
+    ).not.toThrow();
   });
 
   it("ignores work outside the window", async () => {
