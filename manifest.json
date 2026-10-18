@@ -121,6 +121,9 @@
       "name": "get_middle_band_trend"
     },
     {
+      "name": "get_submax_fatigue_tests"
+    },
+    {
       "name": "get_coaching_context"
     },
     {

@@ -6,4 +6,5 @@ export type {
   ActivityIntervalsDoc,
   ActivityStreams,
   IntervalWrite,
+  SubmaxFatigueTest,
 } from "./types.js";

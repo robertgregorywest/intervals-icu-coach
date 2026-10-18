@@ -23,6 +23,34 @@ export interface Activity {
   paired_event_id?: number | null;
   /** Intervals.icu's own scalar compliance figure (percent) for a paired activity. */
   compliance?: number | null;
+  /** Set on indoor rides; absent (not `false`) on most outdoor ones. */
+  trainer?: boolean | null;
+  /** Mean temperature from the head unit's own sensor, °C. */
+  average_temp?: number | null;
+  /** The submaximal fatigue test Intervals.icu detected in this ride, if any. */
+  submax_fatigue_test?: SubmaxFatigueTest | null;
+  [key: string]: unknown;
+}
+
+/**
+ * A submaximal fatigue test as the activity list carries it. Only the fields
+ * read here are typed; `hrrc` stays 0 with `end_index_hrrc` 0 when no recovery
+ * window was captured, so 0 there means "not measured", not a recovery of 0.
+ */
+export interface SubmaxFatigueTest {
+  type: string;
+  start_index: number;
+  end_index: number;
+  end_index_hrrc: number;
+  duration: number;
+  average_watts: number;
+  cv: number;
+  final_bpm: number;
+  hrrc: number;
+  target: number;
+  /** `average_watts / final_bpm` — not the ride-level `icu_efficiency_factor`. */
+  efficiency_factor: number;
+  ignore: boolean;
   [key: string]: unknown;
 }
 

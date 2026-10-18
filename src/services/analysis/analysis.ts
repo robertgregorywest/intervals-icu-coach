@@ -2,6 +2,14 @@ import type { IActivitiesApi } from "../activities/index.js";
 import { computeAerobicDecoupling } from "./decoupling.js";
 import type { DecouplingResult } from "./decoupling.js";
 import { compareIntervals } from "./intervals.js";
+import {
+  MAX_SFT_RANGE_DAYS,
+  SFT_BASELINE_DAYS,
+  readSubmaxFatigueTests,
+} from "./submax-fatigue.js";
+import type { SubmaxFatigueTestsResult } from "./submax-fatigue.js";
+import { dateRange } from "../../shared/date-range.js";
+import { shiftDate } from "../../shared/dates.js";
 import type {
   CompareIntervalsResult,
   IntervalFilterOptions,
@@ -13,6 +21,14 @@ export interface IActivityAnalysis {
     activityIds: string[],
     options?: IntervalFilterOptions
   ): Promise<CompareIntervalsResult>;
+  /**
+   * The submaximal fatigue tests in `oldest..newest`, each against its
+   * baseline, from one activity-list read reaching `SFT_BASELINE_DAYS` earlier.
+   */
+  getSubmaxFatigueTests(
+    oldest: string,
+    newest: string
+  ): Promise<SubmaxFatigueTestsResult>;
 }
 
 export interface ActivityAnalysisDeps {
@@ -44,6 +60,20 @@ export function createActivityAnalysis(
         activityIds.map((id) => activitiesApi.getActivity(id, true))
       );
       return compareIntervals(activities, options);
+    },
+
+    async getSubmaxFatigueTests(oldest, newest) {
+      dateRange(oldest, newest, {
+        maxDays: MAX_SFT_RANGE_DAYS,
+        why:
+          `Each test's baseline reaches ${SFT_BASELINE_DAYS} days earlier, ` +
+          "inside the activity list's own cap.",
+      });
+      const activities = await activitiesApi.getActivities(
+        shiftDate(oldest, -SFT_BASELINE_DAYS),
+        newest
+      );
+      return readSubmaxFatigueTests(activities, oldest, newest);
     },
   };
 }

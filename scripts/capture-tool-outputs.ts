@@ -67,6 +67,7 @@ const ARGS: Record<string, Record<string, unknown>> = {
   },
   get_training_week_summary: { weekStart: "2026-09-28" },
   get_middle_band_trend: { oldest: "2026-08-03", newest: "2026-10-03" },
+  get_submax_fatigue_tests: { oldest: "2026-09-28", newest: "2026-10-11" },
   get_coaching_context: {},
   forecast_training_load: { oldest: "2026-10-03", newest: "2026-10-17" },
 };

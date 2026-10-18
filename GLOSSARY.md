@@ -146,6 +146,14 @@ _Avoid_: **Projection** (a Tool as one Adapter offers it), prediction
 The fitness and fatigue a Forecast starts from, as delivered on the day before it.
 _Avoid_: starting CTL, baseline
 
+**Submaximal fatigue test (SFT)**:
+A fixed power held for a few minutes inside an easy ride — 300 W × 3 min in the warm-up — that Intervals.icu detects and records with its end-of-test HR. Read as a trend: end HR at the same power falling over weeks, or rising against its recent baseline.
+_Avoid_: sub-maximal test, HR test, fatigue test (alone)
+
+**SFT baseline**:
+The valid SFTs at the same target from 28 days before a test to the day before it. A test is valid — comparable with the series — when it is outdoor, within 2% of its target power and at CV ≤ 10.
+_Avoid_: average HR, norm
+
 ## Workout library
 
 The athlete's curated workouts, kept as tracked templates and copied onto Intervals.icu, and how any workout reaches the calendar.

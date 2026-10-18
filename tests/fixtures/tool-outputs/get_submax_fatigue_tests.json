@@ -1,0 +1,44 @@
+{
+  "args": {
+    "oldest": "2026-09-28",
+    "newest": "2026-10-11"
+  },
+  "output": {
+    "oldest": "2026-09-28",
+    "newest": "2026-10-11",
+    "lookbackFrom": "2026-08-31",
+    "tests": [
+      {
+        "date": "2026-10-04",
+        "activityId": "i193367898",
+        "target": 300,
+        "averageWatts": 287,
+        "cv": 9.04,
+        "finalBpm": 154,
+        "efficiencyFactor": 1.86,
+        "hrrc": null,
+        "averageTemp": 15.8,
+        "indoor": false,
+        "valid": false,
+        "invalidReasons": ["power 4.3% under target (limit 2%)"],
+        "baseline": {
+          "count": 0,
+          "meanBpm": null,
+          "sdBpm": null
+        },
+        "deviationBpm": null,
+        "deviationNote": "Invalid test — not compared with its baseline."
+      }
+    ],
+    "summary": {
+      "count": 1,
+      "valid": 0,
+      "ignored": 0,
+      "indoor": 0,
+      "trendBpmPerWeek": null,
+      "trendTarget": null,
+      "trendTests": 0,
+      "trendNote": "No valid tests in range; 4 needed."
+    }
+  }
+}

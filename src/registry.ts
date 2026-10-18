@@ -29,6 +29,7 @@ import {
   getAerobicDecouplingTool,
   compareIntervalsTool,
 } from "./tools/analysis.js";
+import { getSubmaxFatigueTestsTool } from "./tools/submax-fatigue.js";
 import { computePowerProfileTool } from "./tools/power-profile.js";
 import { comparePlannedVsActualTool } from "./tools/session-review.js";
 import { compareIntensityDistributionTool } from "./tools/intensity-distribution.js";
@@ -90,6 +91,7 @@ export const TOOLS: ToolDef[] = [
   compareTrackSessionsTool,
   getTrainingWeekSummaryTool,
   getMiddleBandTrendTool,
+  getSubmaxFatigueTestsTool,
   getCoachingContextTool,
   forecastTrainingLoadTool,
 ];
