@@ -1,10 +1,9 @@
 # Steering
 
 Personal overrides on top of the tracked `coaching-philosophy` skill. This layer is **yours** and
-**gitignored** — it adjusts or supersedes the shared philosophy for your situation, and **wins on
-conflict**. Keep it thin: durable beliefs about training belong _in_ the philosophy skill (promote
-them up when they prove out); block-scoped plans belong in `season.md`; rules for computing or reading a number belong in the
-`ride-analysis` skill.
+**gitignored**, and **wins on conflict**. It holds what is true for you beyond this season and names
+the philosophy rule it changes or adds to. Every other fact has another home — see
+`context-files.md` in the `coaching-session` skill. Proven beliefs graduate up into the philosophy.
 
 An empty steering file is fine — it means "follow the philosophy as written."
 

@@ -260,7 +260,7 @@ What a wheel speed sensor recorded. A cross-check, not the reference; the Lap-sp
 How the coaching skills know the athlete, decide what to train, and hand that decision to the skill that builds it.
 
 **Coaching-context stack**:
-The four layers a coaching session reads, most durable first — Coaching philosophy, Steering, Season, Coaching log — where a later layer wins on conflict and a fact moves up as it proves durable.
+The four layers a coaching session reads, most durable first — Coaching philosophy, Steering, Season, Coaching log — where a later layer wins on conflict, each fact has one home chosen by how long it stays true, and a fact moves up as it proves durable.
 _Avoid_: athlete state (the live FTP, MAP, zones and load, which is not a layer)
 
 **Coaching philosophy**:
@@ -268,11 +268,11 @@ The athlete's durable training principles: foundational pillars, intensity ancho
 _Avoid_: season plan, preferences
 
 **Steering**:
-One athlete's personal overrides on the Coaching philosophy.
+One athlete's overrides, additional emphasis and experiments on the Coaching philosophy: what holds for them beyond one season.
 _Avoid_: philosophy (for one athlete's deviations), preferences
 
 **Season**:
-The current block's context: race calendar, macro structure, block constraints.
+What is dated or true only this season: race calendar, macro structure, targets, test dates, this season's additions to the rules.
 _Avoid_: plan, periodisation (alone)
 
 **Coaching log**:

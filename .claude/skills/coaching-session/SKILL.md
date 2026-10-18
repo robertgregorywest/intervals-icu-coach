@@ -92,7 +92,7 @@ Keep `coaching-log.md` current so future sessions inherit this one's decisions a
 - **Local write, not delegated.** Writing the log is a local file edit — it does **not** go through `plan-workout`. (When a session also persists a workout, that persistence delegates to `plan-workout`; the log checkpoint fires here afterward.)
 - **Review findings are logged as patterns and threads, not verdicts.** A pattern the review surfaced — with the sessions evidencing it and the decision taken — is loggable. Per-step verdicts are not: they're re-derivable from Intervals.icu. A pattern worth watching beyond this session opens a header thread with the condition that would close it, so the next review tests it explicitly.
 - **Advance the watermark on write.** `reviewed-through` moves to the date the review reported as part of a confirmed log write, never before — see [coaching-log-format.md](coaching-log-format.md).
-- **Format + maintenance.** Entry/header schema, the watermark, the 12-week compaction window, thread retirement, promoting durable facts up to `season.md`, and the commit live in [coaching-log-format.md](coaching-log-format.md) — read it at the checkpoint before writing.
+- **Format + maintenance.** Entry/header schema, the watermark, the 12-week compaction window, thread retirement, promoting durable facts out of the log, and the commit live in [coaching-log-format.md](coaching-log-format.md) — read it at the checkpoint before writing.
 - **Done = durable.** `docs/personal/` is a private git repo, so a written log that is never committed is a log that exists on one machine. The checkpoint completes when
 
   ```
@@ -104,7 +104,7 @@ Keep `coaching-log.md` current so future sessions inherit this one's decisions a
 ## Constraints
 
 - Never invent FTP or MAP — always derive from `get_coaching_context`.
-- **Keep `season.md` plan-level.** Running execution-state — current-block marker, momentary CTL/TSB readings, in-flight niggles and decisions — belongs in `coaching-log.md`, not `season.md`. Compute the current block live from the macro table + today's date. Durable outcomes (race results, confirmed benchmarks, lasting patterns) are promoted _up_ to `season.md` — see [coaching-log-format.md](coaching-log-format.md).
+- **Writing `season.md` or `steering.md`** — an edit, a block-boundary tidy, a new season: read [context-files.md](context-files.md) first. It gives every fact one home and the checks the write must pass. Compute the current block live from the macro table + today's date; a block that has changed since the last write is the cue for the tidy.
 - Honor the execution rules in the `coaching-philosophy` skill (Z2 caps, high-intensity scheduling, recovery week cadence, fueling rules) — unless `docs/personal/steering.md` overrides them, in which case follow steering and say so.
 - Season position from `season.md` governs what kind of work is appropriate — don't prescribe VO2 in a recovery week.
 - **Show projected load with every plan.** State the week's projected CTL ramp vs the `season.md` target before the athlete signs off — an under-target build week may be right, but only as a visible, deliberate choice, never an accident. See _Load check_ above.

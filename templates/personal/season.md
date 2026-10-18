@@ -1,6 +1,8 @@
 # Current season
 
-Revise yearly, or whenever the macro structure shifts.
+Holds what is dated or true only this season: calendar, blocks, targets, test dates, this season's
+additions to the rules. Every other fact has another home — see `context-files.md` in the
+`coaching-session` skill. Revise yearly; tidy at each block boundary.
 
 ## Calendar
 
