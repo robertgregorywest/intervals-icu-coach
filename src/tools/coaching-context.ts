@@ -95,18 +95,21 @@ export const getCoachingContextTool = defineTool({
   name: "get_coaching_context",
   description:
     "Get a single snapshot of the athlete's current coaching state — profile " +
-    "(FTP, LTHR, max/resting HR, weight, power/HR zones), today's fitness " +
+    "(FTP, LTHR, max/resting HR, weight, HR/pace zones), today's fitness " +
     "(CTL, ATL, TSB, ramp rate), a wellness trend (default 7d, max 30d) " +
     "with subjective metrics (fatigue, soreness, motivation, mood, sleep), " +
-    "and a derived MAP (Maximal Aerobic Power) value. " +
+    "a derived MAP (Maximal Aerobic Power) value, and mapZones — MAP-anchored " +
+    "watt bands (REC / L1–L7 / NMP), the canonical coaching zones. " +
+    "ftp is the static profile FTP. Intervals.icu's own FTP power zones are " +
+    "deliberately left out; get_athlete still carries them. " +
     "MAP is computed as the best-60s power from the most recent activity " +
-    'whose name starts with "MAP ramp test" in the last 90 days. To exclude ' +
+    'whose name starts with "MAP ramp test" (case-insensitive) in the last 90 days. To exclude ' +
     'a botched test, rename the activity in Intervals.icu to include "(skip)". ' +
-    "If no qualifying test is found, map is null and mapWarning explains. " +
+    "If no qualifying test is found, map and mapZones are null and mapWarning explains. " +
     "Call this at session start to ground workout decisions in current state " +
     "rather than juggling get_athlete + get_wellness + get_fitness_summary " +
     "yourself. " +
-    "Returns: { asOf, daysWindow, athlete, fitness, wellnessTrend, map, mapWarning? }.",
+    "Returns: { asOf, daysWindow, athlete, fitness, wellnessTrend, map, mapZones, mapWarning? }.",
   schema: getCoachingContextSchema,
   annotations: READ_ONLY,
   outputSchema: getCoachingContextOutputSchema,

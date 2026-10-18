@@ -172,7 +172,8 @@ export const forecastTrainingLoadTool = defineTool({
     "Strength sessions contribute no load, matching the platform. " +
     "Every result states its basis (FTP, time constants, seed) and every " +
     "session states where its load came from — never mistake a forecast " +
-    "figure for one the platform computed. " +
+    "figure for one the platform computed. A session whose source is " +
+    "'underivable' contributes nothing — a gap in the week, not a zero. " +
     "Window max " +
     MAX_FORECAST_DAYS +
     " days. " +

@@ -116,7 +116,9 @@ export const getPowerCurveTool = defineTool({
     'Example: range="r.2026-01-01.2026-03-31" for Q1 2026. ' +
     "Pass secs (e.g. [60, 120, 180, 300, 1200]) to get just those durations, matched to the nearest curve point. " +
     "By default the response is thinned to secs/watts/activity_id + powerModels; full=true returns the raw ~24 kB curve. " +
-    "Essential for identifying strengths/weaknesses and setting training targets. " +
+    "Each point is the best effort ridden at that duration, so it reads the athlete's ability only where a " +
+    "maximal attempt at that duration exists in the range — check the activity_id behind it. A point set by " +
+    "a ramp test or a ride that never went all-out there is a floor, not a limit. " +
     "Returns: { points: { list: [{ secs[], watts[], activity_id[], powerModels, ... }], activities } } (or a truncation envelope if too large).",
   schema: getPowerCurveSchema,
   annotations: READ_ONLY,

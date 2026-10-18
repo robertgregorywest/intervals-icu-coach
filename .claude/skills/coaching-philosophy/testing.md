@@ -2,9 +2,8 @@
 
 When and how to retest.
 
-- **MAP ramp** every 6–8 weeks or at mesocycle starts. The activity-naming mechanics that make MAP
-  surface in `get_coaching_context` (`MAP ramp test` prefix, `(skip)` to exclude a botched one) live
-  in the `plan-workout` skill.
+- **MAP ramp** every 6–8 weeks or at mesocycle starts. How a ramp is named so MAP surfaces, and
+  how to exclude a botched one, is in `get_coaching_context`'s description.
 - **FTP/threshold benchmark** early in each build and again mid-build. (Which metric is the season's
   _priority_ is season-scoped — see `docs/personal/season.md`.)
 - **Durability check** — fresh vs. late-ride sweetspot (after 2–3 h) every block or two.

@@ -81,8 +81,7 @@ How to think about training trade-offs.
 
 When and how to retest. → [testing.md](testing.md)
 
-- **MAP ramp** every 6–8 weeks or at mesocycle starts. Exclude botched tests by renaming the
-  activity with "(skip)".
+- **MAP ramp** every 6–8 weeks or at mesocycle starts.
 - **FTP/threshold benchmark** early in each build and again mid-build.
 - **Durability check** — fresh vs. late-ride (after 2–3 h) sweetspot every block or two; or run
   `get_aerobic_decoupling` on a qualifying steady long ride. → [durability.md](durability.md)

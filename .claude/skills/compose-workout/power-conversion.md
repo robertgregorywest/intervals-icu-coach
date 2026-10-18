@@ -12,11 +12,9 @@ This applies to _calendar_ writes. Workout templates in `templates/workouts/` ar
 
 ## Conversion
 
-Pull `ftp` and `map.watts` from `get_coaching_context`:
+Pull `ftp` and `map.watts` from `get_coaching_context`, and for zone-based prescriptions its **`mapZones`** — the canonical coaching zones. Its description says how each is derived.
 
-- **`map.watts`** is derived server-side; `map.computedFrom` shows which activity it came from.
-- If `map` is null, `mapWarning` will say so. Ask the athlete for a current MAP estimate before prescribing %MAP-anchored work; do not invent a value.
-- `ftp` is the static profile FTP. For zone-based prescriptions use **`mapZones`** from `get_coaching_context` — MAP-anchored watt bands (REC / L1–L7 / NMP) that match the coaching philosophy. Intervals.icu's native FTP/Coggan zones are intentionally **not** in the coaching context; they remain on `get_athlete` if ever needed.
+- If `map` is null, follow `mapWarning`: ask the athlete for a current MAP estimate before prescribing %MAP-anchored work; do not invent a value.
 
 **Pattern**: anchor × pct = watts, rounded to nearest 5 W.
 
