@@ -11,13 +11,31 @@ User regularly shares Instagram posts with cycling/coaching insights (e.g. @know
 
 The user message contains an `instagram.com/p/<shortcode>/` URL **and** asks for analysis, reading, or integration into the project. If the user is just sharing a link without asking for analysis, ask first.
 
+## Setup
+
+Needs `gallery-dl` and `jq`, plus a logged-in Instagram cookie — anonymous requests get a login redirect, then `429 Too Many Requests`.
+
+- **Laptop:** `brew install gallery-dl jq`. Cookies come from Chrome (`--cookies-from-browser chrome`).
+- **Cloud session** (`CLAUDE_CODE_REMOTE=true`): no browser, so the cookie comes from the `INSTAGRAM_SESSIONID` environment variable — the value of the `sessionid` cookie for instagram.com, copied from Chrome DevTools → Application → Cookies and stored in the cloud environment's settings. Never ask the user to paste it into chat. Run this once per session before the command:
+
+  ```bash
+  command -v gallery-dl >/dev/null || uv tool install gallery-dl || pip install --user gallery-dl
+  [ -n "${INSTAGRAM_SESSIONID:-}" ] || echo "INSTAGRAM_SESSIONID is not set — stop and ask the user to add it to the environment"
+  mkdir -p ~/.config/gallery-dl && chmod 700 ~/.config/gallery-dl
+  printf '# Netscape HTTP Cookie File\n.instagram.com\tTRUE\t/\tTRUE\t0\tsessionid\t%s\n' \
+    "$INSTAGRAM_SESSIONID" > ~/.config/gallery-dl/instagram-cookies.txt
+  ```
+
+  Then use `COOKIES=(--cookies ~/.config/gallery-dl/instagram-cookies.txt)` in the command below. If `INSTAGRAM_SESSIONID` is missing, stop and tell the user — don't fall back to `WebFetch`.
+
 ## The command
 
 ```bash
 SC=<shortcode>   # the path segment after /p/ in the URL
+COOKIES=(--cookies-from-browser chrome)   # cloud: see Setup
 mkdir -p docs/personal/instagram/$SC
 gallery-dl -D docs/personal/instagram/$SC --write-metadata \
-  --cookies-from-browser chrome \
+  "${COOKIES[@]}" \
   "https://www.instagram.com/p/$SC/"
 ```
 
@@ -52,7 +70,9 @@ Use **absolute paths** for everything below — see the "do not cd" note in _Wha
 
 ## Cookie troubleshooting
 
-`gallery-dl --cookies-from-browser chrome` reads Chrome's encrypted cookie DB on macOS. Two failure modes:
+In the cloud, a login redirect means `INSTAGRAM_SESSIONID` has expired — ask the user to copy a fresh `sessionid` into the environment settings and start a new session.
+
+On the laptop, `gallery-dl --cookies-from-browser chrome` reads Chrome's encrypted cookie DB on macOS. Two failure modes:
 
 1. **HTTP redirect to login** — your stored cookies are stale or expired. Open Chrome, visit instagram.com, confirm you're logged in, retry.
 2. **Command hangs with no output** — Chrome is running and has the cookie DB locked. Ask the user to fully quit Chrome (Cmd+Q, not just close window) and retry.
