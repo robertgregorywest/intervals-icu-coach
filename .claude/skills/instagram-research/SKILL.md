@@ -50,18 +50,6 @@ Use **absolute paths** for everything below — see the "do not cd" note in _Wha
 2. **Read each image in slide order** with the `Read` tool (multimodal). Transcribe the substantive text and describe any charts/diagrams before summarising.
 3. **Cite sources visible on the slides** (e.g. "Vaccari et al. 2020", "Odden et al. 2024") so the user can verify the underlying paper before you change project code.
 
-## Where insights typically land
-
-Cycling/coaching IG posts almost always map to one of these:
-
-- **`/.claude/skills/plan-workout/session-patterns.md`** — a new named session template (e.g. "preloaded short intermittents"). Most common landing spot.
-- **`/.claude/skills/compose-workout/power-conversion.md`** — only if the post changes how %MAP / %FTP / Z-zones get translated to watts.
-- **`src/services/workout-library/seed.ts`** — if the new pattern is canonical enough to ship as a seeded library workout. Carry a `<!-- rationale … -->` block so it stays refreshable when MAP/FTP change.
-- **`/.claude/skills/compose-workout/syntax-cheatsheet.md`** — only if the post changes how workout text is written (syntax, step labels, cadence). Rare.
-- **`docs/adr/`** — if the post nudges an architectural decision (e.g. a new computed athlete-state field). Rare.
-
-Default: prefer adding a named pattern to `session-patterns.md` over carving new code paths. The pattern can be invoked by the `plan-workout` skill without server changes.
-
 ## Cookie troubleshooting
 
 `gallery-dl --cookies-from-browser chrome` reads Chrome's encrypted cookie DB on macOS. Two failure modes:
