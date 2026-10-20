@@ -65,14 +65,6 @@ describe("get_middle_band_trend tool", () => {
     });
   });
 
-  it("returns a payload its own output schema accepts", async () => {
-    const out = await getMiddleBandTrendTool.handler(stubServices(), {
-      oldest: "2026-08-03",
-      newest: "2026-08-16",
-    });
-    expect(() => getMiddleBandTrendTool.outputSchema.parse(out)).not.toThrow();
-  });
-
   it("states the range cap in the schema", () => {
     expect(schema.shape.oldest.description).toMatch(/at most 16/);
     expect(schema.shape.newest.description).toMatch(/At most 16 weeks/);

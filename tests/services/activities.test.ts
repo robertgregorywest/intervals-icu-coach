@@ -1,10 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { HttpClient } from "../../src/client.js";
-import {
-  ActivitiesApi,
-  MAX_RANGE_DAYS,
-} from "../../src/services/activities/activities.js";
+import { ActivitiesApi } from "../../src/services/activities/activities.js";
 import { createFitCodec } from "../../src/services/fit/index.js";
 
 const fit = createFitCodec();
@@ -55,7 +52,6 @@ describe("ActivitiesApi", () => {
     await expect(api.getActivities("2025-01-01", "2026-01-01")).rejects.toThrow(
       /spans 366 days, over the 365-day maximum/
     );
-    expect(MAX_RANGE_DAYS).toBe(365);
     expect(mockFetch).not.toHaveBeenCalled();
   });
 

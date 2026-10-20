@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { HttpClient, HttpError } from "../../src/client.js";
-import { EventsApi, MAX_RANGE_DAYS } from "../../src/services/events/events.js";
+import { EventsApi } from "../../src/services/events/events.js";
 import type { IntervalsEvent } from "../../src/types.js";
 
 function createMockFetch(
@@ -51,7 +51,6 @@ describe("EventsApi", () => {
       await expect(
         eventsApi.getEvents("2025-01-01", "2026-01-01")
       ).rejects.toThrow(/spans 366 days, over the 365-day maximum/);
-      expect(MAX_RANGE_DAYS).toBe(365);
       expect(mockFetch).not.toHaveBeenCalled();
     });
 

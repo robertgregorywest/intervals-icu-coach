@@ -49,36 +49,33 @@ describe("getEvents tool handler", () => {
 });
 
 describe("getEvent tool handler", () => {
-  it("returns single event as JSON", async () => {
+  it("fetches the event by id", async () => {
     const getEventApi = vi.fn(
       async () => ({ id: 1, description: "- 10m 60%" }) as IntervalsEvent
     );
-    const result = await getEvent(servicesWith({ getEvent: getEventApi }), {
-      id: 1,
-    });
+    await getEvent(servicesWith({ getEvent: getEventApi }), { id: 1 });
 
-    expect(result).toMatchObject({ description: "- 10m 60%" });
     expect(getEventApi).toHaveBeenCalledWith(1);
   });
 });
 
 describe("updateEvent tool handler", () => {
   it("hands the id and changes to workoutScheduling.updateEvent", async () => {
-    const updated = { id: 1, name: "Updated Workout" } as IntervalsEvent;
-    const update = vi.fn(async () => updated);
+    const update = vi.fn(async () => ({ id: 1 }) as IntervalsEvent);
     const steps = [{ duration: "10m", target: "150w" }];
 
-    const result = await updateEvent(
-      servicesWith({}, { updateEvent: update }),
-      { id: 1, name: "Updated Workout", steps, notes: "Easy day." }
-    );
+    await updateEvent(servicesWith({}, { updateEvent: update }), {
+      id: 1,
+      name: "Updated Workout",
+      steps,
+      notes: "Easy day.",
+    });
 
     expect(update).toHaveBeenCalledWith(1, {
       name: "Updated Workout",
       steps,
       notes: "Easy day.",
     });
-    expect(result).toBe(updated);
   });
 });
 

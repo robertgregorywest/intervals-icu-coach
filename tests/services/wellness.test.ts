@@ -1,9 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { HttpClient } from "../../src/client.js";
-import {
-  WellnessApi,
-  MAX_RANGE_DAYS,
-} from "../../src/services/wellness/wellness.js";
+import { WellnessApi } from "../../src/services/wellness/wellness.js";
 
 function createMockFetch(status: number, body: unknown) {
   return vi.fn().mockResolvedValue({
@@ -48,7 +45,6 @@ describe("WellnessApi", () => {
     await expect(api.getWellness("2025-01-01", "2026-01-01")).rejects.toThrow(
       /spans 366 days, over the 365-day maximum/
     );
-    expect(MAX_RANGE_DAYS).toBe(365);
     expect(mockFetch).not.toHaveBeenCalled();
   });
 

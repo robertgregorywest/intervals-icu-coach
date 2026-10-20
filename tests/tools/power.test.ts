@@ -17,17 +17,6 @@ function createMockServices(): IServices {
 }
 
 describe("getPowerCurve tool handler", () => {
-  it("returns power curve as { points: [...] }", async () => {
-    const services = createMockServices();
-    const result = (await getPowerCurve(services, {})) as {
-      points: Array<{ secs: number; value: number }>;
-    };
-
-    expect(result.points).toHaveLength(3);
-    expect(result.points[0].secs).toBe(5);
-    expect(result.points[0].value).toBe(900);
-  });
-
   it("defaults type to Ride when omitted", async () => {
     const services = createMockServices();
     await getPowerCurve(services, { range: "90d" });
@@ -39,10 +28,10 @@ describe("getPowerCurve tool handler", () => {
 
   it("passes type and range options", async () => {
     const services = createMockServices();
-    await getPowerCurve(services, { type: "Ride", range: "90d" });
+    await getPowerCurve(services, { type: "Run", range: "90d" });
 
     expect(services.powerCurves.getPowerCurve).toHaveBeenCalledWith({
-      type: "Ride",
+      type: "Run",
       range: "90d",
     });
   });

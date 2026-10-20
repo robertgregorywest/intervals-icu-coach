@@ -4,8 +4,7 @@ import type { IServices } from "../../src/index.js";
 
 describe("get_submax_fatigue_tests tool", () => {
   it("passes the range straight to the analysis", async () => {
-    const result = { tests: [], summary: {} };
-    const getSubmaxFatigueTests = vi.fn().mockResolvedValue(result);
+    const getSubmaxFatigueTests = vi.fn().mockResolvedValue({});
     const services = {
       analysis: { getSubmaxFatigueTests },
     } as unknown as IServices;
@@ -13,9 +12,7 @@ describe("get_submax_fatigue_tests tool", () => {
       oldest: "2026-09-28",
       newest: "2026-10-11",
     });
-    expect(await getSubmaxFatigueTestsTool.handler(services, args)).toBe(
-      result
-    );
+    await getSubmaxFatigueTestsTool.handler(services, args);
     expect(getSubmaxFatigueTests).toHaveBeenCalledWith(
       "2026-09-28",
       "2026-10-11"

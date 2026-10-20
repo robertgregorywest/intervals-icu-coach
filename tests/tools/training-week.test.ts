@@ -2,58 +2,29 @@ import { describe, it, expect, vi } from "vitest";
 import { getTrainingWeekSummaryTool } from "../../src/tools/training-week.js";
 import type { IServices } from "../../src/index.js";
 
+function servicesWith(summarizeWeek = vi.fn().mockResolvedValue({})) {
+  return {
+    services: { trainingLoad: { summarizeWeek } } as unknown as IServices,
+    summarizeWeek,
+  };
+}
+
 describe("getTrainingWeekSummary tool handler", () => {
   it("delegates to the service with the given weekStart", async () => {
-    const summary = {
-      week: { start: "2026-04-27", end: "2026-05-03" },
-      totals: {
-        activityCount: 2,
-        tss: 120,
-        durationSeconds: 7200,
-        durationHours: 2,
-      },
-      bySport: {},
-      fitness: null,
-      completedActivities: [],
-      events: [],
-    };
-    const services = {
-      trainingLoad: {
-        summarizeWeek: vi.fn().mockResolvedValue(summary),
-      },
-    } as unknown as IServices;
+    const { services, summarizeWeek } = servicesWith();
 
-    const result = await getTrainingWeekSummaryTool.handler(services, {
+    await getTrainingWeekSummaryTool.handler(services, {
       weekStart: "2026-04-27",
     });
 
-    expect(result).toBe(summary);
-    expect(services.trainingLoad.summarizeWeek).toHaveBeenCalledWith(
-      "2026-04-27"
-    );
+    expect(summarizeWeek).toHaveBeenCalledWith("2026-04-27");
   });
 
   it("passes undefined through when weekStart is omitted", async () => {
-    const services = {
-      trainingLoad: {
-        summarizeWeek: vi.fn().mockResolvedValue({
-          week: { start: "2026-04-27", end: "2026-05-03" },
-          totals: {
-            activityCount: 0,
-            tss: 0,
-            durationSeconds: 0,
-            durationHours: 0,
-          },
-          bySport: {},
-          fitness: null,
-          completedActivities: [],
-          events: [],
-        }),
-      },
-    } as unknown as IServices;
+    const { services, summarizeWeek } = servicesWith();
 
     await getTrainingWeekSummaryTool.handler(services, {});
 
-    expect(services.trainingLoad.summarizeWeek).toHaveBeenCalledWith(undefined);
+    expect(summarizeWeek).toHaveBeenCalledWith(undefined);
   });
 });

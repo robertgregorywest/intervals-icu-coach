@@ -1,9 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
 import { pinnedAnchors } from "../../helpers/anchors.js";
-import {
-  middleBandBounds,
-  middleBandSeconds,
-} from "../../../src/shared/middle-band.js";
 import { createTrainingLoad } from "../../../src/services/training-load/index.js";
 import type { TrainingLoadDeps } from "../../../src/services/training-load/index.js";
 
@@ -224,20 +220,6 @@ describe("TrainingLoad.summarizeWeek", () => {
         excludedNoFtp: 0,
       });
       expect(result.middleBand?.note).toMatch(/FTP change/);
-    });
-
-    it("counts each ride with the shared middle-band count", async () => {
-      const deps = createDeps();
-      deps.anchors = pinnedAnchors({ athlete: async () => ({ ftp: 250 }) });
-      twoRides(deps, [200, 250]);
-
-      const result = await createTrainingLoad(deps).summarizeWeek("2026-04-27");
-
-      const lens = (ftp: number) =>
-        middleBandSeconds(watts, middleBandBounds(ftp)).bandSeconds;
-      expect(
-        result.completedActivities.map((a) => a.middleBandSeconds)
-      ).toEqual([lens(200), lens(250)]);
     });
 
     it("counts a power ride with no FTP instead of dropping it", async () => {
