@@ -7,3 +7,5 @@ docs/personal/
 .DS_Store
 docs/architecture/*.html
 out/
+reports/
+.stryker-tmp/

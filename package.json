@@ -17,7 +17,8 @@
     "eval:capture": "tsx evals/skills/capture.ts",
     "eval:compare": "tsx evals/skills/compare.ts",
     "eval:cases": "tsx evals/skills/cases.ts",
-    "eval:grade": "tsx evals/skills/grade.ts"
+    "eval:grade": "tsx evals/skills/grade.ts",
+    "mutate": "stryker run"
   },
   "keywords": [
     "intervals-icu",
@@ -43,6 +44,8 @@
   },
   "devDependencies": {
     "@anthropic-ai/claude-agent-sdk": "0.3.270",
+    "@stryker-mutator/core": "10.0.0",
+    "@stryker-mutator/vitest-runner": "10.0.0",
     "@types/node": "^22.0.0",
     "@typesafe-ai/sdk": "0.6.0",
     "husky": "^9.1.7",
