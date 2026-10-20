@@ -131,6 +131,21 @@ together.
   date pins them; it never reads them.
 - Fixtures captured from Intervals.icu are real responses (`scripts/capture-*`), not hand-written
   shapes.
+- **A test must be able to fail.** Before keeping one, name the plausible bug in `src/` that
+  turns it red. If only an edit to the test itself could, delete it.
+- **Never assert what a stub returned.** When a handler is a call and a reshape, test the call's
+  arguments and the reshape — not that the mock's value comes back. A forwarding handler's test
+  checks the arguments and nothing else.
+- **Pass-through arguments use values distinct from the defaults.** A test that passes the
+  default can't tell "forwards it" from "hard-codes it".
+- **Expected values are literals, or come from a source the code doesn't share.** Never compute
+  the expectation with the function under test or a helper it calls. A captured fixture or a
+  value from the device (a CRC, a platform figure) is a valid oracle.
+- **Output schemas are tested against captured real results only** (`tests/tool-outputs.test.ts`),
+  never against a hand-written stub fed through a handler.
+- **Don't re-test what something else already guarantees.** Constants restated as literals,
+  fields `defineTool`'s type already requires, and a limit already pinned by the error message
+  that quotes it add nothing. Pin a constant through the behaviour it governs.
 
 ## Comments
 
