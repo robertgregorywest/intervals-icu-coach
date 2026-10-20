@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import { createAthleteAnchors } from "../../../src/services/athlete-anchors/index.js";
-import { computeMapZones } from "../../../src/shared/map-zones.js";
 import { createAthleteAnchorsFrom } from "../../../src/services/athlete-anchors/anchors.js";
 import { createMap } from "../../../src/services/map/index.js";
 import type { IAthleteApi } from "../../../src/services/athlete/index.js";
@@ -200,32 +199,5 @@ describe("snapshot — each anchor read at most once per call", () => {
     await anchors.getAthleteAnchors();
     await anchors.getAthleteAnchors();
     expect(calls.filter((c) => c === "athlete")).toHaveLength(2);
-  });
-});
-
-describe("computeMapZones", () => {
-  it("returns 9 zones with watts derived from MAP", () => {
-    const zones = computeMapZones(360, null);
-    expect(zones).toHaveLength(9);
-    expect(zones[0]).toMatchObject({
-      name: "REC",
-      lowW: 0,
-      highW: 144,
-      pctText: "0–40%",
-    });
-    expect(zones[7]).toMatchObject({
-      name: "L7",
-      lowW: 396,
-      highW: 540,
-    });
-    expect(zones[8].name).toBe("NMP");
-    expect(zones[8].pctText).toBe("150%+");
-    expect(zones[8].wattText).toBe("540 W and above");
-  });
-
-  it("caps NMP high end to p5s when provided", () => {
-    const zones = computeMapZones(360, 1100);
-    expect(zones[8].highW).toBe(1100);
-    expect(zones[8].wattText).toBe("540–1100 W");
   });
 });

@@ -44,4 +44,24 @@ describe("dateRange — the one guard", () => {
     expect(() => dateRange("2026-9-1", "2026-09-10")).toThrow(/YYYY-MM-DD/);
     expect(() => dateRange("2026-09-01", "soon")).toThrow(/YYYY-MM-DD/);
   });
+
+  // An expanded-year date parses as a real date, so only the format check
+  // stands between it and the range.
+  it("refuses a date that parses but is not YYYY-MM-DD", () => {
+    expect(() => dateRange("+002026-09-01", "2026-09-10")).toThrow(
+      /YYYY-MM-DD/
+    );
+    expect(() => dateRange("2026-09-01", "+002026-09-10")).toThrow(
+      /YYYY-MM-DD/
+    );
+  });
+
+  it("tells the caller how to fix a refused range", () => {
+    expect(() => dateRange("2026-09-02", "2026-09-01")).toThrow(
+      /Supply oldest then newest\./
+    );
+    expect(() =>
+      dateRange("2026-09-01", "2026-09-29", { maxDays: 28 })
+    ).toThrow(/maximum\. Narrow the range and try again\.$/);
+  });
 });

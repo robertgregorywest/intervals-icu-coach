@@ -16,6 +16,13 @@ describe("computeBestPower", () => {
     expect(result).toBeNull();
   });
 
+  it("measures a window exactly as long as the stream", () => {
+    expect(computeBestPower([100, 200, 300], 3)).toEqual({
+      bestPower: 200,
+      startIndex: 0,
+    });
+  });
+
   it("handles single-second duration", () => {
     const stream = [100, 300, 200];
     const result = computeBestPower(stream, 1);

@@ -20,6 +20,12 @@ describe("planFtp — the one event → ride → athlete order", () => {
     expect(planFtp(null, null, 286)).toBe(286);
   });
 
+  it("treats a non-numeric or non-finite FTP as unset", () => {
+    for (const icu_ftp of ["300", Number.NaN, Infinity]) {
+      expect(planFtp({ icu_ftp }, null, 286), String(icu_ftp)).toBe(286);
+    }
+  });
+
   it("answers null rather than guessing", () => {
     expect(planFtp({}, null, null)).toBeNull();
   });
