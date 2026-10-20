@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { normalizeActivityId } from "../shared/activity-id.js";
+import { isCalendarDate } from "../shared/dates.js";
 import { ZONE_NAMES } from "../shared/map-zones.js";
 
 export const CHARACTER_LIMIT = 25_000;
@@ -8,7 +9,8 @@ export const MAX_LIST_LIMIT = 200;
 
 export const dateString = z
   .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "must be YYYY-MM-DD");
+  .regex(/^\d{4}-\d{2}-\d{2}$/, { message: "must be YYYY-MM-DD", abort: true })
+  .refine(isCalendarDate, "must be a real calendar date");
 
 /**
  * An activity ID as callers give it — the "i"-prefixed string or a bare number.

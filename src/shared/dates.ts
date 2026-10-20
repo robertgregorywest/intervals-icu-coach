@@ -4,6 +4,18 @@
  * these rather than re-deriving them.
  */
 
+/**
+ * Whether a string names a real day as YYYY-MM-DD. V8 parses a day past the
+ * end of its month as the next month's — 2026-02-30 is 2 March — so a date
+ * counts only if it survives the round trip unchanged.
+ */
+export function isCalendarDate(date: string): boolean {
+  const time = Date.parse(`${date}T00:00:00Z`);
+  return (
+    !Number.isNaN(time) && new Date(time).toISOString().slice(0, 10) === date
+  );
+}
+
 /** Shift a date by whole days. */
 export function shiftDate(date: string, delta: number): string {
   const d = new Date(`${date}T00:00:00Z`);
