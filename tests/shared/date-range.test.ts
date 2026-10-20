@@ -56,6 +56,22 @@ describe("dateRange — the one guard", () => {
     );
   });
 
+  // V8 parses a day past the end of its month as the next month's.
+  it("refuses a day the month doesn't have, rather than rolling it over", () => {
+    for (const date of ["2026-02-29", "2026-02-30", "2026-04-31"]) {
+      expect(() => dateRange("2026-01-01", date), date).toThrow(
+        /not a calendar date: "\d{4}-\d{2}-\d{2}"/
+      );
+      expect(() => dateRange(date, "2026-12-31"), date).toThrow(
+        /not a calendar date/
+      );
+    }
+  });
+
+  it("accepts a leap day in a leap year", () => {
+    expect(dateRange("2024-02-29", "2024-03-01").days).toBe(2);
+  });
+
   it("tells the caller how to fix a refused range", () => {
     expect(() => dateRange("2026-09-02", "2026-09-01")).toThrow(
       /Supply oldest then newest\./

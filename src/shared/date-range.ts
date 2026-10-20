@@ -1,4 +1,4 @@
-import { daysBetween } from "./dates.js";
+import { daysBetween, shiftDate } from "./dates.js";
 
 /** A date range that has passed the guard: real, ordered, within its cap. */
 export interface DateRange {
@@ -34,6 +34,16 @@ export function dateRange(
   const days = daysBetween(oldest, newest) + 1;
   if (!ISO_DATE.test(oldest) || !ISO_DATE.test(newest) || Number.isNaN(days)) {
     throw new Error(`Dates must be YYYY-MM-DD; got "${oldest}".."${newest}".`);
+  }
+  for (const date of [oldest, newest]) {
+    // V8 parses a day past the end of its month as the next month's —
+    // 2026-02-30 is 2 March — so a typo would quietly become another day.
+    // A real date survives the round trip unchanged.
+    if (shiftDate(date, 0) !== date) {
+      throw new Error(
+        `Dates must be real days; not a calendar date: "${date}".`
+      );
+    }
   }
   if (days < 1) {
     throw new Error(
