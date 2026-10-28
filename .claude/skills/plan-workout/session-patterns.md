@@ -6,7 +6,7 @@ All targets in `%MAP` or `%FTP` — convert to watts before emitting (see [power
 
 ## Z2 / endurance
 
-Canonical shape: library workout `z2-endurance-2h` (2h), or `miet-60` (60min, higher intensity, for when Z2 volume is time-constrained). NP cap ≤ 68% MAP regardless of duration — sustained, no pulses.
+Canonical shape: library workout `z2-endurance-2h` (2h), or `miet-60` (60min, higher intensity, for when Z2 volume is time-constrained). NP cap ≤ 65% MAP (top of CycleCoach L2) regardless of duration — sustained, no pulses.
 
 ## Sweet spot
 

@@ -22,7 +22,7 @@ The framework underneath every decision. One line each; the rationale is in the 
 1. **Consistency** — progress compounds from showing up; frequency over heroics. Have a "minimum
    viable week" and a plan B. → [consistency.md](consistency.md)
 2. **Structure** — sessions serve a bigger picture; default to a pyramidal mix; progress one
-   variable at a time. → [structure.md](structure.md); inside four weeks of an A race the build
+   variable at a time; vary the format, not the dose. → [structure.md](structure.md); inside four weeks of an A race the build
    rules invert → [peaking.md](peaking.md)
 3. **Recovery** — adaptation happens between sessions; easy must be truly easy; plan rest. For
    masters, recovery quality is the rate-limiter. → [recovery.md](recovery.md)
@@ -44,8 +44,9 @@ on the fixed gear). → [intensity-anchoring.md](intensity-anchoring.md)
 
 Hard constraints the coach should **always** respect.
 
-- Z2 NP cap **≤ 68% MAP** — compute from live MAP, never a cached wattage. Short excursions fine
-  if NP stays capped.
+- Z2 NP cap **≤ 65% MAP** — the top of CycleCoach L2 (core endurance, 50–65% MAP), the band the
+  MAP zones port from cyclecoach.com/calculator. Compute from live MAP, never a cached wattage.
+  Short excursions fine if NP stays capped.
 - **No high-intensity day after heavy strength.**
 - **Two-a-days only** on weekends or work-from-home days.
 - **Strength stacks on hard ride days**, a few hours' separation — ride AM, gym PM. Easy days stay
@@ -53,7 +54,9 @@ Hard constraints the coach should **always** respect.
 - **Protect quality before track** — no fatiguing day the day before a track session.
 - **Recovery week every 3–4 weeks** of build.
 - **Progress one variable per week** — duration _or_ intensity, not both.
-- **Long rides ≥ 2 h fuelled** at ~60–90 g carbs/hr; protein 20–30 g every 3–4 h across the day.
+- **Long rides ≥ 2 h fuelled** at ~80–90 g carbs/hr (60 g/hr is the floor, not the target);
+  protein 1.6–2.2 g/kg/day across 4–5 even feeds, 30–40 g after hard sessions.
+  → [nutrition.md](nutrition.md)
 
 ## Biases
 

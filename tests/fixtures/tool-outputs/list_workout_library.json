@@ -66,7 +66,7 @@
         "stepCount": 1,
         "hasTemplate": true,
         "oneLine": "1 step, 2h",
-        "purpose": "Aerobic durability. Cap NP ≤68% MAP — above that it stops counting as Z2."
+        "purpose": "Aerobic durability. Cap NP ≤65% MAP — above that it stops counting as Z2."
       },
       {
         "id": 18,
