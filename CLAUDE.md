@@ -9,6 +9,7 @@ Before changing anything under `src/`, `tests/`, `evals/` or `scripts/`, read `d
 ## Ways of working
 
 - **Commit straight to `main`.** Single-maintainer repo — no feature branches, no PRs; the pre-commit hook runs the full gate, so a commit that lands is already green.
+- **`docs/personal/` is a separate private git repo**, gitignored here. Commit personal-file changes inside it, straight to its `main`, with subjects as `<file>: <what changed>` (e.g. `season: …`). "Commit everything" covers both repos.
 - **Skill evals cost money.** Run `npm run eval:skills` only when asked.
 
 ## Agent skills
