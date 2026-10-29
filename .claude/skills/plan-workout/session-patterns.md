@@ -18,7 +18,7 @@ Canonical shape: library workout `threshold-2x20` — the bread-and-butter dose.
 
 ## VO2 / MAP
 
-Canonical shape: library workout `vo2-4x4` — the default, highest fraction of time at VO2max per minute of work. Alternates: `vo2-30-30` (lower peripheral cost per rep, use when 4×4 has been overdone), 5×3 / 6×3, or the denser [vo2-preloaded-shorts.md](vo2-preloaded-shorts.md) primer (seeded as `vo2-preloaded-shorts`). **VO2 should not stack with heavy strength the day before** (philosophy permitting).
+Canonical shape: library workout `vo2-4x4` — the default, highest fraction of time at VO2max per minute of work. Alternates: `vo2-30-30` (lower peripheral cost per rep, use when 4×4 has been overdone), 5×3 / 6×3, or the denser [vo2-preloaded-shorts.md](vo2-preloaded-shorts.md) primer (seeded as `vo2-preloaded-shorts`). Short intermittents (`vo2-30-30`, preloaded) are never repeated unchanged week to week — progress them across a block by series, then reps, then work:rest ratio, per the **Progression** scheme in [vo2-preloaded-shorts.md](vo2-preloaded-shorts.md). **VO2 should not stack with heavy strength the day before** (philosophy permitting).
 
 ## Race-prep / race-pace
 

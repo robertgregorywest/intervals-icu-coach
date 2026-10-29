@@ -13,13 +13,13 @@ A dense VO2 format: open each series with one long interval to prime VO2, then a
 - Series count: 2–4. Three series at 12 reps ≈ 6 min preload + 9 min short work / session — a heavy stimulus; trim before adding.
 - Anchor: %MAP. Don't use %FTP for the short reps — the kinetics argument is about VO2, not lactate threshold.
 
-**Progression** — Repeating the same short-intermittent session week after week stagnates: it's already near-maximal and leaves no room to push (Ronnestad et al. 2015, 2020). Apply progressive overload by manipulating three variables, in this order:
+**Progression** — This applies to plain 30/30s (`vo2-30-30`) as much as to the preloaded variant. Repeating the same short-intermittent session week after week stagnates: it's already near-maximal and leaves no room to push (Ronnestad et al. 2015, 2020). Apply progressive overload by manipulating three variables, in this order:
 
 1. **Series count** — 2 → 3.
 2. **Reps per series** — start short (e.g. 8) and grow toward 12.
 3. **Work:recovery ratio** — 1:1 → 3:2 → 2:1 (e.g. 30/30 → 30/20 → 40/20).
 
-When stepping up the work:rec ratio (steps 4–5 below), drop series length one notch in the first session at the new ratio, then re-grow. Example block (Ronnestad-style, no preload — for the preloaded variant start one notch lighter because the preload adds load):
+When stepping up the work:rec ratio (weeks 3 and 5 in the block below), drop series length one notch in the first session at the new ratio, then re-grow. Example block (Ronnestad-style, no preload — for the preloaded variant start one notch lighter because the preload adds load):
 
 | Week | Session 1  | Session 2  |
 | ---- | ---------- | ---------- |
