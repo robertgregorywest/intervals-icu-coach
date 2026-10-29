@@ -1,11 +1,8 @@
 # Steering
 
-Personal overrides on top of the tracked `coaching-philosophy` skill. This layer is **yours** and
-**gitignored**, and **wins on conflict**. It holds what is true for you beyond this season and names
-the philosophy rule it changes or adds to. Every other fact has another home — see
-`context-files.md` in the `coaching-session` skill. Proven beliefs graduate up into the philosophy.
+This layer is **yours** and **gitignored**. An empty steering file is fine.
 
-An empty steering file is fine — it means "follow the philosophy as written."
+Before editing, read `context-files.md` in the `coaching-session` skill.
 
 ## Overrides
 
