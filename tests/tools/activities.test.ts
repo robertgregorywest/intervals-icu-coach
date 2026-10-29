@@ -289,6 +289,7 @@ describe("getActivityLaps tool handler", () => {
           averageWatts: 285,
           normalizedWatts: 288,
           averageHeartrate: 170,
+          maxHeartrate: 181,
           averageCadence: 92,
         },
       ]),
@@ -302,6 +303,8 @@ describe("getActivityLaps tool handler", () => {
       elapsedSeconds: 1245,
       avgWatts: 285,
       npWatts: 288,
+      avgHr: 170,
+      maxHr: 181,
       distanceMeters: 12000.5,
     });
   });

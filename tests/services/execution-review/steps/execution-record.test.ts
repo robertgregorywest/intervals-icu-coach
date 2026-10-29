@@ -271,4 +271,20 @@ describe("lapsToDeliveredIntervals", () => {
     expect(delivered).toHaveLength(1);
     expect(delivered[0].averageWatts).toBe(300);
   });
+
+  it("carries the lap's peak heart rate beside its average", () => {
+    const delivered = lapsToDeliveredIntervals([
+      {
+        index: 0,
+        startTimeSeconds: 0,
+        durationSeconds: 240,
+        averageWatts: 340,
+        averageHeartrate: 152,
+        maxHeartrate: 163,
+      },
+    ]);
+
+    expect(delivered[0].averageHeartrate).toBe(152);
+    expect(delivered[0].maxHeartrate).toBe(163);
+  });
 });

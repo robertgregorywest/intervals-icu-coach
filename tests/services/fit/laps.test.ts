@@ -69,6 +69,9 @@ describe("decodeLaps", () => {
     const laps = fit.decodeLaps(realFitFile())!;
 
     expect(laps[8].averageHeartrate).toBe(142);
+    // Cross-checked against fitparse: the lap's own max_heart_rate field.
+    expect(laps[8].maxHeartrate).toBe(155);
+    expect(laps[12].maxHeartrate).toBe(159);
     expect(laps[8].averageCadence).toBe(88);
     expect(laps[8].maxWatts).toBe(446);
   });

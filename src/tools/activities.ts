@@ -179,6 +179,7 @@ const getActivityLapsOutputSchema = z.object({
       npWatts: z.number().optional(),
       maxWatts: z.number().optional(),
       avgHr: z.number().optional(),
+      maxHr: z.number().optional(),
       avgCadence: z.number().optional(),
     })
   ),
@@ -191,7 +192,7 @@ export const getActivityLapsTool = defineTool({
     "not Intervals.icu's derived icu_intervals. Use this to read a race, time trial or benchmark effort, " +
     "where no planned event exists for compare_planned_vs_actual. " +
     "Per lap: startSeconds (offset from first lap), elapsedSeconds, timerSeconds, distanceMeters, " +
-    "avgWatts, npWatts, maxWatts, avgHr, avgCadence. " +
+    "avgWatts, npWatts, maxWatts, avgHr, maxHr, avgCadence. " +
     "avgWatts is the device's own average over timerSeconds while the lap spans elapsedSeconds, so it reads a little above " +
     "the same window re-averaged from get_activity_streams (same energy, smaller denominator) — both are right; " +
     "quote the lap figure for execution, and take points for a CP/W′ fit from get_power_curve. " +
@@ -233,6 +234,7 @@ export const getActivityLapsTool = defineTool({
         npWatts: lap.normalizedWatts,
         maxWatts: lap.maxWatts,
         avgHr: lap.averageHeartrate,
+        maxHr: lap.maxHeartrate,
         avgCadence: lap.averageCadence,
       })),
     };

@@ -495,6 +495,26 @@ describe("reviewSession", () => {
     expect(rep.deltas?.cadence).toBe(-15);
   });
 
+  it("carries each delivered step's peak heart rate, which no verdict reads", () => {
+    const result = reviewSession({
+      planned: [
+        step({ index: 0, durationSeconds: 240, target: { watts: 340 } }),
+      ],
+      intervals: [
+        delivered({
+          durationSeconds: 240,
+          averageWatts: 340,
+          averageHeartrate: 151,
+          maxHeartrate: 164,
+        }),
+      ],
+      tolerance: DEFAULT_TOLERANCE,
+    });
+
+    expect(result.steps[0].delivered?.maxHeartrate).toBe(164);
+    expect(result.steps[0].verdict).toBe("on-target");
+  });
+
   it("carries the roll-up including the platform's own compliance", () => {
     const { planned, intervals, event, activity } = loadPair("sweet-spot-3x12");
 
@@ -710,5 +730,15 @@ describe("toDeliveredIntervals", () => {
     expect(out[0].averageWatts).toBe(250);
     // A zero cadence reading is absent data, not a real zero.
     expect(out[0].averageCadence).toBeUndefined();
+  });
+
+  it("carries peak heart rate, treating a zero as absent", () => {
+    const out = toDeliveredIntervals([
+      { elapsed_time: 240, average_heartrate: 150, max_heartrate: 164 },
+      { elapsed_time: 240, average_heartrate: 150, max_heartrate: 0 },
+    ] as never);
+
+    expect(out[0].maxHeartrate).toBe(164);
+    expect(out[1].maxHeartrate).toBeUndefined();
   });
 });

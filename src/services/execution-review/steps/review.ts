@@ -118,6 +118,7 @@ export function toDeliveredIntervals(
       averageWatts: positiveOrUndefined(iv.average_watts),
       averageCadence: positiveOrUndefined(iv.average_cadence),
       averageHeartrate: positiveOrUndefined(iv.average_heartrate),
+      maxHeartrate: positiveOrUndefined(iv.max_heartrate),
     }))
     .filter((iv) => iv.durationSeconds > 0);
 }
@@ -406,6 +407,7 @@ export function reviewSession(
         averageWatts: delivered.averageWatts,
         averageCadence: delivered.averageCadence,
         averageHeartrate: delivered.averageHeartrate,
+        maxHeartrate: delivered.maxHeartrate,
         normalizedWatts,
         coastingFraction: window ? coastingFraction(window) : undefined,
       },

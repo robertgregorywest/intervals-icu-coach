@@ -14,6 +14,7 @@ export interface FitLap {
   normalizedWatts?: number;
   maxWatts?: number;
   averageHeartrate?: number;
+  maxHeartrate?: number;
   averageCadence?: number;
 }
 

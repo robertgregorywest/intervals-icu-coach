@@ -76,6 +76,7 @@ export interface DeliveredInterval {
   averageWatts?: number;
   averageCadence?: number;
   averageHeartrate?: number;
+  maxHeartrate?: number;
 }
 
 /** One planned step next to what was delivered for it. */
@@ -98,6 +99,7 @@ export interface AlignedStep {
     averageWatts?: number;
     averageCadence?: number;
     averageHeartrate?: number;
+    maxHeartrate?: number;
     /**
      * Normalized power over this step's window, from the activity's raw power
      * stream. Present whenever the window resolves to at least 30 seconds of

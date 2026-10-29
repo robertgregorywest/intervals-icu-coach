@@ -27,6 +27,7 @@ const FIELD_TOTAL_ELAPSED_TIME = 7;
 const FIELD_TOTAL_TIMER_TIME = 8;
 const FIELD_TOTAL_DISTANCE = 9;
 const FIELD_AVG_HEART_RATE = 15;
+const FIELD_MAX_HEART_RATE = 16;
 const FIELD_AVG_CADENCE = 17;
 const FIELD_AVG_POWER = 19;
 const FIELD_MAX_POWER = 20;
@@ -94,6 +95,9 @@ function toLaps(raw: Array<Map<number, number>>): FitLap[] {
 
     const hr = m.get(FIELD_AVG_HEART_RATE);
     if (hr !== undefined) lap.averageHeartrate = hr;
+
+    const maxHr = m.get(FIELD_MAX_HEART_RATE);
+    if (maxHr !== undefined) lap.maxHeartrate = maxHr;
 
     const cadence = m.get(FIELD_AVG_CADENCE);
     if (cadence !== undefined) lap.averageCadence = cadence;

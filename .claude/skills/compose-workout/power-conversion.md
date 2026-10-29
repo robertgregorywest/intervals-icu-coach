@@ -54,14 +54,14 @@ seedId: vo2-4x4
 name: VO2 4×4
 folder: "Coach: VO2 Max"
 basis: MAP
-purpose: Default VO2 session. Highest time-at-VO2max per minute of work.
+purpose: Long-rep VO2 session — the entry point to the main VO2 block, and VO2 maintenance.
 ---
 
 - Warm-up 15m 50-60%
 
 4x
 
-- On 4m 95-102%
+- On 4m 78-85%
 - Off 4m 50%
 
 - Cooldown 10m 45%

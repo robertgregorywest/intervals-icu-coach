@@ -53,6 +53,8 @@ Hard constraints the coach should **always** respect.
   MAP zones port from cyclecoach.com/calculator. Compute from live MAP, never a cached wattage.
   Short excursions fine if NP stays capped.
 - **No high-intensity day after heavy strength.**
+- **VO₂ work is prescribed and judged on power** — %MAP, never %FTP. Heart rate checks the
+  stimulus (the final rep or series reaching ≥90% HRmax) and is never the outcome.
 - **Two-a-days only** on weekends or work-from-home days.
 - **Strength stacks on hard ride days**, a few hours' separation — ride AM, gym PM. Easy days stay
   truly easy.

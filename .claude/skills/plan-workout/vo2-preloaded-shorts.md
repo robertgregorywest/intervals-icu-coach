@@ -1,35 +1,24 @@
-# Preloaded short intermittents (VO2 primer)
+# Preloaded short intermittents
 
 A dense VO2 format: open each series with one long interval to prime VO2, then a cluster of short reps that start already near VO2peak. Canonical shape: library workout `vo2-preloaded-shorts` (`get_workout_library_item` for the current rendered body).
 
-**Why** — Aerobic adaptation from HIT scales with _time spent at a high fraction of VO2max_ during work bouts (Odden et al. 2024). Short intermittents (15–40 s @ Z5, 1:1–3:2 work-rest) accumulate more time near VO2peak than long intervals because the short recoveries don't let VO2 fall. **But** short-format VO2 _kinetics_ are slow at series start — the first few reps sit well below 90% VO2peak before the system stabilises (Vaccari et al. 2020). Opening each series with one ~2 min long interval primes VO2 upward fast, and a short (~30 s) recovery preserves that elevated state, so the short reps that follow start _already_ near 90% VO2peak instead of climbing into it.
+**Why** — Aerobic adaptation from HIT scales with the _fraction of VO2max_ held during work bouts (Odden et al. 2024). Short intermittents accumulate more time near VO2peak than long intervals because the short recoveries don't let VO2 fall, and 30/15s outperformed effort-matched 5-min reps in trained and elite cyclists (Rønnestad et al. 2015, 2020). **But** short-format VO2 _kinetics_ are slow at series start — the first few reps sit well below 90% VO2peak before the system stabilises (Vaccari et al. 2020). Opening each series with one ~2 min long interval primes VO2 upward fast, and a short (~30 s) recovery preserves that elevated state, so the short reps that follow start _already_ near 90% VO2peak instead of climbing into it.
 
-**When to choose this over 4×4 or 30/30** — Pick this when the athlete tolerates 30/30s well but you want more total time at high %VO2max per session, or when their last 30/30 block showed weak first-reps (HR/VO2 slow to rise). Don't use as the first VO2 session of a block — the format is dense and benefits from a base of plain 30/30s first. Avoid stacking with heavy strength the day before (philosophy permitting).
+**When to choose it** — The short-intermittent phase of the main VO₂ block, after the long-rep weeks (`season.md` names the phase; see the VO2 entry in [session-patterns.md](session-patterns.md)). Avoid stacking with heavy strength the day before (philosophy permitting).
 
 **Knobs**
 
-- Preload: 1.5–3 min @ 95–100% MAP. Longer/harder → faster VO2 rise but more peripheral cost; keep cadence ≥ 90.
-- Short on/off: 20/10, 30/15, 30/30, 40/20 are all in range. Lean shorter for fresher athletes, longer for diesels.
-- Series count: 2–4. Three series at 12 reps ≈ 6 min preload + 9 min short work / session — a heavy stimulus; trim before adding.
+- Preload: 2 min, above the long-rep band and well below 2-min max power (≈90–95% MAP for a rider with a low FTP:MAP; nearer 95–100% for a diesel). Cadence ≥ 90.
+- Short on/off: 30/15 by default; 40/20 as the next step (same 2:1, longer reps). Avoid 30/30: 30 s off lets VO₂ fall.
+- Intensity: self-paced, the highest average repeatable across every series, never below the band. Rønnestad's protocols were effort-matched, not %MAP-prescribed.
+- Series count: 3, with 3 min between series. Three series at 12 reps ≈ 6 min preload + 9 min short work / session — a heavy stimulus; trim before adding.
 - Anchor: %MAP. Don't use %FTP for the short reps — the kinetics argument is about VO2, not lactate threshold.
 
-**Progression** — This applies to plain 30/30s (`vo2-30-30`) as much as to the preloaded variant. Repeating the same short-intermittent session week after week stagnates: it's already near-maximal and leaves no room to push (Ronnestad et al. 2015, 2020). Apply progressive overload by manipulating three variables, in this order:
+**Progression** — Self-paced session power is the first progression: Rønnestad's riders repeated one 30/15 protocol twice weekly for 10 weeks and still improved (2015). Step the structure only after a session that landed (the stepping gate in [session-patterns.md](session-patterns.md)), one step per session:
 
-1. **Series count** — 2 → 3.
-2. **Reps per series** — start short (e.g. 8) and grow toward 12.
-3. **Work:recovery ratio** — 1:1 → 3:2 → 2:1 (e.g. 30/30 → 30/20 → 40/20).
+1. **Reps per series** — 3×8 → 3×10 → 3×12.
+2. **Rep length at the same ratio** — 30/15 → 40/20, dropping to 3×8 at the first 40/20 session.
 
-When stepping up the work:rec ratio (weeks 3 and 5 in the block below), drop series length one notch in the first session at the new ratio, then re-grow. Example block (Ronnestad-style, no preload — for the preloaded variant start one notch lighter because the preload adds load):
+Keep the preload fixed; progress only the short-rep cluster. Twice-weekly dosing (Rønnestad, in riders around 30) only as a declared block experiment.
 
-| Week | Session 1  | Session 2  |
-| ---- | ---------- | ---------- |
-| 1    | 2×8 30/30  | 3×8 30/30  |
-| 2    | 3×10 30/30 | 3×12 30/30 |
-| 3    | 3×12 30/30 | 3×10 30/20 |
-| 4    | 3×10 30/20 | 3×12 30/20 |
-| 5    | 3×10 40/20 | 3×10 40/20 |
-| 6    | 3×11 40/20 | 3×12 40/20 |
-
-For the preloaded variant: keep the 2 min @ 95–100% MAP preload fixed across the block; only progress the short-rep cluster. Adding the preload itself is already a stimulus bump versus plain 30/30s — don't also chase the highest series count in week 1.
-
-**Sources** — Odden et al. 2024 (HIT time-at-fraction-of-VO2max), Vaccari et al. 2020 (VO2 kinetics in short vs long intermittents), Ronnestad et al. 2015, 2020 (short-intermittent protocols and progression). Slide decks cached at `docs/personal/instagram/DXUgF3DDAjv/` (preloaded variant) and `docs/personal/instagram/DXgy9CTDHiR/` (progression scheme) — both Instagram @knowledgeiswatt.
+**Sources** — Odden et al. 2024 (gains scale with % of VO2max during intervals); Vaccari et al. 2020 (short-format VO2 kinetics, a long opening bout); Rønnestad et al. 2015, 2020 (30/15 outperforms effort-matched 5-min reps); Sandford et al. 2021 (prescribe supra-MAP work by anaerobic reserve, not %FTP). Preload and progression scheme: @knowledgeiswatt (Instagram), coaching practice, not a trial.

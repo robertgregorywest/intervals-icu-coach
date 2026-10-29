@@ -55,6 +55,7 @@ const alignedStepShape = z.object({
       averageWatts: z.number().optional(),
       averageCadence: z.number().optional(),
       averageHeartrate: z.number().optional(),
+      maxHeartrate: z.number().optional(),
     })
     .optional(),
   deltas: z

@@ -37,6 +37,13 @@ short-rep, long-recovery work before the main VO₂ block (Stern's over-40s sequ
 is reduced, intensity is what holds VO₂max (Hickson et al., 1985, _J Appl Physiol_ 58:492), and
 masters decline tracks the training kept up (Burtscher et al., 2022, _IJERPH_ 19:11050).
 
+**The main VO₂ block: one session a week, two formats.** A masters athlete runs one VO₂ session
+per load week (Stern's over-40s dose); twice weekly is a declared experiment, since the
+twice-weekly trials were in riders around 30. The format changes part-way through the block: long
+reps (3–5 min) first, then preloaded short intermittents (30/15-type), which outperformed
+effort-matched 5-min reps in trained and elite cyclists (Rønnestad et al., 2015, _Scand J Med Sci
+Sports_ 25:143; 2020, 30:849). In race-specific blocks, race-pace reps carry the VO₂ load.
+
 In build blocks, HIT/track work is a _maintenance_ dose and the hard-day budget goes to the sustained
 middle; specific-prep and sharpening blocks deliberately flip that emphasis, and the last four weeks before
 an A race invert the build rules outright ([peaking.md](peaking.md)).

@@ -315,25 +315,30 @@ Bread-and-butter threshold session. Target NP within range, even pacing across r
 <!-- template: threshold-2x20 -->
 
 ========================================================================
-seedId: vo2-30-30
-name:   VO2 30/30s
+seedId: vo2-4x4-surges
+name:   VO2 4×4 with surges
 folder: Coach: VO2 Max
 basis:  MAP @ 415w
 type:   Ride
 ------------------------------------------------------------------------
-VO2 stimulus at lower peripheral cost per rep. Use when 4×4 has been overdone, or when targeting repeatability over peak elicitation.
+Long-rep VO2 variant — same mean power as 4×4, with three 30 s surges per rep to lift VO2.
 
-Microintervals: 30s on / 30s off keeps cumulative time at high aerobic strain while limiting peripheral fatigue per rep. Useful when 4×4 has been overdone or when targeting repeatability rather than peak elicitation.
+Same mean power as `vo2-4x4`, redistributed: three 30 s surges to ~MAP inside each 4-min rep, with settles between. In trained cyclists this raised time above 90% VO₂max at matched mean power (Bossi et al., 2020; acute lab data, one study). The surges aren't sprints — ride them at MAP, not above. Heart rate won't show the difference; judge it on power.
 
 - Warm-up 15m 210w-250w
 
-16x
-- On 30s 455w
-- Off 30s 210w
+4x
+- Surge 30s 395w-415w
+- Settle 1m 290w-310w
+- Surge 30s 395w-415w
+- Settle 1m 290w-310w
+- Surge 30s 395w-415w
+- Settle 30s 290w-310w
+- Off 4m 210w
 
 - Cooldown 10m 185w
 
-<!-- template: vo2-30-30 -->
+<!-- template: vo2-4x4-surges -->
 
 ========================================================================
 seedId: vo2-4x4
@@ -342,14 +347,14 @@ folder: Coach: VO2 Max
 basis:  MAP @ 415w
 type:   Ride
 ------------------------------------------------------------------------
-Default VO2 session. Highest fraction of time at VO2max per minute of work.
+Long-rep VO2 session — the entry point to the main VO2 block, and VO2 maintenance.
 
-Classic VO₂max session. 4-minute hard with equal recovery elicits the highest fraction of time at VO₂max for a given session length (Seiler et al., 2013). Aim to hold final rep ≥ first rep power.
+Classic VO₂max session: 4 min hard with equal recovery. Self-paced inside the band: the highest power you can repeat, final rep ≥ first rep. 78–85% MAP is a starting anchor for a rider whose FTP:MAP is low; recalibrate it to 90–95% of a 5-min test once one exists. (Seiler et al., 2013; Stern, CycleCoach 2025.)
 
 - Warm-up 15m 210w-250w
 
 4x
-- On 4m 395w-425w
+- On 4m 325w-355w
 - Off 4m 210w
 
 - Cooldown 10m 185w
@@ -363,38 +368,38 @@ folder: Coach: VO2 Max
 basis:  MAP @ 415w
 type:   Ride
 ------------------------------------------------------------------------
-Advanced VO2 session — only once 30/30s are well tolerated, and never as the first VO2 session of a block.
+Short-intermittent VO2 session — the second half of the main VO2 block, after the long-rep weeks.
 
-Each series opens with a ~2-min 'preload' interval to drive VO2 upward fast, then a short 30s recovery preserves the elevated state, so the short 30/15s reps that follow start already near 90% VO2peak instead of climbing into it. Net effect: more time at high fraction of VO2max per session than plain 30/30s. Use when 30/30s have been well tolerated and you want to extract more aerobic stimulus per session. Sources: Odden et al. 2024 (HIT time-at-fraction-of-VO2max); Vaccari et al. 2020 (VO2 kinetics, short vs long).
+Each series opens with a 2-min preload to drive VO₂ up, then 30 s easy, so the 30/15s start near VO₂peak instead of climbing into it (Vaccari et al., 2020). Self-paced: the highest power you can repeat across every series; the band is the floor. The preload is work, not warm-up. Bands assume a rider whose ramp MAP overstates 5-min power; a diesel rides the reps nearer 100% MAP. (Rønnestad et al., 2015, 2020; Odden et al., 2024.)
 
 - Warm-up 15m 210w-250w
 
-- Preload 2m 395w-415w 95rpm
+- Preload 2m 375w-395w 95rpm
 
 - Short rec 30s 210w
 
-12x
-- On 30s 415w-435w
+8x
+- On 30s 365w-395w
 - Off 15s 210w
 
 - Series rec 3m 210w
 
-- Preload 2m 395w-415w 95rpm
+- Preload 2m 375w-395w 95rpm
 
 - Short rec 30s 210w
 
-12x
-- On 30s 415w-435w
+8x
+- On 30s 365w-395w
 - Off 15s 210w
 
 - Series rec 3m 210w
 
-- Preload 2m 395w-415w 95rpm
+- Preload 2m 375w-395w 95rpm
 
 - Short rec 30s 210w
 
-12x
-- On 30s 415w-435w
+8x
+- On 30s 365w-395w
 - Off 15s 210w
 
 - Series rec 3m 210w

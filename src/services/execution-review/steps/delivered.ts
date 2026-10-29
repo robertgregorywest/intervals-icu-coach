@@ -34,6 +34,7 @@ export function lapsToDeliveredIntervals(laps: FitLap[]): DeliveredInterval[] {
       averageWatts: lap.averageWatts,
       averageCadence: lap.averageCadence,
       averageHeartrate: lap.averageHeartrate,
+      maxHeartrate: lap.maxHeartrate,
     }))
     .filter((iv) => iv.durationSeconds > 0);
 }
