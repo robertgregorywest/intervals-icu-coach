@@ -6,7 +6,8 @@ description: The athlete's durable cycling coaching philosophy — foundational 
 # coaching-philosophy
 
 Timeless coaching principles for `intervals-icu-coach`. Edit this skill when beliefs about
-_training itself_ change — not every season. It is the **base truth**; a personal override layer
+_training itself_ change — not every season. It is the **best current prior** — the starting point
+an athlete's measured response refines (pillar 7); a personal override layer
 in `docs/personal/steering.md` adjusts or supersedes it per-athlete and **wins on conflict**, and
 `docs/personal/season.md` carries the current block. Durable insight proven in steering graduates
 _up_ into this skill (a git commit).
@@ -32,6 +33,10 @@ The framework underneath every decision. One line each; the rationale is in the 
    day. → [nutrition.md](nutrition.md)
 6. **Durability** — what matters is the power held at hour 3, not fresh FTP; built over months.
    Measure it objectively with aerobic decoupling. → [durability.md](durability.md)
+7. **Individual response** — athletes differ in what works; every default here is a prior, tested
+   against this athlete's measured response. A change of approach runs as an experiment — one at a
+   time, inside a fixed base pattern, judged on delivered dose at a set date.
+   → [individual-response.md](individual-response.md)
 
 ## Intensity anchor
 
@@ -71,7 +76,8 @@ How to think about training trade-offs.
   middle quietly empties. → [structure.md](structure.md)
 - **Session design serves the block goal, not the open questions.** A measurement thread informs
   _why_ a session is shaped as it is, never why it exists; an actionable finding becomes a standing
-  cue in the workout text (a cadence target on race-pace reps), not a test to pass.
+  cue in the workout text (a cadence target on race-pace reps), not a test to pass. Experiments
+  shape the block, never a single session. → [individual-response.md](individual-response.md)
 - **Durability > fresh peak** (late-ride / back-half power) when forced to choose.
 - **Frequency over duration** when life is busy — preserve the rhythm.
 - **Masters: recovery quality is the rate-limiter** — protect it before adding load.
